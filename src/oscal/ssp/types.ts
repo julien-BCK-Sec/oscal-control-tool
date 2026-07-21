@@ -10,6 +10,11 @@ export type OscalImplementationStatusState =
   | "alternative"
   | "not-applicable";
 
+export type OscalRole = {
+  id: string;
+  title: string;
+};
+
 export type OscalParty = {
   uuid: string;
   type: "organization";
@@ -21,6 +26,7 @@ export type OscalMetadata = {
   "last-modified": string;
   version: string;
   "oscal-version": string;
+  roles?: OscalRole[];
   parties?: OscalParty[];
 };
 

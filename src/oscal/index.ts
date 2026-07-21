@@ -10,6 +10,11 @@ export {
 } from "./ssp/exportSsp";
 export { buildSspExportFilename } from "./ssp/filename";
 export { mapImplementationStatusToOscal } from "./ssp/mapStatus";
+export {
+  loadPinnedSspSchema,
+  validateOscalSspDocument,
+} from "./ssp/validateSsp";
+export type { SspSchemaValidationResult } from "./ssp/formatValidationErrors";
 export type {
   OscalSspDocument,
   OscalSystemSecurityPlan,

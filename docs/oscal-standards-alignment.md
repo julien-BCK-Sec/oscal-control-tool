@@ -131,12 +131,31 @@ Neither a full catalog nor a profile. It is a **small static NIST Moderate MVP s
 
 Do **not** treat FedRAMP Rules `CTL` or KSI `controls` arrays as the framework catalog.
 
+## Validation plan
+
+**Current:** AJV validates exported SSP JSON against the pinned
+`vendor/oscal/v1.2.2/schema/oscal_ssp_schema.json` before download. Structural
+only.
+
+**Still deferred:** semantic/cross-document checks; FedRAMP Consolidated Rules
+evaluation; UUID persistence.
+
+### MVP placeholders retained for schema-required fields
+
+| Field | Why retained |
+| --- | --- |
+| `system-information.information-types[]` | Schema requires ≥1; domain has no information types — emits explicit “Unspecified” placeholder |
+| `system-characteristics.status` | Schema requires status; domain has no ops state — `under-development` + remarks |
+| `authorization-boundary.description` | Schema requires description; uses system description or “has not been documented” |
+| Empty / fallback system name & description strings | Required string fields when metadata is blank |
+
+These placeholders are labeled as gaps, not invented operational facts.
+
 ## Gaps before FedRAMP support can be claimed
 
 1. No official FedRAMP OSCAL profile has been located and approved as an input to this project.
-2. Exporter not yet validated with AJV against the pinned SSP schema.
-3. FedRAMP Consolidated Rules not integrated as a separate evaluation layer.
-4. MVP control set is a tiny subset with placeholder statements — not the full Moderate baseline.
-5. Stable document/party/component UUIDs not persisted.
-6. Many SSP-required operational facts still missing from the domain model.
-7. Semantic OSCAL checks (roles, UUID integrity, control-in-profile membership) not implemented.
+2. FedRAMP Consolidated Rules not integrated as a separate evaluation layer.
+3. MVP control set is a tiny subset with placeholder statements — not the full Moderate baseline.
+4. Stable document/party/component UUIDs not persisted.
+5. Many SSP-required operational facts still missing from the domain model.
+6. Semantic OSCAL checks (UUID integrity beyond pattern, control-in-profile membership, profile/catalog package resolution) not implemented.

@@ -86,6 +86,12 @@ export function projectToOscalSsp(
         "last-modified": lastModified,
         version: SSP_DOCUMENT_VERSION,
         "oscal-version": OSCAL_VERSION,
+        roles: [
+          {
+            id: "system-owner",
+            title: "System Owner",
+          },
+        ],
         ...(parties ? { parties } : {}),
       },
       "import-profile": {
