@@ -100,9 +100,12 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Interface: `ProjectRepository` in `src/persistence/`
 - Implementation: Drizzle + `better-sqlite3` under `src/persistence/sqlite/`
 - Server entry: `src/persistence/server.ts` (`server-only`) + `src/app/actions/projects.ts`
-- Database path: `DATABASE_PATH` (default `./data/oscal-control-tool.sqlite`)
-- Setup: `npm run db:migrate` (also `predev`)
+- Database path: `DATABASE_PATH` (default `./data/oscal-control-tool.sqlite` in
+  development/test; **required** in production — no repository-local fallback)
+- Setup: `npm run db:migrate` (also `predev`); production `npm start` migrates
+  before serving
 - Routes: `/projects` (list/create), `/projects/[id]` (workspace with Overview / Controls / Project details / Version history)
+- Health: `GET /api/health` → `{"status":"ok"}` (lightweight DB probe; no secrets)
 - Optional view query: `?view=controls|details|history` (Overview is default when omitted)
 - Theme: light-only (`color-scheme: light`; shared CSS tokens; page background is not flipped by prefers-color-scheme)
 - Stored document: schema version 1 JSON envelope (metadata + implementations + framework id). No framework statements.
@@ -110,6 +113,15 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Snapshots: `project_snapshots` table (`automatic` | `named` | `pre-restore`)
 - Auth: not implemented — assumes trusted local / single-user deployment with a durable filesystem and one Node instance
 
+## Render / Docker deployment
+
+- Guide: `docs/deploy-render.md`
+- Blueprint: `render.yaml` (Docker web service, disk at `/var/data`, paid plan)
+- Production DB: `/var/data/oscal-author.db` via `DATABASE_PATH`
+- Startup: migrate → optional idempotent `SEED_DEMO_PROJECT` seed → `next start -H 0.0.0.0 -p $PORT`
+- Demo seed on deploy never uses `--reset`
+- Single instance only (SQLite on attached disk)
+- Dockerfile is multi-stage; Next.js standalone output is **not** used (preserves migrate/seed + on-disk schema)
 ## Workspace UI (Milestones A/B)
 
 - Shared visual foundation in `src/app/globals.css` (surfaces, text, accent, status, focus, buttons, fields)
@@ -159,6 +171,7 @@ Other gaps:
 - No authentication / multi-user access control
 - Snapshot merge UX deferred (reload-latest on conflict)
 - Ephemeral serverless deployment is not supported by local SQLite
+- Render Docker + persistent disk is the supported remote deployment path (single instance)
 - No dark theme (light theme forced for contrast)
 - Overview OSCAL validation result is not persisted across reloads
 - Projects list completion requires loading each project document (acceptable locally; not optimized for large fleets)

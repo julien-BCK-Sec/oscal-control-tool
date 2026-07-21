@@ -1,0 +1,44 @@
+# Dependencies and build outputs
+node_modules
+.next
+out
+build
+coverage
+*.tsbuildinfo
+
+# Git / IDE
+.git
+.github
+.cursor
+.vscode
+*.md
+!README.md
+
+# Env and local secrets
+.env
+.env.*
+!.env.example
+
+# Local / deployment databases
+data
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.db-shm
+*.db-wal
+deploy-data
+
+# Tests and tooling not needed in the image build context
+**/*.test.ts
+docs
+agent-transcripts
+
+# Misc
+Dockerfile*
+.dockerignore
+render.yaml
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store

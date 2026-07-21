@@ -1,0 +1,29 @@
+# Render Blueprint — single-instance SQLite web service with persistent disk.
+# Persistent disks require a paid instance type and pin the service to one instance.
+# Do not put secrets or credentials in this file.
+#
+# https://render.com/docs/blueprint-spec
+# https://render.com/docs/disks
+
+services:
+  - type: web
+    name: oscal-control-tool
+    runtime: docker
+    plan: starter
+    branch: main
+    healthCheckPath: /api/health
+    # SQLite lives on the attached disk; do not scale horizontally.
+    numInstances: 1
+    disk:
+      name: oscal-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: /var/data/oscal-author.db
+      # Idempotent CGDS demo seed on startup (never uses --reset).
+      # Set to "false" after the first deploy if you no longer want seed checks.
+      - key: SEED_DEMO_PROJECT
+        value: "true"

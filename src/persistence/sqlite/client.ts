@@ -14,7 +14,11 @@ let cached: { db: AppDatabase; sqlite: Database.Database; path: string } | null 
 
 /**
  * Resolve SQLite file path. Server-only; never use NEXT_PUBLIC_*.
- * Default: <cwd>/data/oscal-control-tool.sqlite
+ *
+ * - Development / test: default `<cwd>/data/oscal-control-tool.sqlite`
+ * - Production runtime: DATABASE_PATH is required (no silent local fallback)
+ * - `next build` (NODE_ENV=production + NEXT_PHASE=phase-production-build):
+ *   default is allowed so the build can complete without opening the DB
  */
 export function resolveDatabasePath(
   env: NodeJS.ProcessEnv = process.env,
@@ -25,6 +29,17 @@ export function resolveDatabasePath(
       ? configured
       : path.resolve(/* turbopackIgnore: true */ process.cwd(), configured);
   }
+
+  const isProductionRuntime =
+    env.NODE_ENV === "production" &&
+    env.NEXT_PHASE !== "phase-production-build";
+
+  if (isProductionRuntime) {
+    throw new Error(
+      "DATABASE_PATH must be set in production (e.g. /var/data/oscal-author.db). Refusing to use a repository-local default.",
+    );
+  }
+
   return path.resolve(
     /* turbopackIgnore: true */ process.cwd(),
     "data",

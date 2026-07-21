@@ -100,3 +100,24 @@ Reason:
 
 Date:
 2026-07-21
+
+## ADR-008
+
+Decision:
+Deploy to Render as a single Docker web service with a persistent disk at
+`/var/data` and `DATABASE_PATH=/var/data/oscal-author.db`. Production startup
+migrates SQLite, optionally seeds the CGDS demo idempotently
+(`SEED_DEMO_PROJECT=true`, never `--reset`), then runs Next.js on `0.0.0.0`
+using `PORT`. Do not migrate to Postgres or another network database for this
+deployment path. Do not use Next.js `output: "standalone"` while migrate/seed
+scripts and pinned on-disk artifacts remain part of production startup.
+
+Reason:
+- Preserves the existing SQLite + Drizzle architecture on a durable mount.
+- Fails closed if `DATABASE_PATH` is unset in production (no silent local DB).
+- Keeps a clear health check (`/api/health`) for Render.
+- Avoids standalone packaging that would complicate migrations, seed, and
+  vendor schema access.
+
+Date:
+2026-07-21
