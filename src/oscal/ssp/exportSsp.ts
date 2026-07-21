@@ -156,7 +156,7 @@ export function projectToOscalSsp(
       },
       "control-implementation": {
         description:
-          "Control implementation narratives for the selected NIST Moderate MVP control subset.",
+          "Control implementation narratives for the NIST SP 800-53 Revision 5 Moderate baseline.",
         "implemented-requirements": implementedRequirements,
       },
       "back-matter": {
@@ -165,7 +165,7 @@ export function projectToOscalSsp(
             uuid: profileResourceUuid,
             title: NIST_SP80053_REV5_MODERATE_PROFILE_TITLE,
             description:
-              "Official NIST SP 800-53 Revision 5 Moderate baseline profile (pinned OSCAL content). The application UI currently authors a small MVP subset of this baseline, not the complete profile.",
+              "Official NIST SP 800-53 Revision 5 Moderate baseline profile (pinned OSCAL content).",
             rlinks: [
               {
                 href: NIST_SP80053_REV5_MODERATE_PROFILE_URI,

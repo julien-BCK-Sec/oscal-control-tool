@@ -9,8 +9,8 @@ import type { ProjectMetadata } from "@/data/project";
 export type Project = {
   metadata: ProjectMetadata;
   /**
-   * Application-facing MVP control subset included in the project.
-   * Not a full OSCAL catalog or profile.
+   * Application-facing framework controls included in the project.
+   * Sourced from FrameworkProvider (NIST Moderate), not raw OSCAL.
    */
   frameworkControls: readonly FrameworkControl[];
   /** User-entered implementation data keyed by control ID. */

@@ -1,7 +1,7 @@
 # OSCAL and FedRAMP Standards Alignment
 
 Date: 2026-07-21  
-Status: Active design guidance (labeling and exporter profile reference aligned).
+Status: Active design guidance (NIST Moderate framework derivation complete; FedRAMP still not claimed).
 
 ## Official sources used
 
@@ -29,11 +29,11 @@ An SSP’s `import-profile` must point at an **OSCAL profile**, not at FedRAMP R
 
 | Layer | What it proves |
 | --- | --- |
-| NIST OSCAL JSON Schema (e.g. AJV later) | Structural shape of JSON against the schema |
+| NIST OSCAL JSON Schema (AJV) | Structural shape of JSON against the schema |
 | Semantic OSCAL checks (future) | UUID/role/control/profile link integrity beyond JSON Schema |
 | FedRAMP policy evaluation (future) | Alignment with Consolidated Rules — not OSCAL structure |
 
-AJV (when added) will validate JSON Schema structure only. It will **not** by itself prove:
+AJV validates JSON Schema structure only. It will **not** by itself prove:
 
 - all UUID references resolve;
 - all role IDs are defined;
@@ -61,6 +61,56 @@ vendor/oscal/v1.2.2/
 
 **Not pinned:** resolved profile catalogs, `-min` variants, any FedRAMP-labeled OSCAL baseline. Resolved profiles are derived convenience artifacts; the profile and catalog are the primary source artifacts used by this application.
 
+## FrameworkProvider (application framework source of truth)
+
+The UI no longer uses a handwritten MVP control list.
+
+| Piece | Location |
+| --- | --- |
+| `FrameworkProvider` | `src/data/framework/types.ts` / `provider.ts` |
+| NIST Moderate derivation | `src/framework/nist-moderate/derive.ts` |
+| Generated app framework JSON | `src/data/framework/generated/nist-sp-800-53-rev5-moderate.json` |
+| Derive script | `scripts/derive-nist-moderate-framework.ts` (`npm run derive:framework`) |
+
+**Source of truth for which controls appear:** the pinned Moderate profile `imports[].include-controls[].with-ids`.
+
+**Source of truth for titles, families, and statements:** the pinned SP 800-53 Rev. 5 catalog.
+
+**Where derivation occurs:** build-time (and pretest) Node script. The browser loads only the generated application JSON.
+
+### Statement normalization
+
+Catalog `statement` parts (including nested `item` parts and label props) are flattened to a plain string. Parameter insert tokens such as `{{ insert: param, … }}` are preserved. Guidance and discussion parts are never used as the statement.
+
+### Profile features supported (pinned Moderate profile)
+
+Inspected on the pinned profile; only these selection-related features are used and supported:
+
+- `imports[].href` (not followed; local catalog is paired explicitly)
+- `imports[].include-controls[].with-ids`
+- `merge.as-is: true`
+- `back-matter.resources` (ignored for local pin pairing)
+
+### Unsupported profile features (fail if present and would alter the framework)
+
+This is **not** a universal OSCAL profile engine. Derivation fails clearly if the profile introduces:
+
+- `exclude-controls`
+- `include-all`, `with-child-controls`, `matching`
+- `modify` (parameters/alters)
+- merge strategies other than `as-is: true`
+- other unrecognized profile keys that are not in the allow-list
+
+### NIST Moderate vs future FedRAMP
+
+| | NIST Moderate (current) | FedRAMP (not claimed) |
+| --- | --- | --- |
+| Control selection | NIST Moderate OSCAL profile | Would require an official FedRAMP OSCAL profile (not located/approved) |
+| Control definitions | NIST SP 800-53 catalog | Same catalog family; FedRAMP may tailor further |
+| Policy checks | None | FedRAMP Consolidated Rules (separate layer) |
+
+Do **not** treat FedRAMP Rules `CTL` or KSI `controls` arrays as the framework catalog.
+
 ## SSP `import-profile` (current export)
 
 The exporter emits:
@@ -79,7 +129,7 @@ Do **not** import the catalog directly, FedRAMP Rules, a fabricated FedRAMP prof
 
 ### Current export
 
-Single SSP JSON file. The SSP references a commit-pinned external NIST Moderate profile via back-matter `rlink`.
+Single SSP JSON file. The SSP references a commit-pinned external NIST Moderate profile via back-matter `rlink`. Implemented requirements cover the full derived Moderate control set.
 
 ### Future target
 
@@ -97,39 +147,37 @@ ZIP packaging is not implemented yet.
 
 ```
 vendor/oscal/v1.2.2/          # pinned NIST OSCAL schemas + NIST content
-src/data/framework/           # app-facing NIST Moderate MVP control subset
+src/data/framework/           # FrameworkProvider + generated app-facing framework
+src/framework/nist-moderate/  # build-time profile/catalog derivation (not UI)
 src/data/implementation/      # user implementation state
 src/data/project/             # project metadata
 src/domain/                   # assembled Project model (OSCAL-independent)
-src/oscal/                    # SSP export adapters only
+src/oscal/                    # SSP export + validation adapters
 src/fedramp/                  # future: read-only rules evaluation (not present yet)
 docs/                         # vision, architecture, this alignment note
 ```
 
 ## Application architecture
 
-1. **Domain model** — `Project` (metadata + MVP framework subset + implementations); no OSCAL types.
-2. **NIST profile/catalog** — pinned vendor content; authoritative baseline for `import-profile`.
+1. **Domain model** — `Project` (metadata + framework controls + implementations); no OSCAL types.
+2. **FrameworkProvider** — application `Framework` derived from pinned NIST profile/catalog.
 3. **User implementation** — status/narrative keyed by control ID.
 4. **OSCAL exporter** — pure `Project` → SSP JSON in `src/oscal/`.
-5. **Validation (later)** — AJV against pinned SSP schema (structural only).
+5. **Validation** — AJV against pinned SSP schema (structural only).
 6. **FedRAMP policy evaluation (later)** — Consolidated Rules; never replaces catalog/profile.
 
 ```text
-UI ──► domain Project ──► OSCAL exporter ──► SSP JSON ──► (later) AJV / NIST schema
-                │
-                └──────── MVP subset (labeled NIST Moderate)
-                │
-                └──────── import-profile ──► pinned NIST Moderate profile
-                │
-                └──────── (later) FedRAMP rules engine — parallel
+pinned profile + catalog
+        │
+        ▼ (build-time derive)
+generated Framework JSON ──► FrameworkProvider ──► UI / domain Project
+                                                      │
+                                                      ▼
+                                               OSCAL SSP exporter
+                                                      │
+                                                      ▼
+                                               AJV / pinned SSP schema
 ```
-
-## Current `FrameworkControl[]` meaning
-
-Neither a full catalog nor a profile. It is a **small static NIST Moderate MVP subset** with placeholder statements. Authoritative baseline content remains the pinned NIST catalog + Moderate profile.
-
-Do **not** treat FedRAMP Rules `CTL` or KSI `controls` arrays as the framework catalog.
 
 ## Validation plan
 
@@ -155,7 +203,7 @@ These placeholders are labeled as gaps, not invented operational facts.
 
 1. No official FedRAMP OSCAL profile has been located and approved as an input to this project.
 2. FedRAMP Consolidated Rules not integrated as a separate evaluation layer.
-3. MVP control set is a tiny subset with placeholder statements — not the full Moderate baseline.
-4. Stable document/party/component UUIDs not persisted.
-5. Many SSP-required operational facts still missing from the domain model.
-6. Semantic OSCAL checks (UUID integrity beyond pattern, control-in-profile membership, profile/catalog package resolution) not implemented.
+3. Stable document/party/component UUIDs not persisted.
+4. Many SSP-required operational facts still missing from the domain model.
+5. Semantic OSCAL checks (UUID integrity beyond pattern, control-in-profile membership, profile/catalog package resolution) not implemented.
+6. Narrow profile resolver — not a full OSCAL profile engine.

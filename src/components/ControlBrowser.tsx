@@ -64,7 +64,7 @@ export function ControlBrowser() {
             Controls
           </h1>
           <p className="mt-0.5 text-xs text-zinc-500">
-            NIST SP 800-53 Rev. 5 Moderate (MVP subset)
+            NIST SP 800-53 Rev. 5 Moderate
           </p>
         </div>
         <nav className="flex-1 overflow-y-auto py-2" aria-label="Control list">

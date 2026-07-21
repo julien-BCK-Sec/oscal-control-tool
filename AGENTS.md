@@ -9,19 +9,23 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Project Goal
 
-Build a small, local-first web application that allows a user to document a
-limited NIST SP 800-53 Rev. 5 Moderate MVP control subset and export the
-information as valid OSCAL JSON.
+Build a small, local-first web application that allows a user to document
+NIST SP 800-53 Rev. 5 Moderate controls and export the information as valid
+OSCAL JSON.
 
-The current MVP is intentionally narrow. Do not expand the product into a
-general GRC platform. Do not claim FedRAMP baseline support until an official
-FedRAMP OSCAL profile is located, approved, and integrated.
+The application uses the full pinned NIST SP 800-53 Rev. 5 Moderate baseline
+through a `FrameworkProvider`, derived at build time from the pinned OSCAL
+profile and catalog. The product remains intentionally narrow: do not expand
+it into a general GRC platform. Do not claim FedRAMP baseline support until an
+official FedRAMP OSCAL profile is located, approved, and integrated. FedRAMP
+rules remain a future separate policy layer.
 
 ## Current MVP Scope
 
 The application should:
 
-1. Load a small static NIST SP 800-53 Rev. 5 Moderate MVP control subset.
+1. Load the NIST SP 800-53 Rev. 5 Moderate baseline via `FrameworkProvider`
+   (derived from the pinned OSCAL profile and catalog).
 2. Display the controls in a simple interface.
 3. Allow the user to enter implementation information.
 4. Save project information locally.
@@ -57,6 +61,27 @@ Do not add features outside the current requested task.
   requested.
 - Prefer built-in browser, React, Next.js, TypeScript, and Node.js capabilities
   before adding dependencies.
+
+  ## Session continuity
+
+Before starting substantial work, read:
+
+- `docs/current-state.md`
+- `docs/architecture.md`
+- `docs/roadmap.md`
+- `docs/decisions.md`
+
+After completing a milestone, update `docs/current-state.md` so another session can continue without relying on chat history.
+
+
+## Architecture Principles
+
+- Keep OSCAL out of the UI.
+- The domain model is the source of truth.
+- Standards are pinned, never fetched at runtime.
+- Frameworks are read-only reference data.
+- User implementations are stored separately from framework content.
+- Exporters adapt the domain model; they do not define it.
 
 ## Packages and Current Documentation
 

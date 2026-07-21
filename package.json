@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "derive:framework": "tsx scripts/derive-nist-moderate-framework.ts",
+    "prebuild": "npm run derive:framework",
+    "pretest": "npm run derive:framework",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

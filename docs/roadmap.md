@@ -10,7 +10,7 @@
 - OSCAL validation
 
 ## Milestone 3
-- Official framework import
+- Official framework import (`FrameworkProvider` from pinned NIST Moderate profile + catalog)
 
 ## Milestone 4
 - Word/PDF export
