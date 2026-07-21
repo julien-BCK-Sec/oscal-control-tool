@@ -76,6 +76,19 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Build-time derivation of the full NIST Moderate control set from the pinned profile + catalog
 - Control Browser UX (Milestone 3.5)
 - **Milestone 4:** SQLite-backed projects, Server Actions, debounced autosave, optimistic concurrency, in-session undo/redo, automatic snapshots, immutable named versions, localStorage one-time import
+- **Demo seed:** Canonical CGDS / SGOP development project via `npm run db:seed:demo` (idempotent; `--reset` recreates)
+
+## Demo seed project
+
+- Module: `src/seed/demo/` (world, content, `seedDemoProject`)
+- CLI: `scripts/seed-demo.ts` → `npm run db:seed:demo` / `npm run db:seed:demo -- --reset`
+- Seeds only through `ProjectRepository` into `DATABASE_PATH` (no committed SQLite data)
+- Project name: `Strategic Goose Operations Platform (Demo)`
+- Org / system: Canadian Goose Defence System (CGDS) / Strategic Goose Operations Platform (SGOP)
+- Domain model remains lean: rich org fiction is encoded in `ProjectMetadata.systemDescription` and ~20 control narratives spanning multiple families
+- Recurring cast includes Gary Mercer (system owner; veterinary clearance appears only in the final named version), Priya Sharma (ISSO), Sam Okonkwo (coconut custody), Nadia Fortin (deployment authority), and Steve Kowalski (“See Steve” runbooks)
+- Named versions: Initial Authorization Package → Management Review → Goose Readiness Exercise 2026 → Emergency Coconut Reconciliation → Gary's Annual Performance Review
+- Final seed exports SSP and validates against pinned OSCAL 1.2.2 schema
 
 ## Persistence (Milestone 4)
 

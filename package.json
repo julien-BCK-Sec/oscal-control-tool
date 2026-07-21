@@ -13,6 +13,7 @@
     "test": "tsx --require ./scripts/mock-server-only.cjs --test \"src/**/*.test.ts\"",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --require ./scripts/mock-server-only.cjs scripts/db-migrate.ts",
+    "db:seed:demo": "tsx --require ./scripts/mock-server-only.cjs scripts/seed-demo.ts",
     "db:studio": "drizzle-kit studio",
     "smoke:persistence": "tsx --require ./scripts/mock-server-only.cjs scripts/smoke-persistence.ts",
     "predev": "npm run db:migrate"
