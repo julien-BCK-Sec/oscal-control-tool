@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { FRAMEWORK_CONTROLS } from "@/data/framework";
 import {
   DEFAULT_CONTROL_IMPLEMENTATION,
+  getImplementationsServerSnapshot,
+  getImplementationsSnapshot,
+  replaceImplementations,
+  subscribeToImplementations,
   type ControlImplementation,
   type ImplementationStatus,
 } from "@/data/implementation";
@@ -24,9 +28,11 @@ function getImplementation(
 
 export function ControlBrowser() {
   const [selectedId, setSelectedId] = useState(FRAMEWORK_CONTROLS[0].id);
-  const [implementations, setImplementations] = useState<
-    Record<string, ControlImplementation>
-  >({});
+  const implementations = useSyncExternalStore(
+    subscribeToImplementations,
+    getImplementationsSnapshot,
+    getImplementationsServerSnapshot,
+  );
 
   const selected =
     FRAMEWORK_CONTROLS.find((control) => control.id === selectedId) ??
@@ -37,15 +43,13 @@ export function ControlBrowser() {
     controlId: string,
     patch: Partial<ControlImplementation>,
   ) {
-    setImplementations((previous) => {
-      const current = getImplementation(previous, controlId);
-      return {
-        ...previous,
-        [controlId]: {
-          ...current,
-          ...patch,
-        },
-      };
+    const current = getImplementation(implementations, controlId);
+    replaceImplementations({
+      ...implementations,
+      [controlId]: {
+        ...current,
+        ...patch,
+      },
     });
   }
 
