@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "OSCAL Control Tool",
-  description: "Document FedRAMP Moderate controls and export OSCAL SSP JSON.",
+  description:
+    "Document a NIST SP 800-53 Rev. 5 Moderate MVP control subset and export OSCAL SSP JSON.",
 };
 
 export default function RootLayout({

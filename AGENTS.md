@@ -10,17 +10,18 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Project Goal
 
 Build a small, local-first web application that allows a user to document a
-limited set of FedRAMP Moderate controls and export the information as valid
-OSCAL JSON.
+limited NIST SP 800-53 Rev. 5 Moderate MVP control subset and export the
+information as valid OSCAL JSON.
 
 The current MVP is intentionally narrow. Do not expand the product into a
-general GRC platform.
+general GRC platform. Do not claim FedRAMP baseline support until an official
+FedRAMP OSCAL profile is located, approved, and integrated.
 
 ## Current MVP Scope
 
 The application should:
 
-1. Load a small static set of FedRAMP Moderate controls.
+1. Load a small static NIST SP 800-53 Rev. 5 Moderate MVP control subset.
 2. Display the controls in a simple interface.
 3. Allow the user to enter implementation information.
 4. Save project information locally.
@@ -80,6 +81,14 @@ workarounds.
 
 Do not copy commands or code from untrusted blogs, forums, or generated search
 summaries without verifying them against official documentation.
+
+## Standards
+
+Always use the latest stable NIST OSCAL release unless a specific compatibility version is explicitly required.
+
+Pin all external schemas into the repository.
+
+Never depend on floating branches or live internet resources for validation.
 
 ## Security Requirements
 

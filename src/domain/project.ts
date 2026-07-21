@@ -8,7 +8,10 @@ import type { ProjectMetadata } from "@/data/project";
  */
 export type Project = {
   metadata: ProjectMetadata;
-  /** Read-only framework control definitions included in the project. */
+  /**
+   * Application-facing MVP control subset included in the project.
+   * Not a full OSCAL catalog or profile.
+   */
   frameworkControls: readonly FrameworkControl[];
   /** User-entered implementation data keyed by control ID. */
   implementations: Readonly<Record<string, ControlImplementation>>;
