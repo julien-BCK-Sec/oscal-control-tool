@@ -7,8 +7,17 @@ export {
   buildDemoImplementationsForStage,
   buildDemoMetadata,
   buildFinalDemoImplementations,
+  demoBaselineControlCount,
+  demoFrameworkLabel,
   validateDemoProjectContent,
 } from "./content";
+export {
+  analyzeDemoNarrativeCoverage,
+  buildCompleteDemoImplementations,
+  collectDemoNarratives,
+  familyImplementationCounts,
+  featuredNarratives,
+} from "./controls";
 export {
   findDemoProject,
   formatSeedDemoSummary,

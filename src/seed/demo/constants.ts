@@ -14,8 +14,9 @@ export const DEMO_SNAPSHOT_NAMES = [
 export type DemoSnapshotName = (typeof DEMO_SNAPSHOT_NAMES)[number];
 
 /**
- * Control IDs authored for the demo, spanning multiple 800-53 families.
- * All must exist in the NIST Moderate framework.
+ * Featured control IDs preserved as the quality-standard subset.
+ * The complete demo covers every FrameworkProvider baseline control;
+ * this list is used for early seed stages and preservation tests only.
  */
 export const DEMO_CONTROL_IDS = [
   "ac-1",

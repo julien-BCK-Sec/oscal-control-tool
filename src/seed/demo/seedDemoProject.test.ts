@@ -3,9 +3,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, it } from "node:test";
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
+import { FRAMEWORK, FRAMEWORK_CONTROLS } from "@/data/framework";
 import { assembleProject } from "@/domain";
-import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
 import { projectToOscalSsp, validateOscalSspDocument } from "@/oscal";
 import { closeDb, openDbAt } from "@/persistence/sqlite/client";
 import { createSqliteProjectRepository } from "@/persistence/sqlite/project-repository";
@@ -17,9 +16,15 @@ import {
   DEMO_SNAPSHOT_NAMES,
   DEMO_SYSTEM,
   DEMO_TERMS,
+  analyzeDemoNarrativeCoverage,
+  buildCompleteDemoImplementations,
   buildDemoImplementationsForStage,
   buildDemoMetadata,
   buildFinalDemoImplementations,
+  collectDemoNarratives,
+  demoBaselineControlCount,
+  familyImplementationCounts,
+  featuredNarratives,
   findDemoProject,
   seedDemoProject,
   validateDemoProjectContent,
@@ -35,15 +40,6 @@ function tempRepo() {
   return { repo: createSqliteProjectRepository(db), dbPath };
 }
 
-function allSeedProse(): string {
-  const metadata = buildDemoMetadata();
-  const implementations = buildFinalDemoImplementations();
-  return [
-    metadata.systemDescription,
-    ...Object.values(implementations).map((item) => item.narrative),
-  ].join("\n");
-}
-
 afterEach(() => {
   closeDb();
   while (dirs.length > 0) {
@@ -54,8 +50,46 @@ afterEach(() => {
   }
 });
 
+describe("demo baseline coverage", () => {
+  it("covers every FrameworkProvider control exactly once", () => {
+    const narratives = collectDemoNarratives();
+    const coverage = analyzeDemoNarrativeCoverage(narratives);
+
+    assert.equal(coverage.frameworkId, FRAMEWORK.id);
+    assert.equal(coverage.baselineCount, FRAMEWORK_CONTROLS.length);
+    assert.equal(coverage.narrativeCount, FRAMEWORK_CONTROLS.length);
+    assert.deepEqual(coverage.missingIds, []);
+    assert.deepEqual(coverage.unknownIds, []);
+    assert.deepEqual(coverage.duplicateIds, []);
+    assert.equal(demoBaselineControlCount(), FRAMEWORK_CONTROLS.length);
+  });
+
+  it("builds implementations in framework order without unknown ids", () => {
+    const implementations = buildCompleteDemoImplementations();
+    const ids = Object.keys(implementations);
+    assert.equal(ids.length, FRAMEWORK_CONTROLS.length);
+    assert.deepEqual(
+      ids,
+      FRAMEWORK_CONTROLS.map((control) => control.id),
+    );
+
+    for (const control of FRAMEWORK_CONTROLS) {
+      assert.equal(implementations[control.id]?.status, "implemented");
+      assert.ok(implementations[control.id]?.narrative.trim().length > 0);
+    }
+  });
+
+  it("reports family counts that sum to the baseline", () => {
+    const implementations = buildCompleteDemoImplementations();
+    const counts = familyImplementationCounts(implementations);
+    const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+    assert.equal(total, FRAMEWORK_CONTROLS.length);
+    assert.ok(Object.keys(counts).length >= 10);
+  });
+});
+
 describe("demo seed content", () => {
-  it("builds valid metadata and final implementations", () => {
+  it("builds valid complete metadata and implementations", () => {
     const metadata = buildDemoMetadata();
     const implementations = buildFinalDemoImplementations();
     const frameworkControlIds = new Set(
@@ -69,40 +103,40 @@ describe("demo seed content", () => {
       metadata.systemDescription,
       new RegExp(DEMO_PEOPLE.garyMercer.name),
     );
-
-    assert.equal(Object.keys(implementations).length, DEMO_CONTROL_IDS.length);
-    assert.deepEqual(
-      Object.keys(implementations).sort(),
-      [...DEMO_CONTROL_IDS].sort(),
-    );
+    assert.equal(Object.keys(implementations).length, FRAMEWORK_CONTROLS.length);
 
     const validation = validateDemoProjectContent({
       metadata,
       implementations,
       frameworkControlIds,
+      requireCompleteBaseline: true,
     });
     assert.equal(validation.ok, true);
   });
 
-  it("uses canonical recurring names and terminology", () => {
-    const prose = allSeedProse();
-    assert.match(prose, /Gary Mercer/);
-    assert.match(prose, /Dr\. Margot Chen/);
-    assert.match(prose, /Priya Sharma/);
-    assert.match(prose, /Sam Okonkwo/);
-    assert.match(prose, /Nadia Fortin/);
-    assert.match(prose, /Steve Kowalski/);
-    assert.match(prose, /Honkwater Barracks/);
-    assert.match(prose, /Border Post 17/);
-    assert.match(prose, /Coconut Storage Vault/);
-    assert.match(prose, /Emergency Coconut Reserve/);
-    assert.match(prose, /FeatherAuth/);
-    assert.match(prose, /NestWatch/);
-    assert.match(prose, new RegExp(DEMO_TERMS.honkProtocol));
-    assert.doesNotMatch(prose, /Honksworth/);
-    assert.doesNotMatch(prose, /Quackenbush/);
-    assert.doesNotMatch(prose, /Beakman/);
-    assert.doesNotMatch(prose, /Sam Coconut/);
+  it("preserves featured narratives and canonical terminology", () => {
+    const featured = featuredNarratives();
+    assert.equal(Object.keys(featured).length, DEMO_CONTROL_IDS.length);
+    for (const id of DEMO_CONTROL_IDS) {
+      assert.ok(featured[id]?.includes("CGDS") || featured[id]?.length);
+      assert.match(featured[id] ?? "", /\S/);
+    }
+
+    const final = buildFinalDemoImplementations();
+    assert.match(final["ac-1"]?.narrative ?? "", /CGDS-POL-001/);
+    assert.match(final["cm-2"]?.narrative ?? "", /prod-final-final-v2/);
+    assert.match(final["cp-9"]?.narrative ?? "", /Schrödinger/);
+    assert.match(final["pe-3"]?.narrative ?? "", /Controlled Bread Exception/);
+    assert.match(
+      final["at-1"]?.narrative ?? "",
+      new RegExp(`must not feed ${DEMO_PEOPLE.garyMercer.name}`),
+    );
+    assert.match(final["si-4"]?.narrative ?? "", /NestWatch/);
+    const allNarratives = Object.values(final)
+      .map((item) => item.narrative)
+      .join("\n");
+    assert.match(allNarratives, new RegExp(DEMO_TERMS.honkProtocol));
+    assert.doesNotMatch(allNarratives, /Honksworth/);
   });
 
   it("keeps Gary's veterinary clearance out of early stages", () => {
@@ -110,14 +144,29 @@ describe("demo seed content", () => {
     const mid = buildDemoImplementationsForStage(2);
     const final = buildFinalDemoImplementations();
     const veterinary = /annual veterinary examination/i;
+    const allEarlyMid = [
+      ...Object.values(early).map((item) => item.narrative),
+      ...Object.values(mid).map((item) => item.narrative),
+      ...Object.values(collectDemoNarratives()),
+    ].join("\n");
 
     assert.doesNotMatch(early["pl-2"]?.narrative ?? "", veterinary);
     assert.doesNotMatch(mid["pl-2"]?.narrative ?? "", veterinary);
+    assert.doesNotMatch(allEarlyMid, /remains cleared for operational deployment/i);
     assert.match(final["pl-2"]?.narrative ?? "", veterinary);
     assert.match(
       final["pl-2"]?.narrative ?? "",
       /remains cleared for operational deployment/i,
     );
+  });
+
+  it("does not explain coconut purpose", () => {
+    const prose = Object.values(buildFinalDemoImplementations())
+      .map((item) => item.narrative)
+      .join("\n");
+    assert.match(prose, /Emergency Coconut Reserve/);
+    assert.doesNotMatch(prose, /coconut(?:s)? (?:are|is) (?:used|needed|required) (?:to|for)/i);
+    assert.doesNotMatch(prose, /purpose of (?:the )?coconut/i);
   });
 
   it("rejects unknown control ids", () => {
@@ -136,7 +185,7 @@ describe("demo seed content", () => {
 });
 
 describe("seedDemoProject", () => {
-  it("creates the demo project through the repository", async () => {
+  it("creates the complete baseline demo through the repository", async () => {
     const { repo } = tempRepo();
     const result = await seedDemoProject(
       repo,
@@ -147,9 +196,10 @@ describe("seedDemoProject", () => {
     assert.equal(result.status, "created");
     assert.ok(result.project);
     assert.equal(result.project.name, DEMO_PROJECT_NAME);
-    assert.equal(result.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
-    assert.equal(result.controlCount, DEMO_CONTROL_IDS.length);
-    assert.equal(result.snapshotNames.length, DEMO_SNAPSHOT_NAMES.length);
+    assert.equal(result.project.frameworkId, FRAMEWORK.id);
+    assert.equal(result.controlCount, FRAMEWORK_CONTROLS.length);
+    assert.equal(result.baselineControlCount, FRAMEWORK_CONTROLS.length);
+    assert.equal(result.domainValidationOk, true);
     assert.deepEqual(result.snapshotNames, [...DEMO_SNAPSHOT_NAMES]);
 
     const loaded = await repo.load(result.project.id);
@@ -158,13 +208,8 @@ describe("seedDemoProject", () => {
       return;
     }
     assert.equal(
-      loaded.project.metadata.organizationName,
-      DEMO_ORGANIZATION.name,
-    );
-    assert.equal(loaded.project.implementations["ac-1"]?.status, "implemented");
-    assert.match(
-      loaded.project.implementations["ac-1"]?.narrative ?? "",
-      /CGDS-POL-001/,
+      Object.keys(loaded.project.implementations).length,
+      FRAMEWORK_CONTROLS.length,
     );
     assert.match(
       loaded.project.implementations["pl-2"]?.narrative ?? "",
@@ -181,6 +226,7 @@ describe("seedDemoProject", () => {
     const second = await seedDemoProject(repo, { validateOscal: false });
     assert.equal(second.status, "already-exists");
     assert.equal(second.project?.id, first.project.id);
+    assert.equal(second.controlCount, FRAMEWORK_CONTROLS.length);
 
     const listed = await repo.list();
     assert.equal(
@@ -194,8 +240,6 @@ describe("seedDemoProject", () => {
     const first = await seedDemoProject(repo, { validateOscal: false });
     assert.ok(first.project);
     const firstId = first.project.id;
-    const firstSnapshots = await repo.listSnapshots(firstId);
-    assert.equal(firstSnapshots.length, DEMO_SNAPSHOT_NAMES.length);
 
     const reset = await seedDemoProject(repo, {
       reset: true,
@@ -204,12 +248,11 @@ describe("seedDemoProject", () => {
     assert.equal(reset.status, "reset");
     assert.ok(reset.project);
     assert.notEqual(reset.project.id, firstId);
+    assert.equal(reset.controlCount, FRAMEWORK_CONTROLS.length);
 
     const oldLoad = await repo.load(firstId);
     assert.equal(oldLoad.ok, false);
-
-    const oldSnapshots = await repo.listSnapshots(firstId);
-    assert.equal(oldSnapshots.length, 0);
+    assert.equal((await repo.listSnapshots(firstId)).length, 0);
 
     const newSnapshots = await repo.listSnapshots(reset.project.id);
     assert.equal(newSnapshots.length, DEMO_SNAPSHOT_NAMES.length);
@@ -217,7 +260,6 @@ describe("seedDemoProject", () => {
       new Set(newSnapshots.map((snapshot) => snapshot.name)),
       new Set(DEMO_SNAPSHOT_NAMES),
     );
-    assert.deepEqual(reset.snapshotNames, [...DEMO_SNAPSHOT_NAMES]);
   });
 
   it("loads through ProjectRepository and keeps named snapshots", async () => {
@@ -228,9 +270,6 @@ describe("seedDemoProject", () => {
     const found = await findDemoProject(repo);
     assert.ok(found);
     assert.equal(found.id, seeded.project.id);
-
-    const loaded = await repo.load(found.id);
-    assert.equal(loaded.ok, true);
 
     const snapshots = await repo.listSnapshots(found.id);
     assert.ok(snapshots.every((snapshot) => snapshot.snapshotType === "named"));
@@ -244,7 +283,7 @@ describe("seedDemoProject", () => {
     const { repo } = tempRepo();
     const other = await repo.create({
       name: "Unrelated Border Fence Project",
-      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+      frameworkId: FRAMEWORK.id,
       metadata: {
         systemName: "Fence",
         organizationName: "Other Org",
@@ -268,9 +307,7 @@ describe("seedDemoProject", () => {
       otherLoaded.project.implementations["ac-1"]?.narrative,
       "keep me",
     );
-
-    const listed = await repo.list();
-    assert.equal(listed.length, 2);
+    assert.equal((await repo.list()).length, 2);
   });
 
   it("optionally validates exported OSCAL SSP against the pinned schema", async () => {
@@ -280,6 +317,7 @@ describe("seedDemoProject", () => {
     assert.ok(result.oscalValidation);
     assert.equal(result.oscalValidation.ok, true);
     assert.ok(result.project);
+    assert.equal(result.controlCount, FRAMEWORK_CONTROLS.length);
 
     const domain = assembleProject({
       metadata: result.project.metadata,

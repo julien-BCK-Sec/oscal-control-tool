@@ -80,15 +80,19 @@ Do not fetch standards files at runtime and do not use moving branches.
 
 ## Demo seed project
 
-- Module: `src/seed/demo/` (world, content, `seedDemoProject`)
+- Module: `src/seed/demo/` with family-organized narratives under `src/seed/demo/controls/`
 - CLI: `scripts/seed-demo.ts` → `npm run db:seed:demo` / `npm run db:seed:demo -- --reset`
 - Seeds only through `ProjectRepository` into `DATABASE_PATH` (no committed SQLite data)
 - Project name: `Strategic Goose Operations Platform (Demo)`
 - Org / system: Canadian Goose Defence System (CGDS) / Strategic Goose Operations Platform (SGOP)
-- Domain model remains lean: rich org fiction is encoded in `ProjectMetadata.systemDescription` and ~20 control narratives spanning multiple families
+- **Complete Moderate baseline coverage:** every control from `FrameworkProvider` / `FRAMEWORK_CONTROLS` receives exactly one implementation; the count is derived from the pinned framework data and is not hardcoded
+- Featured (~20) high-quality narratives are preserved in `controls/featured.ts`; remaining controls are curated by family modules
+- Domain model remains lean: org fiction stays in `ProjectMetadata.systemDescription` and implementation narratives
 - Recurring cast includes Gary Mercer (system owner; veterinary clearance appears only in the final named version), Priya Sharma (ISSO), Sam Okonkwo (coconut custody), Nadia Fortin (deployment authority), and Steve Kowalski (“See Steve” runbooks)
 - Named versions: Initial Authorization Package → Management Review → Goose Readiness Exercise 2026 → Emergency Coconut Reconciliation → Gary's Annual Performance Review
+- Idempotent without `--reset`; `--reset` deletes the demo project and snapshots then recreates the canonical document
 - Final seed exports SSP and validates against pinned OSCAL 1.2.2 schema
+- Demo remains intentionally satirical while remaining technically representative of Moderate SSP authoring
 
 ## Persistence (Milestone 4)
 
