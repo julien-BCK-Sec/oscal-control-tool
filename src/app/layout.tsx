@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "OSCAL Control Tool",
   description:
-    "Document a NIST SP 800-53 Rev. 5 Moderate MVP control subset and export OSCAL SSP JSON.",
+    "Document NIST SP 800-53 Rev. 5 Moderate controls and export OSCAL SSP JSON.",
 };
 
 export default function RootLayout({
@@ -26,9 +26,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex h-full min-h-0 flex-col overflow-hidden">
+        {children}
+      </body>
     </html>
   );
 }

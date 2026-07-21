@@ -74,6 +74,7 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Positive and negative validation tests
 - `FrameworkProvider` boundary
 - Build-time derivation of the full NIST Moderate control set from the pinned profile + catalog
+- Control Browser UX (Milestone 3.5): independent list/editor scrolling, family and enhancement grouping, NIST display notation, search, status badges
 
 ## Framework derivation (Milestone 3)
 
@@ -112,6 +113,19 @@ Other gaps:
 - No portable OSCAL package
 - No OSCAL import (SSP → project)
 - Profile resolver supports only features used by the pinned Moderate profile
+
+## Control Browser UX (Milestone 3.5)
+
+UI-only improvements in `src/components/ControlBrowser.tsx` and
+`src/components/controlBrowser/presentation.ts`:
+
+- Fixed app shell with independently scrolling control list and editor
+- Controls grouped by family (collapsible; default expanded)
+- Enhancements nested under parents (collapsible; default collapsed)
+- Display uses NIST notation (`AC-2 (1)`); internal ids unchanged (`ac-2.1`)
+- Search filters by control ID, display notation, title, and family name
+- Selected row is highlighted and scrolled into view in the list
+- Optional status glyphs from existing implementation state (no storage changes)
 
 ## Next approved milestone
 
