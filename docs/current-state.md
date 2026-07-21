@@ -101,7 +101,8 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Server entry: `src/persistence/server.ts` (`server-only`) + `src/app/actions/projects.ts`
 - Database path: `DATABASE_PATH` (default `./data/oscal-control-tool.sqlite`)
 - Setup: `npm run db:migrate` (also `predev`)
-- Routes: `/projects` (list/create), `/projects/[id]` (editor)
+- Routes: `/projects` (list/create), `/projects/[id]` (editor with Controls / Project details / Version history tabs)
+- Theme: light-only (`color-scheme: light`; page background is not flipped by prefers-color-scheme)
 - Stored document: schema version 1 JSON envelope (metadata + implementations + framework id). No framework statements.
 - Autosave: ~1.5s debounce; statuses Unsaved / Saving / Saved / Save failed / Conflict
 - Snapshots: `project_snapshots` table (`automatic` | `named` | `pre-restore`)

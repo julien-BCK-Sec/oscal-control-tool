@@ -25,6 +25,11 @@ import {
 } from "@/editor/history";
 import { SnapshotHistoryPanel } from "@/components/projectHistory/SnapshotHistoryPanel";
 import { formatProjectRevisionLabel } from "@/components/projectHistory/presentation";
+import {
+  DEFAULT_WORKSPACE_TAB,
+  WORKSPACE_TABS,
+  type WorkspaceTabId,
+} from "@/components/workspace/presentation";
 import type {
   ProjectSnapshotSummary,
   StoredProject,
@@ -70,6 +75,8 @@ export function ProjectWorkspace({
   const [versionMessage, setVersionMessage] = useState<string | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const [activeTab, setActiveTab] =
+    useState<WorkspaceTabId>(DEFAULT_WORKSPACE_TAB);
 
   const historyRef = useRef(new EditorHistory(initialWorkingCopy(initialProject)));
   const savedCopyRef = useRef(
@@ -488,7 +495,7 @@ export function ProjectWorkspace({
   });
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
       <header className="shrink-0 border-b border-zinc-200 bg-zinc-50 px-4 py-3 sm:px-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -567,64 +574,144 @@ export function ProjectWorkspace({
             ) : null}
           </div>
         </div>
-
-        <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-zinc-200 pt-3">
-          <div className="min-w-[12rem] flex-1">
-            <label
-              htmlFor="named-version"
-              className="block text-xs font-medium text-zinc-700"
-            >
-              Save Version
-            </label>
-            <input
-              id="named-version"
-              type="text"
-              value={versionName}
-              onChange={(event) => setVersionName(event.target.value)}
-              placeholder="e.g. Management Review"
-              className="mt-1 w-full rounded border border-zinc-300 bg-white px-2.5 py-1.5 text-sm text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => void handleSaveVersion()}
-            disabled={versionName.trim() === ""}
-            className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 enabled:hover:bg-zinc-50 disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-900"
-          >
-            Save Version
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleForceAutomaticSnapshot()}
-            className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-            title="Creates an automatic snapshot if content changed and the throttle allows it"
-          >
-            Snapshot now
-          </button>
-          {versionMessage ? (
-            <p className="w-full text-xs text-zinc-600" role="status">
-              {versionMessage}
-            </p>
-          ) : null}
-        </div>
-
-        <SnapshotHistoryPanel
-          snapshots={snapshots}
-          onRestore={(snapshotId) => void handleRestore(snapshotId)}
-        />
       </header>
 
-      <ProjectMetadataSection
-        metadata={metadata}
-        onMetadataChange={handleMetadataChange}
-        implementations={implementations}
-        projectName={name}
-      />
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <ControlBrowser
-          implementations={implementations}
-          onImplementationsChange={handleImplementationsChange}
-        />
+      <div
+        role="tablist"
+        aria-label="Project workspace"
+        className="flex shrink-0 flex-wrap gap-1 border-b border-zinc-200 bg-white px-4 pt-2 sm:px-8"
+      >
+        {WORKSPACE_TABS.map((tab) => {
+          const selected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              id={tab.tabId}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              aria-controls={tab.panelId}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => setActiveTab(tab.id)}
+              className={
+                selected
+                  ? "border-b-2 border-zinc-900 px-3 py-2 text-sm font-semibold text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                  : "border-b-2 border-transparent px-3 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+              }
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+        <div
+          id="workspace-panel-controls"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-controls"
+          hidden={activeTab !== "controls"}
+          className={
+            activeTab === "controls"
+              ? "flex min-h-0 flex-1 flex-col overflow-hidden"
+              : "hidden"
+          }
+        >
+          <ControlBrowser
+            implementations={implementations}
+            onImplementationsChange={handleImplementationsChange}
+          />
+        </div>
+
+        <div
+          id="workspace-panel-details"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-details"
+          hidden={activeTab !== "details"}
+          className={
+            activeTab === "details"
+              ? "min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-8"
+              : "hidden"
+          }
+        >
+          <ProjectMetadataSection
+            metadata={metadata}
+            onMetadataChange={handleMetadataChange}
+            implementations={implementations}
+            projectName={name}
+          />
+        </div>
+
+        <div
+          id="workspace-panel-history"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-history"
+          hidden={activeTab !== "history"}
+          className={
+            activeTab === "history"
+              ? "min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-8"
+              : "hidden"
+          }
+        >
+          <div className="flex flex-col gap-6">
+            <section aria-labelledby="save-version-heading">
+              <h2
+                id="save-version-heading"
+                className="text-sm font-semibold text-zinc-900"
+              >
+                Save a version
+              </h2>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                Named versions are immutable milestones. Snapshot now creates an
+                automatic recovery point when content has changed.
+              </p>
+              <div className="mt-3 flex flex-wrap items-end gap-2">
+                <div className="min-w-[12rem] flex-1">
+                  <label
+                    htmlFor="named-version"
+                    className="block text-xs font-medium text-zinc-700"
+                  >
+                    Version name
+                  </label>
+                  <input
+                    id="named-version"
+                    type="text"
+                    value={versionName}
+                    onChange={(event) => setVersionName(event.target.value)}
+                    placeholder="e.g. Management Review"
+                    className="mt-1 w-full rounded border border-zinc-300 bg-white px-2.5 py-1.5 text-sm text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleSaveVersion()}
+                  disabled={versionName.trim() === ""}
+                  className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 enabled:hover:bg-zinc-50 disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                >
+                  Save Version
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleForceAutomaticSnapshot()}
+                  className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                  title="Creates an automatic snapshot if content changed and the throttle allows it"
+                >
+                  Snapshot now
+                </button>
+              </div>
+              {versionMessage ? (
+                <p className="mt-2 text-xs text-zinc-600" role="status">
+                  {versionMessage}
+                </p>
+              ) : null}
+            </section>
+
+            <SnapshotHistoryPanel
+              snapshots={snapshots}
+              onRestore={(snapshotId) => void handleRestore(snapshotId)}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

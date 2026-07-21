@@ -77,7 +77,7 @@ export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 overflow-y-auto px-4 py-10 sm:px-8">
+    <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 overflow-y-auto bg-background px-4 py-10 text-foreground sm:px-8">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
           Projects

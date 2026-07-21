@@ -86,15 +86,16 @@ function Section({
       {isEmpty ? (
         <p className="mt-2 text-xs text-zinc-500">{emptyLabel}</p>
       ) : (
-        <ul className="mt-2 max-h-48 space-y-2 overflow-y-auto">{children}</ul>
+        <ul className="mt-2 space-y-2">{children}</ul>
       )}
     </section>
   );
 }
 
 /**
- * Always-visible project history with an obvious Restore control on each entry.
+ * Project history with Restore on each entry.
  * Snapshots must already be scoped to the open project by the caller.
+ * Lists scroll with the surrounding page/tab rather than a tiny fixed viewport.
  */
 export function SnapshotHistoryPanel({
   snapshots,
@@ -104,12 +105,8 @@ export function SnapshotHistoryPanel({
     partitionSnapshotsForHistory(snapshots);
 
   return (
-    <div
-      className="mt-3 border-t border-zinc-200 pt-3"
-      role="region"
-      aria-label="Project version history"
-    >
-      <div className="mb-2">
+    <div role="region" aria-label="Project version history">
+      <div className="mb-4">
         <h2 className="text-sm font-semibold text-zinc-900">
           Version history
         </h2>
@@ -120,7 +117,7 @@ export function SnapshotHistoryPanel({
         </p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Section
           title="Named versions"
           headingId="named-versions-heading"

@@ -28,17 +28,14 @@ export function ProjectMetadataSection({
   }
 
   return (
-    <section
-      className="shrink-0 border-b border-zinc-200 bg-white px-4 py-5 sm:px-8"
-      aria-labelledby="project-metadata-heading"
-    >
+    <section aria-labelledby="project-metadata-heading">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2
             id="project-metadata-heading"
             className="text-sm font-semibold tracking-tight text-zinc-900"
           >
-            Project
+            Project details
           </h2>
           <p className="mt-0.5 text-xs text-zinc-500">
             {projectName
@@ -104,7 +101,7 @@ export function ProjectMetadataSection({
             onChange={(event) =>
               updateMetadata({ systemDescription: event.target.value })
             }
-            rows={3}
+            rows={8}
             className={`${fieldClassName} resize-y leading-relaxed`}
           />
         </div>

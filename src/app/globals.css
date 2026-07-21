@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -12,12 +13,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/*
+ * The UI is authored for a light theme (zinc-* text on white/zinc-50 surfaces).
+ * Do not flip --background/--foreground with prefers-color-scheme: dark — that
+ * leaves dark page chrome behind dark text classes and breaks contrast on
+ * /projects and other light-layout screens.
+ */
 
 body {
   background: var(--background);
