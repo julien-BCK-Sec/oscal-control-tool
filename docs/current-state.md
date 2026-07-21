@@ -77,6 +77,7 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Control Browser UX (Milestone 3.5)
 - **Milestone 4:** SQLite-backed projects, Server Actions, debounced autosave, optimistic concurrency, in-session undo/redo, automatic snapshots, immutable named versions, localStorage one-time import
 - **Demo seed:** Canonical CGDS / SGOP development project via `npm run db:seed:demo` (idempotent; `--reset` recreates)
+- **UI polish + Overview (Milestones A/B):** shared visual tokens, redesigned project cards, Overview workspace dashboard, Controls authoring layout improvements, centralized completion calculation, on-demand OSCAL validation summary
 
 ## Demo seed project
 
@@ -101,12 +102,25 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Server entry: `src/persistence/server.ts` (`server-only`) + `src/app/actions/projects.ts`
 - Database path: `DATABASE_PATH` (default `./data/oscal-control-tool.sqlite`)
 - Setup: `npm run db:migrate` (also `predev`)
-- Routes: `/projects` (list/create), `/projects/[id]` (editor with Controls / Project details / Version history tabs)
-- Theme: light-only (`color-scheme: light`; page background is not flipped by prefers-color-scheme)
+- Routes: `/projects` (list/create), `/projects/[id]` (workspace with Overview / Controls / Project details / Version history)
+- Optional view query: `?view=controls|details|history` (Overview is default when omitted)
+- Theme: light-only (`color-scheme: light`; shared CSS tokens; page background is not flipped by prefers-color-scheme)
 - Stored document: schema version 1 JSON envelope (metadata + implementations + framework id). No framework statements.
 - Autosave: ~1.5s debounce; statuses Unsaved / Saving / Saved / Save failed / Conflict
 - Snapshots: `project_snapshots` table (`automatic` | `named` | `pre-restore`)
 - Auth: not implemented — assumes trusted local / single-user deployment with a durable filesystem and one Node instance
+
+## Workspace UI (Milestones A/B)
+
+- Shared visual foundation in `src/app/globals.css` (surfaces, text, accent, status, focus, buttons, fields)
+- Workspace tabs: **Overview** (default) → Controls → Project details → Version history
+- Overview dashboard: identity, overall completion, family progress, domain validation summary, continue-authoring links, recent versions, compact details summary
+- Completion: centralized in `src/domain/completion.ts` — a control is complete when its implementation narrative is non-empty after trim; totals come from `FrameworkProvider` (never hardcoded)
+- Family progress: `computeFamilyCompletion` in framework order; Overview family rows navigate into Controls with that family expanded
+- Validation summary: live domain checks (baseline coverage, missing/duplicate/unknown IDs, domain validity); **OSCAL SSP schema validation runs only on demand** (“Run OSCAL validation” / “Refresh validation”) and is not claimed until actually run; result is session-only (not persisted)
+- Controls view: denser navigation with overall + per-family progress, expand/collapse all, accessible complete/incomplete indicators, quieter requirement pane with distinct parameter tokens, primary implementation editor
+- Projects list: professional cards with derived completion, revision, updated time; compact New project action; empty state; restyled browser-import callout
+- Project cards load completion by reading each project document on the list page (local-first; fine for small project counts)
 
 ## Framework derivation (Milestone 3)
 
@@ -145,6 +159,10 @@ Other gaps:
 - No authentication / multi-user access control
 - Snapshot merge UX deferred (reload-latest on conflict)
 - Ephemeral serverless deployment is not supported by local SQLite
+- No dark theme (light theme forced for contrast)
+- Overview OSCAL validation result is not persisted across reloads
+- Projects list completion requires loading each project document (acceptable locally; not optimized for large fleets)
+- No rich-text / Markdown / AI assist / collaboration features
 
 ## Next approved milestone
 

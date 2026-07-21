@@ -1,10 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import { ControlBrowser } from "@/components/ControlBrowser";
 import { ProjectMetadataSection } from "@/components/ProjectMetadataSection";
+import { ProjectOverview } from "@/components/ProjectOverview";
 import {
   createNamedVersionAction,
   createAutomaticSnapshotAction,
@@ -14,20 +21,21 @@ import {
 } from "@/app/actions/projects";
 import type { ControlImplementation } from "@/data/implementation";
 import type { ProjectMetadata } from "@/data/project";
+import { FRAMEWORK_CONTROLS } from "@/data/framework";
+import { computeOverallCompletion } from "@/domain";
 import {
   AUTOSAVE_DEBOUNCE_MS,
   type AutosaveStatus,
   EditorHistory,
-  autosaveStatusLabel,
   cloneWorkingCopy,
   type EditorWorkingCopy,
   workingCopiesEqual,
 } from "@/editor/history";
 import { SnapshotHistoryPanel } from "@/components/projectHistory/SnapshotHistoryPanel";
-import { formatProjectRevisionLabel } from "@/components/projectHistory/presentation";
+import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import {
   DEFAULT_WORKSPACE_TAB,
-  WORKSPACE_TABS,
+  type ControlsFocusRequest,
   type WorkspaceTabId,
 } from "@/components/workspace/presentation";
 import type {
@@ -38,6 +46,7 @@ import type {
 export type ProjectWorkspaceProps = {
   initialProject: StoredProject;
   initialSnapshots: ProjectSnapshotSummary[];
+  initialView?: WorkspaceTabId;
 };
 
 type FlushSaveResult =
@@ -55,8 +64,10 @@ function initialWorkingCopy(project: StoredProject): EditorWorkingCopy {
 export function ProjectWorkspace({
   initialProject,
   initialSnapshots,
+  initialView = DEFAULT_WORKSPACE_TAB,
 }: ProjectWorkspaceProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [name, setName] = useState(initialProject.name);
   const [metadata, setMetadata] = useState(initialProject.metadata);
@@ -64,6 +75,7 @@ export function ProjectWorkspace({
     initialProject.implementations,
   );
   const [revision, setRevision] = useState(initialProject.revision);
+  const [updatedAt, setUpdatedAt] = useState(initialProject.updatedAt);
   const frameworkId = initialProject.frameworkId;
   const projectId = initialProject.id;
 
@@ -75,8 +87,9 @@ export function ProjectWorkspace({
   const [versionMessage, setVersionMessage] = useState<string | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
-  const [activeTab, setActiveTab] =
-    useState<WorkspaceTabId>(DEFAULT_WORKSPACE_TAB);
+  const [activeTab, setActiveTab] = useState<WorkspaceTabId>(initialView);
+  const [controlsFocus, setControlsFocus] =
+    useState<ControlsFocusRequest | null>(null);
 
   const historyRef = useRef(new EditorHistory(initialWorkingCopy(initialProject)));
   const savedCopyRef = useRef(
@@ -95,6 +108,11 @@ export function ProjectWorkspace({
     ok: true,
   }));
   const mountedRef = useRef(true);
+
+  const completion = useMemo(
+    () => computeOverallCompletion(FRAMEWORK_CONTROLS, implementations),
+    [implementations],
+  );
 
   const setStatus = useCallback((status: AutosaveStatus, message?: string | null) => {
     autosaveStatusRef.current = status;
@@ -129,6 +147,23 @@ export function ProjectWorkspace({
     setName(copy.name);
     setMetadata(copy.metadata);
     setImplementations(copy.implementations);
+  }
+
+  function selectTab(tab: WorkspaceTabId) {
+    setActiveTab(tab);
+    const href =
+      tab === DEFAULT_WORKSPACE_TAB ? pathname : `${pathname}?view=${tab}`;
+    router.replace(href, { scroll: false });
+  }
+
+  function navigateFromOverview(
+    view: "controls" | "details" | "history",
+    focus?: ControlsFocusRequest,
+  ) {
+    if (view === "controls" && focus) {
+      setControlsFocus(focus);
+    }
+    selectTab(view);
   }
 
   async function flushSave(): Promise<FlushSaveResult> {
@@ -168,6 +203,7 @@ export function ProjectWorkspace({
           revisionRef.current = result.project.revision;
           if (mountedRef.current) {
             setRevision(result.project.revision);
+            setUpdatedAt(result.project.updatedAt);
           }
           savedCopyRef.current = cloneWorkingCopy({
             name: result.project.name,
@@ -194,7 +230,6 @@ export function ProjectWorkspace({
       }
     };
 
-    // Serialize all flush attempts so in-flight saves always drain pending edits.
     const next: Promise<FlushSaveResult> = saveChainRef.current
       .catch(() => undefined)
       .then(() => doSaveLoop());
@@ -406,6 +441,7 @@ export function ProjectWorkspace({
     applyWorkingCopyToState(copy);
     revisionRef.current = result.project.revision;
     setRevision(result.project.revision);
+    setUpdatedAt(result.project.updatedAt);
     savedCopyRef.current = cloneWorkingCopy(copy);
     setStatus(
       "saved",
@@ -426,7 +462,7 @@ export function ProjectWorkspace({
     await refreshSnapshots();
   }
 
-  async function leaveToProjects(event: React.MouseEvent<HTMLAnchorElement>) {
+  async function leaveToProjects(event: MouseEvent<HTMLAnchorElement>) {
     event.preventDefault();
 
     if (debounceRef.current) {
@@ -461,7 +497,6 @@ export function ProjectWorkspace({
         clearTimeout(typingGroupRef.current);
         typingGroupRef.current = null;
       }
-      // Best-effort final flush when the workspace unmounts (e.g. project switch).
       void flushSaveRef.current();
     };
   }, []);
@@ -496,116 +531,54 @@ export function ProjectWorkspace({
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
-      <header className="shrink-0 border-b border-zinc-200 bg-zinc-50 px-4 py-3 sm:px-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-              <Link
-                href="/projects"
-                onClick={(event) => void leaveToProjects(event)}
-                className="underline-offset-2 hover:text-zinc-800 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-              >
-                All projects
-              </Link>
-              <span aria-hidden="true">/</span>
-              <span className="font-medium text-zinc-700">Current project</span>
-            </div>
-            <label htmlFor="project-display-name" className="sr-only">
-              Project name
-            </label>
-            <input
-              id="project-display-name"
-              type="text"
-              value={name}
-              onChange={(event) =>
-                commitEdit({
-                  name: event.target.value,
-                  metadata,
-                  implementations,
-                })
-              }
-              className="mt-1 w-full max-w-xl border-0 bg-transparent p-0 text-lg font-semibold tracking-tight text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+      <WorkspaceHeader
+        projectName={name}
+        organizationName={metadata.organizationName}
+        revision={revision}
+        autosaveStatus={autosaveStatus}
+        autosaveMessage={autosaveMessage}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onNameChange={(nextName) =>
+          commitEdit({
+            name: nextName,
+            metadata,
+            implementations,
+          })
+        }
+        onUndo={undo}
+        onRedo={redo}
+        onLeaveToProjects={(event) => void leaveToProjects(event)}
+        onReloadLatest={() => void reloadLatest()}
+        activeTab={activeTab}
+        onTabChange={selectTab}
+        completion={completion}
+      />
+
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div
+          id="workspace-panel-overview"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-overview"
+          hidden={activeTab !== "overview"}
+          className={
+            activeTab === "overview"
+              ? "flex min-h-0 flex-1 flex-col overflow-hidden"
+              : "hidden"
+          }
+        >
+          {activeTab === "overview" ? (
+            <ProjectOverview
+              metadata={metadata}
+              implementations={implementations}
+              revision={revision}
+              updatedAt={updatedAt}
+              snapshots={snapshots}
+              onNavigate={navigateFromOverview}
             />
-            <p className="mt-1 text-xs text-zinc-500">
-              {formatProjectRevisionLabel(revision)}
-              <span className="mx-1.5 text-zinc-300" aria-hidden="true">
-                ·
-              </span>
-              <span
-                className={
-                  autosaveStatus === "conflict" || autosaveStatus === "error"
-                    ? "font-medium text-red-700"
-                    : autosaveStatus === "dirty" || autosaveStatus === "saving"
-                      ? "font-medium text-amber-800"
-                      : "text-zinc-600"
-                }
-              >
-                {autosaveStatusLabel(autosaveStatus)}
-              </span>
-              {autosaveMessage ? ` — ${autosaveMessage}` : null}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={undo}
-              disabled={!canUndo}
-              className="rounded border border-zinc-300 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-900 enabled:hover:bg-zinc-50 disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-            >
-              Undo
-            </button>
-            <button
-              type="button"
-              onClick={redo}
-              disabled={!canRedo}
-              className="rounded border border-zinc-300 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-900 enabled:hover:bg-zinc-50 disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-            >
-              Redo
-            </button>
-            {autosaveStatus === "conflict" ? (
-              <button
-                type="button"
-                onClick={() => void reloadLatest()}
-                className="rounded border border-red-300 bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-900 hover:bg-red-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-              >
-                Reload latest
-              </button>
-            ) : null}
-          </div>
+          ) : null}
         </div>
-      </header>
 
-      <div
-        role="tablist"
-        aria-label="Project workspace"
-        className="flex shrink-0 flex-wrap gap-1 border-b border-zinc-200 bg-white px-4 pt-2 sm:px-8"
-      >
-        {WORKSPACE_TABS.map((tab) => {
-          const selected = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              id={tab.tabId}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              aria-controls={tab.panelId}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => setActiveTab(tab.id)}
-              className={
-                selected
-                  ? "border-b-2 border-zinc-900 px-3 py-2 text-sm font-semibold text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-                  : "border-b-2 border-transparent px-3 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
-              }
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
         <div
           id="workspace-panel-controls"
           role="tabpanel"
@@ -620,6 +593,8 @@ export function ProjectWorkspace({
           <ControlBrowser
             implementations={implementations}
             onImplementationsChange={handleImplementationsChange}
+            focusRequest={controlsFocus}
+            onFocusRequestHandled={() => setControlsFocus(null)}
           />
         </div>
 
@@ -630,16 +605,18 @@ export function ProjectWorkspace({
           hidden={activeTab !== "details"}
           className={
             activeTab === "details"
-              ? "min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-8"
+              ? "min-h-0 flex-1 overflow-y-auto bg-background px-4 py-5 sm:px-6"
               : "hidden"
           }
         >
-          <ProjectMetadataSection
-            metadata={metadata}
-            onMetadataChange={handleMetadataChange}
-            implementations={implementations}
-            projectName={name}
-          />
+          <div className="mx-auto max-w-3xl rounded-sm border border-border bg-surface p-4 sm:p-5">
+            <ProjectMetadataSection
+              metadata={metadata}
+              onMetadataChange={handleMetadataChange}
+              implementations={implementations}
+              projectName={name}
+            />
+          </div>
         </div>
 
         <div
@@ -649,28 +626,28 @@ export function ProjectWorkspace({
           hidden={activeTab !== "history"}
           className={
             activeTab === "history"
-              ? "min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-8"
+              ? "min-h-0 flex-1 overflow-y-auto bg-background px-4 py-5 sm:px-6"
               : "hidden"
           }
         >
-          <div className="flex flex-col gap-6">
-            <section aria-labelledby="save-version-heading">
+          <div className="mx-auto flex max-w-3xl flex-col gap-6">
+            <section
+              aria-labelledby="save-version-heading"
+              className="rounded-sm border border-border bg-surface p-4 sm:p-5"
+            >
               <h2
                 id="save-version-heading"
-                className="text-sm font-semibold text-zinc-900"
+                className="text-sm font-semibold text-foreground"
               >
                 Save a version
               </h2>
-              <p className="mt-0.5 text-xs text-zinc-500">
+              <p className="mt-0.5 text-xs text-text-muted">
                 Named versions are immutable milestones. Snapshot now creates an
                 automatic recovery point when content has changed.
               </p>
               <div className="mt-3 flex flex-wrap items-end gap-2">
                 <div className="min-w-[12rem] flex-1">
-                  <label
-                    htmlFor="named-version"
-                    className="block text-xs font-medium text-zinc-700"
-                  >
+                  <label htmlFor="named-version" className="label">
                     Version name
                   </label>
                   <input
@@ -679,37 +656,39 @@ export function ProjectWorkspace({
                     value={versionName}
                     onChange={(event) => setVersionName(event.target.value)}
                     placeholder="e.g. Management Review"
-                    className="mt-1 w-full rounded border border-zinc-300 bg-white px-2.5 py-1.5 text-sm text-zinc-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                    className="field mt-1"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={() => void handleSaveVersion()}
                   disabled={versionName.trim() === ""}
-                  className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 enabled:hover:bg-zinc-50 disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                  className="btn btn-primary"
                 >
                   Save Version
                 </button>
                 <button
                   type="button"
                   onClick={() => void handleForceAutomaticSnapshot()}
-                  className="rounded border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+                  className="btn"
                   title="Creates an automatic snapshot if content changed and the throttle allows it"
                 >
                   Snapshot now
                 </button>
               </div>
               {versionMessage ? (
-                <p className="mt-2 text-xs text-zinc-600" role="status">
+                <p className="mt-2 text-xs text-text-secondary" role="status">
                   {versionMessage}
                 </p>
               ) : null}
             </section>
 
-            <SnapshotHistoryPanel
-              snapshots={snapshots}
-              onRestore={(snapshotId) => void handleRestore(snapshotId)}
-            />
+            <div className="rounded-sm border border-border bg-surface p-4 sm:p-5">
+              <SnapshotHistoryPanel
+                snapshots={snapshots}
+                onRestore={(snapshotId) => void handleRestore(snapshotId)}
+              />
+            </div>
           </div>
         </div>
       </div>

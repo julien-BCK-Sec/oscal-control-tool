@@ -5,21 +5,23 @@ import {
   WORKSPACE_TABS,
   isWorkspacePanelActive,
   isWorkspaceTabId,
+  parseWorkspaceViewParam,
   workspaceTabDefinition,
 } from "@/components/workspace/presentation";
 
 describe("workspace tabs", () => {
-  it("defaults to Controls", () => {
-    assert.equal(DEFAULT_WORKSPACE_TAB, "controls");
-    assert.equal(WORKSPACE_TABS[0]?.id, "controls");
-    assert.equal(workspaceTabDefinition("controls").label, "Controls");
+  it("defaults to Overview", () => {
+    assert.equal(DEFAULT_WORKSPACE_TAB, "overview");
+    assert.equal(WORKSPACE_TABS[0]?.id, "overview");
+    assert.equal(workspaceTabDefinition("overview").label, "Overview");
   });
 
-  it("includes project details and version history tabs", () => {
+  it("includes overview, controls, project details, and version history", () => {
     assert.deepEqual(
       WORKSPACE_TABS.map((tab) => tab.id),
-      ["controls", "details", "history"],
+      ["overview", "controls", "details", "history"],
     );
+    assert.equal(workspaceTabDefinition("controls").label, "Controls");
     assert.equal(
       workspaceTabDefinition("details").label,
       "Project details",
@@ -31,13 +33,25 @@ describe("workspace tabs", () => {
   });
 
   it("validates tab identifiers", () => {
+    assert.equal(isWorkspaceTabId("overview"), true);
     assert.equal(isWorkspaceTabId("controls"), true);
     assert.equal(isWorkspaceTabId("details"), true);
     assert.equal(isWorkspaceTabId("history"), true);
     assert.equal(isWorkspaceTabId("settings"), false);
   });
 
+  it("parses view query params and falls back to Overview", () => {
+    assert.equal(parseWorkspaceViewParam("controls"), "controls");
+    assert.equal(parseWorkspaceViewParam("overview"), "overview");
+    assert.equal(parseWorkspaceViewParam("history"), "history");
+    assert.equal(parseWorkspaceViewParam(undefined), "overview");
+    assert.equal(parseWorkspaceViewParam("nope"), "overview");
+  });
+
   it("shows only the selected panel as active", () => {
+    assert.equal(isWorkspacePanelActive("overview", "overview"), true);
+    assert.equal(isWorkspacePanelActive("overview", "controls"), false);
+
     assert.equal(isWorkspacePanelActive("controls", "controls"), true);
     assert.equal(isWorkspacePanelActive("controls", "details"), false);
     assert.equal(isWorkspacePanelActive("controls", "history"), false);

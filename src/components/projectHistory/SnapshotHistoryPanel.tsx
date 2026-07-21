@@ -26,23 +26,23 @@ function HistoryRow({
 }) {
   const rowClass =
     emphasis === "named"
-      ? "border-amber-200 bg-amber-50"
+      ? "border-warning/30 bg-warning-muted"
       : emphasis === "recovery"
-        ? "border-sky-200 bg-sky-50"
-        : "border-zinc-200 bg-white";
+        ? "border-accent/25 bg-accent-muted"
+        : "border-border bg-surface";
 
   return (
     <li
-      className={`flex items-center justify-between gap-3 rounded border px-3 py-2 text-sm ${rowClass}`}
+      className={`flex items-center justify-between gap-3 rounded-sm border px-3 py-2 text-sm ${rowClass}`}
     >
       <div className="min-w-0">
-        <p className="font-medium text-zinc-900">
+        <p className="font-medium text-foreground">
           {formatSnapshotHistoryTitle(snapshot)}
         </p>
-        <p className="mt-0.5 text-xs text-zinc-600">
+        <p className="mt-0.5 text-xs text-text-secondary">
           {formatSnapshotTimestamp(snapshot.createdAt)}
         </p>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-text-muted">
           {formatSnapshotHistorySecondary(snapshot)}
         </p>
       </div>
@@ -50,7 +50,7 @@ function HistoryRow({
         <button
           type="button"
           onClick={() => onRestore(snapshot.id)}
-          className="shrink-0 rounded border border-zinc-400 bg-white px-2.5 py-1 text-xs font-medium text-zinc-900 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+          className="btn shrink-0 px-2.5 py-1 text-xs"
         >
           Restore
         </button>
@@ -78,13 +78,13 @@ function Section({
     <section aria-labelledby={headingId}>
       <h3
         id={headingId}
-        className="text-xs font-semibold uppercase tracking-wide text-zinc-600"
+        className="text-xs font-semibold uppercase tracking-wide text-text-secondary"
       >
         {title}
       </h3>
-      <p className="mt-0.5 text-xs text-zinc-500">{description}</p>
+      <p className="mt-0.5 text-xs text-text-muted">{description}</p>
       {isEmpty ? (
-        <p className="mt-2 text-xs text-zinc-500">{emptyLabel}</p>
+        <p className="mt-2 text-xs text-text-muted">{emptyLabel}</p>
       ) : (
         <ul className="mt-2 space-y-2">{children}</ul>
       )}
@@ -107,10 +107,10 @@ export function SnapshotHistoryPanel({
   return (
     <div role="region" aria-label="Project version history">
       <div className="mb-4">
-        <h2 className="text-sm font-semibold text-zinc-900">
+        <h2 className="text-sm font-semibold text-foreground">
           Version history
         </h2>
-        <p className="mt-0.5 text-xs text-zinc-500">
+        <p className="mt-0.5 text-xs text-text-muted">
           Named versions and automatic snapshots for this project. Restore
           replaces the working copy after saving a recovery snapshot. Project
           revision is a save counter, not a version name.

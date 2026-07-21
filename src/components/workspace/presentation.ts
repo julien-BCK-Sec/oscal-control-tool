@@ -1,4 +1,5 @@
 export const WORKSPACE_TAB_IDS = [
+  "overview",
   "controls",
   "details",
   "history",
@@ -6,7 +7,7 @@ export const WORKSPACE_TAB_IDS = [
 
 export type WorkspaceTabId = (typeof WORKSPACE_TAB_IDS)[number];
 
-export const DEFAULT_WORKSPACE_TAB: WorkspaceTabId = "controls";
+export const DEFAULT_WORKSPACE_TAB: WorkspaceTabId = "overview";
 
 export type WorkspaceTabDefinition = {
   id: WorkspaceTabId;
@@ -16,6 +17,12 @@ export type WorkspaceTabDefinition = {
 };
 
 export const WORKSPACE_TABS: readonly WorkspaceTabDefinition[] = [
+  {
+    id: "overview",
+    label: "Overview",
+    panelId: "workspace-panel-overview",
+    tabId: "workspace-tab-overview",
+  },
   {
     id: "controls",
     label: "Controls",
@@ -40,6 +47,15 @@ export function isWorkspaceTabId(value: string): value is WorkspaceTabId {
   return (WORKSPACE_TAB_IDS as readonly string[]).includes(value);
 }
 
+export function parseWorkspaceViewParam(
+  value: string | null | undefined,
+): WorkspaceTabId {
+  if (typeof value === "string" && isWorkspaceTabId(value)) {
+    return value;
+  }
+  return DEFAULT_WORKSPACE_TAB;
+}
+
 export function workspaceTabDefinition(
   id: WorkspaceTabId,
 ): WorkspaceTabDefinition {
@@ -57,3 +73,9 @@ export function isWorkspacePanelActive(
 ): boolean {
   return activeTab === panel;
 }
+
+/** Focus request when navigating from Overview into Controls. */
+export type ControlsFocusRequest = {
+  family?: string;
+  controlId?: string;
+};

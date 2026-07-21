@@ -96,14 +96,14 @@ export function LegacyMigrationBanner({
 
   return (
     <aside
-      className="rounded border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950"
+      className="rounded-sm border border-accent/25 bg-accent-muted px-4 py-3 text-sm text-foreground"
       role="region"
       aria-label="Browser data import"
     >
       {offer ? (
         <>
-          <p className="font-medium">Browser project found</p>
-          <p className="mt-1 text-sky-900/90">
+          <p className="font-medium text-foreground">Browser project found</p>
+          <p className="mt-1 text-text-secondary">
             This browser has localStorage data from an earlier version. Import it
             into the database as a project. The browser copy will not be deleted.
           </p>
@@ -111,19 +111,19 @@ export function LegacyMigrationBanner({
             type="button"
             disabled={busy}
             onClick={() => void handleImport()}
-            className="mt-3 rounded border border-sky-800 bg-white px-3 py-1.5 text-sm font-medium text-sky-950 hover:bg-sky-100 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
+            className="btn mt-3"
           >
             {busy ? "Importing…" : "Import browser project"}
           </button>
         </>
       ) : null}
       {completedMessage ? (
-        <p className={offer ? "mt-2" : undefined} role="status">
+        <p className={offer ? "mt-2 text-text-secondary" : "text-text-secondary"} role="status">
           {completedMessage}
         </p>
       ) : null}
       {errorMessage ? (
-        <p className="mt-2 text-red-800" role="alert">
+        <p className="mt-2 text-danger" role="alert">
           {errorMessage}
         </p>
       ) : null}

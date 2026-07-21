@@ -4,9 +4,6 @@ import { ExportOscalButton } from "@/components/ExportOscalButton";
 import type { ControlImplementation } from "@/data/implementation";
 import type { ProjectMetadata } from "@/data/project";
 
-const fieldClassName =
-  "mt-1.5 w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900";
-
 export type ProjectMetadataSectionProps = {
   metadata: ProjectMetadata;
   onMetadataChange: (next: ProjectMetadata) => void;
@@ -33,11 +30,11 @@ export function ProjectMetadataSection({
         <div>
           <h2
             id="project-metadata-heading"
-            className="text-sm font-semibold tracking-tight text-zinc-900"
+            className="text-sm font-semibold tracking-tight text-foreground"
           >
             Project details
           </h2>
-          <p className="mt-0.5 text-xs text-zinc-500">
+          <p className="mt-0.5 text-xs text-text-muted">
             {projectName
               ? `Editing “${projectName}”. System and organization details for OSCAL export.`
               : "System and organization details for this documentation project."}
@@ -51,10 +48,7 @@ export function ProjectMetadataSection({
 
       <div className="mt-4 grid max-w-3xl gap-4 sm:grid-cols-2">
         <div>
-          <label
-            htmlFor="project-system-name"
-            className="block text-sm font-medium text-zinc-800"
-          >
+          <label htmlFor="project-system-name" className="label">
             System name
           </label>
           <input
@@ -64,16 +58,13 @@ export function ProjectMetadataSection({
             onChange={(event) =>
               updateMetadata({ systemName: event.target.value })
             }
-            className={fieldClassName}
+            className="field mt-1.5"
             autoComplete="organization"
           />
         </div>
 
         <div>
-          <label
-            htmlFor="project-organization-name"
-            className="block text-sm font-medium text-zinc-800"
-          >
+          <label htmlFor="project-organization-name" className="label">
             Organization name
           </label>
           <input
@@ -83,16 +74,13 @@ export function ProjectMetadataSection({
             onChange={(event) =>
               updateMetadata({ organizationName: event.target.value })
             }
-            className={fieldClassName}
+            className="field mt-1.5"
             autoComplete="organization"
           />
         </div>
 
         <div className="sm:col-span-2">
-          <label
-            htmlFor="project-system-description"
-            className="block text-sm font-medium text-zinc-800"
-          >
+          <label htmlFor="project-system-description" className="label">
             System description
           </label>
           <textarea
@@ -102,7 +90,7 @@ export function ProjectMetadataSection({
               updateMetadata({ systemDescription: event.target.value })
             }
             rows={8}
-            className={`${fieldClassName} resize-y leading-relaxed`}
+            className="field mt-1.5 resize-y leading-relaxed"
           />
         </div>
       </div>
