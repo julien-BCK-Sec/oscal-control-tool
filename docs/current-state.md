@@ -8,12 +8,13 @@ This is a local-first OSCAL authoring application, not a GRC platform.
 
 Current stack:
 
-- Next.js
+- Next.js (App Router)
 - TypeScript
 - React
 - Tailwind
 - npm
-- localStorage
+- SQLite + Drizzle (`better-sqlite3`) for project persistence
+- Browser localStorage only as a legacy import source
 
 OSCAL is an export/interchange format, not the internal editing model.
 
@@ -21,14 +22,14 @@ OSCAL is an export/interchange format, not the internal editing model.
 
 1. Pinned NIST OSCAL profile + catalog (vendor)
 2. `FrameworkProvider` → application-facing `Framework`
-3. User implementation data
-4. Project metadata
-5. OSCAL-independent domain model
-6. OSCAL exporter
-7. OSCAL validation
+3. User implementation data (persisted per project)
+4. Project metadata (persisted per project)
+5. OSCAL-independent domain model (`assembleProject`)
+6. `ProjectRepository` → SQLite (hybrid columns + validated JSON)
+7. OSCAL exporter + AJV validation
 8. Future FedRAMP rules evaluation
 
-Keep these concerns separate.
+Keep these concerns separate. Framework content is never stored in the database.
 
 ## Current standards position
 
@@ -63,7 +64,6 @@ Do not fetch standards files at runtime and do not use moving branches.
 
 - Static control browser
 - Implementation editor
-- localStorage persistence
 - Project metadata
 - OSCAL-independent `Project` domain model
 - OSCAL SSP exporter
@@ -74,7 +74,21 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Positive and negative validation tests
 - `FrameworkProvider` boundary
 - Build-time derivation of the full NIST Moderate control set from the pinned profile + catalog
-- Control Browser UX (Milestone 3.5): independent list/editor scrolling, family and enhancement grouping, NIST display notation, search, status badges
+- Control Browser UX (Milestone 3.5)
+- **Milestone 4:** SQLite-backed projects, Server Actions, debounced autosave, optimistic concurrency, in-session undo/redo, automatic snapshots, immutable named versions, localStorage one-time import
+
+## Persistence (Milestone 4)
+
+- Interface: `ProjectRepository` in `src/persistence/`
+- Implementation: Drizzle + `better-sqlite3` under `src/persistence/sqlite/`
+- Server entry: `src/persistence/server.ts` (`server-only`) + `src/app/actions/projects.ts`
+- Database path: `DATABASE_PATH` (default `./data/oscal-control-tool.sqlite`)
+- Setup: `npm run db:migrate` (also `predev`)
+- Routes: `/projects` (list/create), `/projects/[id]` (editor)
+- Stored document: schema version 1 JSON envelope (metadata + implementations + framework id). No framework statements.
+- Autosave: ~1.5s debounce; statuses Unsaved / Saving / Saved / Save failed / Conflict
+- Snapshots: `project_snapshots` table (`automatic` | `named` | `pre-restore`)
+- Auth: not implemented — assumes trusted local / single-user deployment with a durable filesystem and one Node instance
 
 ## Framework derivation (Milestone 3)
 
@@ -84,8 +98,6 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Generated app data: `src/data/framework/generated/nist-sp-800-53-rev5-moderate.json`
 - Regenerate with `npm run derive:framework` (also runs on `pretest` / `prebuild`)
 - UI and domain consume `Framework` / `FrameworkControl` only — not raw OSCAL
-- Statement text is a normalized plain-string flattening of catalog `statement` parts (parameter insert tokens preserved; guidance/discussion excluded)
-- Implementations remain keyed by control ID; existing localStorage entries for prior MVP IDs (e.g. `ac-1`) continue to apply — no migration required
 
 ## Current exporter behavior
 
@@ -108,28 +120,17 @@ These are domain gaps, not trustworthy system facts:
 Other gaps:
 
 - No semantic cross-reference validation yet
-- No stable UUID persistence
+- No stable OSCAL UUID persistence
 - No FedRAMP policy evaluation
 - No portable OSCAL package
 - No OSCAL import (SSP → project)
-- Profile resolver supports only features used by the pinned Moderate profile
-
-## Control Browser UX (Milestone 3.5)
-
-UI-only improvements in `src/components/ControlBrowser.tsx` and
-`src/components/controlBrowser/presentation.ts`:
-
-- Fixed app shell with independently scrolling control list and editor
-- Controls grouped by family (collapsible; default expanded)
-- Enhancements nested under parents (collapsible; default collapsed)
-- Display uses NIST notation (`AC-2 (1)`); internal ids unchanged (`ac-2.1`)
-- Search filters by control ID, display notation, title, and family name
-- Selected row is highlighted and scrolled into view in the list
-- Optional status glyphs from existing implementation state (no storage changes)
+- No authentication / multi-user access control
+- Snapshot merge UX deferred (reload-latest on conflict)
+- Ephemeral serverless deployment is not supported by local SQLite
 
 ## Next approved milestone
 
-Milestone 4 — Word/PDF export (see `docs/roadmap.md`).
+Milestone 5 — Word/PDF export (see `docs/roadmap.md`).
 
 ## Required verification for each milestone
 

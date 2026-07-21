@@ -1,27 +1,27 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { ExportOscalButton } from "@/components/ExportOscalButton";
-import {
-  getProjectMetadataServerSnapshot,
-  getProjectMetadataSnapshot,
-  replaceProjectMetadata,
-  subscribeToProjectMetadata,
-  type ProjectMetadata,
-} from "@/data/project";
+import type { ControlImplementation } from "@/data/implementation";
+import type { ProjectMetadata } from "@/data/project";
 
 const fieldClassName =
   "mt-1.5 w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900";
 
-export function ProjectMetadataSection() {
-  const metadata = useSyncExternalStore(
-    subscribeToProjectMetadata,
-    getProjectMetadataSnapshot,
-    getProjectMetadataServerSnapshot,
-  );
+export type ProjectMetadataSectionProps = {
+  metadata: ProjectMetadata;
+  onMetadataChange: (next: ProjectMetadata) => void;
+  implementations: Record<string, ControlImplementation>;
+  projectName?: string;
+};
 
+export function ProjectMetadataSection({
+  metadata,
+  onMetadataChange,
+  implementations,
+  projectName,
+}: ProjectMetadataSectionProps) {
   function updateMetadata(patch: Partial<ProjectMetadata>) {
-    replaceProjectMetadata({
+    onMetadataChange({
       ...metadata,
       ...patch,
     });
@@ -41,10 +41,15 @@ export function ProjectMetadataSection() {
             Project
           </h2>
           <p className="mt-0.5 text-xs text-zinc-500">
-            System and organization details for this documentation project.
+            {projectName
+              ? `Editing “${projectName}”. System and organization details for OSCAL export.`
+              : "System and organization details for this documentation project."}
           </p>
         </div>
-        <ExportOscalButton />
+        <ExportOscalButton
+          metadata={metadata}
+          implementations={implementations}
+        />
       </div>
 
       <div className="mt-4 grid max-w-3xl gap-4 sm:grid-cols-2">

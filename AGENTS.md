@@ -28,7 +28,8 @@ The application should:
    (derived from the pinned OSCAL profile and catalog).
 2. Display the controls in a simple interface.
 3. Allow the user to enter implementation information.
-4. Save project information locally.
+4. Persist projects in a local SQLite database via `ProjectRepository`
+   (legacy browser localStorage may be imported once; it is not the primary store).
 5. Export a valid OSCAL System Security Plan JSON document.
 6. Validate the generated OSCAL document.
 
@@ -56,8 +57,9 @@ Do not add features outside the current requested task.
 - Use React and Tailwind CSS.
 - Use npm and retain `package-lock.json`.
 - Do not introduce another package manager.
-- Do not add a backend, database, authentication, cloud service, container,
-  state-management framework, or third-party UI library unless specifically
+- Local project persistence uses SQLite + Drizzle behind `ProjectRepository`
+  (Milestone 4). Do not add authentication, cloud hosting, PostgreSQL, a
+  state-management framework, or a third-party UI library unless specifically
   requested.
 - Prefer built-in browser, React, Next.js, TypeScript, and Node.js capabilities
   before adding dependencies.
@@ -79,9 +81,12 @@ After completing a milestone, update `docs/current-state.md` so another session 
 - Keep OSCAL out of the UI.
 - The domain model is the source of truth.
 - Standards are pinned, never fetched at runtime.
-- Frameworks are read-only reference data.
+- Frameworks are read-only reference data and are not stored in the database.
 - User implementations are stored separately from framework content.
 - Exporters adapt the domain model; they do not define it.
+- Database access goes through `ProjectRepository` and Server Actions only.
+- Local SQLite assumes a durable filesystem and a single Node.js instance;
+  it is not safe to expose publicly without authentication.
 
 ## Packages and Current Documentation
 

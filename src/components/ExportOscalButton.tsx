@@ -1,17 +1,9 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { FRAMEWORK_CONTROLS } from "@/data/framework";
-import {
-  getImplementationsServerSnapshot,
-  getImplementationsSnapshot,
-  subscribeToImplementations,
-} from "@/data/implementation";
-import {
-  getProjectMetadataServerSnapshot,
-  getProjectMetadataSnapshot,
-  subscribeToProjectMetadata,
-} from "@/data/project";
+import type { ControlImplementation } from "@/data/implementation";
+import type { ProjectMetadata } from "@/data/project";
 import { assembleProject } from "@/domain";
 import {
   buildSspExportFilename,
@@ -20,17 +12,15 @@ import {
   validateOscalSspDocument,
 } from "@/oscal";
 
-export function ExportOscalButton() {
-  const metadata = useSyncExternalStore(
-    subscribeToProjectMetadata,
-    getProjectMetadataSnapshot,
-    getProjectMetadataServerSnapshot,
-  );
-  const implementations = useSyncExternalStore(
-    subscribeToImplementations,
-    getImplementationsSnapshot,
-    getImplementationsServerSnapshot,
-  );
+export type ExportOscalButtonProps = {
+  metadata: ProjectMetadata;
+  implementations: Record<string, ControlImplementation>;
+};
+
+export function ExportOscalButton({
+  metadata,
+  implementations,
+}: ExportOscalButtonProps) {
   const [exportError, setExportError] = useState<string | null>(null);
 
   function handleExport() {
@@ -45,7 +35,6 @@ export function ExportOscalButton() {
     const validation = validateOscalSspDocument(oscalDocument);
 
     if (!validation.ok) {
-      // Keep full AJV diagnostics available during development.
       console.error("OSCAL SSP schema validation failed", validation.ajvErrors);
       setExportError(validation.message);
       return;

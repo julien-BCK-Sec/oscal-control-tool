@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Node preload for tsx scripts/tests (CJS require is intentional).
+    "scripts/mock-server-only.cjs",
   ]),
 ]);
 

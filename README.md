@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OSCAL Control Tool
 
-## Getting Started
+Local-first web app for documenting NIST SP 800-53 Rev. 5 Moderate controls and
+exporting a validated OSCAL System Security Plan (JSON).
 
-First, run the development server:
+This is **not** a GRC platform and does **not** claim FedRAMP support.
+
+## Requirements
+
+- Node.js 20+ (or current LTS)
+- npm
+
+## Setup
 
 ```bash
+npm install
+cp .env.example .env.local   # optional
+npm run db:migrate
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The app redirects to `/projects`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`npm run dev` also runs `db:migrate` via `predev`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Database
 
-## Learn More
+| Item | Detail |
+| --- | --- |
+| Engine | SQLite via Drizzle ORM and `better-sqlite3` |
+| Default path | `./data/oscal-control-tool.sqlite` |
+| Override | Set `DATABASE_PATH` in `.env.local` (server-only; never `NEXT_PUBLIC_`) |
+| Migrations | `npm run db:migrate` (SQL under `drizzle/`) |
+| Studio | `npm run db:studio` |
 
-To learn more about Next.js, take a look at the following resources:
+Framework control text is **not** stored in the database. It comes from
+`FrameworkProvider` (build-time derivation from pinned NIST artifacts).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Deployment assumptions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Durable local filesystem (or a mounted volume)
+- **Single** Node.js application instance (`next start` or equivalent)
+- Trusted local / single-user deployment — **no authentication yet**
+- **Not supported** on ephemeral serverless hosts (for example typical Vercel
+  serverless) because the SQLite file is not durable across instances
 
-## Deploy on Vercel
+Do not expose this app on a public network without adding authentication.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Useful scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test                 # unit tests
+npm run lint
+npm run build
+npm run derive:framework # regenerate NIST Moderate app framework JSON
+npm run db:generate      # generate Drizzle migrations after schema edits
+npx tsx --require ./scripts/mock-server-only.cjs scripts/smoke-persistence.ts
+```
+
+## Docs
+
+- `docs/current-state.md` — what works now
+- `docs/architecture.md` — layering
+- `docs/roadmap.md` — milestones
+- `docs/decisions.md` — ADRs
+- `docs/oscal-standards-alignment.md` — OSCAL / FedRAMP boundaries
+- `AGENTS.md` — contributor / agent instructions

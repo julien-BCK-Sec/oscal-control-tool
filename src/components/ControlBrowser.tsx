@@ -5,15 +5,10 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { FRAMEWORK_CONTROLS } from "@/data/framework";
 import {
   DEFAULT_CONTROL_IMPLEMENTATION,
-  getImplementationsServerSnapshot,
-  getImplementationsSnapshot,
-  replaceImplementations,
-  subscribeToImplementations,
   type ControlImplementation,
   type ImplementationStatus,
 } from "@/data/implementation";
@@ -66,7 +61,17 @@ function toggleId(set: Set<string>, id: string): Set<string> {
   return next;
 }
 
-export function ControlBrowser() {
+export type ControlBrowserProps = {
+  implementations: Record<string, ControlImplementation>;
+  onImplementationsChange: (
+    next: Record<string, ControlImplementation>,
+  ) => void;
+};
+
+export function ControlBrowser({
+  implementations,
+  onImplementationsChange,
+}: ControlBrowserProps) {
   const fullTree = useMemo(() => buildControlTree(FRAMEWORK_CONTROLS), []);
   const defaultCollapsedParents = useMemo(
     () => new Set(parentIdsWithEnhancements(fullTree)),
@@ -82,12 +87,6 @@ export function ControlBrowser() {
     () => new Set(defaultCollapsedParents),
   );
   const selectedItemRef = useRef<HTMLButtonElement | null>(null);
-
-  const implementations = useSyncExternalStore(
-    subscribeToImplementations,
-    getImplementationsSnapshot,
-    getImplementationsServerSnapshot,
-  );
 
   const filteredTree = useMemo(
     () => filterControlTree(fullTree, searchQuery),
@@ -113,7 +112,7 @@ export function ControlBrowser() {
     patch: Partial<ControlImplementation>,
   ) {
     const current = getImplementation(implementations, controlId);
-    replaceImplementations({
+    onImplementationsChange({
       ...implementations,
       [controlId]: {
         ...current,
