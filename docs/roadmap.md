@@ -1,36 +1,21 @@
 # Roadmap
 
-## Next approved milestone
+## Completed
 
-**Milestone 1 – Platform Foundation** (in progress on `feat/platform-foundation`)
+**Milestone 1 – Platform Foundation** (implemented on `feat/platform-foundation`)
 
-Introduce multi-user capabilities while preserving repository, Server Action,
-and OSCAL boundaries. See `docs/milestones/01-platform-foundation.md` and
-ADR-014 through ADR-019.
+PostgreSQL, organizations, Better Auth, RBAC, invitations, tenant-isolation
+tests, and authenticated invite-only demo. See
+`docs/milestones/01-platform-foundation.md` and ADR-014 through ADR-019.
 
-### Deliverables
+## Next
 
-- PostgreSQL support
-- Organizations
-- Memberships
-- Better Auth (email/password + verification)
-- RBAC
-- Invitations
-- Authenticated invite-only demo
+**Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
 
-### Success criteria
+## Later
 
-- Existing demo project still functions under organization ownership.
-- Tenant isolation enforced and tested.
-- Users belong to organizations.
-- Authentication is operational.
-- Existing authoring / review / OSCAL regression tests pass.
-- Documentation updated.
-
-## Later (not next)
-
-- Word/PDF export (formerly sequenced as Milestone 5)
 - Comments, mentions, notifications
 - Evidence management
 - Additional compliance frameworks
 - AI-assisted authoring
+- Horizontal scaling review beyond single-instance defaults

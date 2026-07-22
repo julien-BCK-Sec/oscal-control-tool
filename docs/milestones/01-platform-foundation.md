@@ -2,8 +2,8 @@
 
 ## Status
 
-Approved for implementation. Required decisions are recorded in ADR-014
-through ADR-019 (`docs/decisions.md`).
+Implemented on `feat/platform-foundation`. Required decisions are recorded in
+ADR-014 through ADR-019 (`docs/decisions.md`).
 
 ## Objective
 

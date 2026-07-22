@@ -1,8 +1,12 @@
 /**
- * Resolves the actor for ControlActivity rows.
+ * Actor identity for ControlActivity rows.
  *
- * No internal User model yet. Cloudflare Access / session identity can plug
- * into this helper later without touching repositories or UI components.
+ * Authenticated product paths resolve actors via `sessionActor` in
+ * `src/auth/context.ts` (Better Auth session → user id + display name).
+ * Automated operations (migrations, seeds, jobs) use `SYSTEM_ACTOR`.
+ *
+ * `resolveActor` remains a narrow header-based helper for tests and legacy
+ * edge-proxy experiments; it must not be treated as the product auth boundary.
  */
 
 export type ActorIdentity = {
@@ -26,7 +30,7 @@ type HeaderSource = {
 
 /**
  * Optional identity claims from an authenticated edge proxy.
- * Kept isolated here so repositories never parse Cloudflare headers.
+ * Kept isolated so repositories never parse proxy headers.
  */
 function identityFromAccessHeaders(
   headers: HeaderSource | null | undefined,
@@ -50,8 +54,8 @@ function identityFromAccessHeaders(
 }
 
 /**
- * Resolve actor for the current request.
- * Falls back to System when no identity is available (local / single-user).
+ * Resolve actor from optional proxy headers, else System.
+ * Prefer `sessionActor` for authenticated Control Freak actions.
  */
 export function resolveActor(
   headers?: HeaderSource | null,
