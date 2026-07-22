@@ -102,7 +102,8 @@ Do not fetch standards files at runtime and do not use moving branches.
   wrappers in `src/server/`
 - Database: `DATABASE_URL` (required in production)
 - Local development database: `docker compose up -d` (`compose.yaml`,
-  PostgreSQL 16, `postgres`/`postgres`/`oscal_control_tool` on port 5432)
+  PostgreSQL 16, `postgres`/`postgres`/`oscal_control_tool` on port 5432).
+  On Ubuntu `docker.io`, also install `docker-compose-v2`.
 - Migrations: `drizzle-pg/` via `npm run db:migrate` (standalone scripts load
   `.env`, then `.env.local`; existing process env wins)
 - Routes: `/sign-in`, `/projects`, `/projects/[id]`,

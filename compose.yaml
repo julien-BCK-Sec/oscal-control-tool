@@ -1,10 +1,15 @@
 # Local development PostgreSQL for Control Freak.
+#
+# Requires Docker Compose v2 (`docker compose`). On Ubuntu with docker.io:
+#   sudo apt install docker-compose-v2
+#
 # Usage: docker compose up -d
 # Cleanup: docker compose down   (keep data)
 #          docker compose down -v  (remove volume)
 services:
   postgres:
     image: postgres:16
+    container_name: oscal-control-tool-postgres
     ports:
       - "5432:5432"
     environment:

@@ -35,7 +35,19 @@ See `docs/current-state.md` for the complete implementation status.
 
 - Node.js 20+ (or current LTS)
 - npm
-- Docker (for local PostgreSQL via Compose)
+- Docker Engine with the Compose v2 plugin (`docker compose`)
+
+On Ubuntu / WSL with the `docker.io` package, Compose is separate:
+
+```bash
+sudo apt update
+sudo apt install docker.io docker-compose-v2
+sudo systemctl enable --now docker
+sudo usermod -aG docker "$USER"
+# Apply the docker group (or log out and back in):
+newgrp docker
+docker compose version
+```
 
 ### Installation
 
@@ -73,6 +85,14 @@ Development verification and invitation links are written to `data/email-sink.js
 ```bash
 docker compose down      # stop containers; keep data volume
 docker compose down -v   # stop containers and delete the volume
+```
+
+If port 5432 is already taken by a one-off `docker run` Postgres container,
+remove it before starting Compose:
+
+```bash
+docker rm -f controlfreak-postgres
+docker compose up -d
 ```
 
 ---
