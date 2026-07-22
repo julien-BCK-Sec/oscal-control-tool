@@ -1,10 +1,13 @@
 import {
+  boolean,
   index,
   integer,
   pgTable,
   text,
   unique,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 /**
  * Better Auth identity + organization tables (ADR-015/017/018). Re-exported so
@@ -139,7 +142,132 @@ export const controlActivities = pgTable(
   ],
 );
 
+/**
+ * Threaded control discussions (Milestone 02A). Soft-deleted via deleted_at.
+ * Never exported as OSCAL. Targets are Controls only.
+ */
+export const comments = pgTable(
+  "comments",
+  {
+    id: text("id").primaryKey().notNull(),
+    organizationId: text("organization_id").notNull(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    controlId: text("control_id").notNull(),
+    parentCommentId: text("parent_comment_id"),
+    authorId: text("author_id").notNull(),
+    body: text("body").notNull(),
+    resolved: boolean("resolved").notNull().default(false),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    deletedAt: text("deleted_at"),
+  },
+  (table) => [
+    index("comments_org_project_control_idx").on(
+      table.organizationId,
+      table.projectId,
+      table.controlId,
+    ),
+    index("comments_parent_comment_id_idx").on(table.parentCommentId),
+    index("comments_organization_id_idx").on(table.organizationId),
+  ],
+);
+
+/**
+ * Mentions resolved from comment bodies to organization members only.
+ */
+export const commentMentions = pgTable(
+  "comment_mentions",
+  {
+    id: text("id").primaryKey().notNull(),
+    commentId: text("comment_id")
+      .notNull()
+      .references(() => comments.id, { onDelete: "cascade" }),
+    mentionedUserId: text("mentioned_user_id").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    unique("comment_mentions_comment_user_uid").on(
+      table.commentId,
+      table.mentionedUserId,
+    ),
+    index("comment_mentions_mentioned_user_id_idx").on(table.mentionedUserId),
+  ],
+);
+
+/**
+ * Control work assignments: one primary assignee per assignment record.
+ */
+export const assignments = pgTable(
+  "assignments",
+  {
+    id: text("id").primaryKey().notNull(),
+    organizationId: text("organization_id").notNull(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    controlId: text("control_id").notNull(),
+    assigneeUserId: text("assignee_user_id").notNull(),
+    assignmentRole: text("assignment_role").notNull(),
+    assignedByUserId: text("assigned_by_user_id").notNull(),
+    assignedAt: text("assigned_at").notNull(),
+    completedAt: text("completed_at"),
+  },
+  (table) => [
+    index("assignments_org_project_control_idx").on(
+      table.organizationId,
+      table.projectId,
+      table.controlId,
+    ),
+    index("assignments_assignee_user_id_idx").on(table.assigneeUserId),
+    index("assignments_organization_id_idx").on(table.organizationId),
+  ],
+);
+
+/**
+ * In-app notifications. Retained indefinitely unless soft-deleted.
+ * Duplicate prevention uses recipient + event_type + related_object_id.
+ */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: text("id").primaryKey().notNull(),
+    organizationId: text("organization_id").notNull(),
+    recipientUserId: text("recipient_user_id").notNull(),
+    actorUserId: text("actor_user_id"),
+    eventType: text("event_type").notNull(),
+    relatedObjectType: text("related_object_type").notNull(),
+    relatedObjectId: text("related_object_id").notNull(),
+    projectId: text("project_id"),
+    controlId: text("control_id"),
+    summary: text("summary").notNull(),
+    readAt: text("read_at"),
+    deletedAt: text("deleted_at"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    index("notifications_recipient_created_idx").on(
+      table.recipientUserId,
+      table.createdAt,
+    ),
+    index("notifications_recipient_unread_idx").on(
+      table.recipientUserId,
+      table.readAt,
+    ),
+    index("notifications_organization_id_idx").on(table.organizationId),
+    // Active-only dedupe: soft-deleted notifications do not block recreation.
+    uniqueIndex("notifications_dedupe_uid")
+      .on(table.recipientUserId, table.eventType, table.relatedObjectId)
+      .where(sql`${table.deletedAt} is null`),
+  ],
+);
+
 export type ProjectRow = typeof projects.$inferSelect;
 export type ProjectSnapshotRow = typeof projectSnapshots.$inferSelect;
 export type ControlRecordRow = typeof controlRecords.$inferSelect;
 export type ControlActivityRow = typeof controlActivities.$inferSelect;
+export type CommentRow = typeof comments.$inferSelect;
+export type CommentMentionRow = typeof commentMentions.$inferSelect;
+export type AssignmentRow = typeof assignments.$inferSelect;
+export type NotificationRow = typeof notifications.$inferSelect;

@@ -41,13 +41,43 @@ export type Permission =
   | "review.approve"
   | "review.request_changes"
   | "review.resubmit"
-  | "review.reopen";
+  | "review.reopen"
+  /** Collaboration (Milestone 02A) */
+  | "discussion.read"
+  | "discussion.create"
+  | "discussion.reply"
+  | "discussion.edit_own"
+  | "discussion.delete_own"
+  | "discussion.moderate"
+  | "discussion.resolve"
+  | "assignment.read"
+  | "assignment.manage"
+  | "notification.read"
+  | "notification.manage_own";
 
 /**
  * Role → permissions. Encoded as arrays for readability and frozen into sets
  * at module load for O(1) checks. Higher roles list their full permission set
  * explicitly (no inheritance magic) so the matrix is auditable at a glance.
  */
+const COLLABORATION_PARTICIPANT: readonly Permission[] = [
+  "discussion.read",
+  "discussion.create",
+  "discussion.reply",
+  "discussion.edit_own",
+  "discussion.delete_own",
+  "discussion.resolve",
+  "assignment.read",
+  "notification.read",
+  "notification.manage_own",
+];
+
+const COLLABORATION_MODERATOR: readonly Permission[] = [
+  ...COLLABORATION_PARTICIPANT,
+  "discussion.moderate",
+  "assignment.manage",
+];
+
 const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
   organization_admin: [
     "org.manage_members",
@@ -64,6 +94,7 @@ const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
     "review.request_changes",
     "review.resubmit",
     "review.reopen",
+    ...COLLABORATION_MODERATOR,
   ],
   project_manager: [
     "project.create",
@@ -78,6 +109,7 @@ const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
     "review.request_changes",
     "review.resubmit",
     "review.reopen",
+    ...COLLABORATION_MODERATOR,
   ],
   author: [
     "project.read",
@@ -86,6 +118,7 @@ const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
     "control.edit_metadata",
     "review.submit",
     "review.resubmit",
+    ...COLLABORATION_PARTICIPANT,
   ],
   reviewer: [
     "project.read",
@@ -93,8 +126,9 @@ const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
     "review.approve",
     "review.request_changes",
     "review.reopen",
+    ...COLLABORATION_PARTICIPANT,
   ],
-  viewer: ["project.read"],
+  viewer: ["project.read", "discussion.read", "assignment.read", "notification.read"],
 };
 
 const ROLE_PERMISSIONS: Record<OrgRole, ReadonlySet<Permission>> = Object.freeze(
