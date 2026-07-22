@@ -20,6 +20,10 @@ export type { ControlActivityRepository } from "./control-activity-repository";
 export type { ControlRecordRepository } from "./control-record-repository";
 export type {
   ControlRecordService,
+  ControlReviewQuerySummary,
+  ControlReviewStatusCounts,
+  TransitionReviewStatusInput,
+  TransitionReviewStatusResult,
   UpsertControlRecordWithActivityResult,
 } from "./control-record-service";
 export type { ProjectRepository } from "./repository";

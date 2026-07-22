@@ -59,6 +59,50 @@ describe("control activity presentation", () => {
     );
   });
 
+  it("formats review workflow summaries", () => {
+    assert.equal(
+      formatControlActivitySummary(
+        activity({
+          activityType: "review_requested",
+          fieldName: "reviewStatus",
+          previousValue: "not_reviewed",
+          newValue: "ready_for_review",
+        }),
+      ),
+      "Julien submitted the control for review",
+    );
+    assert.equal(
+      formatControlActivitySummary(
+        activity({ activityType: "review_started" }),
+      ),
+      "Julien started the review",
+    );
+    assert.equal(
+      formatControlActivitySummary(
+        activity({ activityType: "review_approved" }),
+      ),
+      "Julien approved the review",
+    );
+    assert.equal(
+      formatControlActivitySummary(
+        activity({ activityType: "changes_requested" }),
+      ),
+      "Julien requested changes",
+    );
+    assert.equal(
+      formatControlActivitySummary(
+        activity({ activityType: "review_resubmitted" }),
+      ),
+      "Julien resubmitted the control for review",
+    );
+    assert.equal(
+      formatControlActivitySummary(
+        activity({ activityType: "review_reopened" }),
+      ),
+      "Julien reopened the review",
+    );
+  });
+
   it("formats relative timestamps", () => {
     const now = new Date("2026-07-22T12:05:00.000Z");
     assert.equal(

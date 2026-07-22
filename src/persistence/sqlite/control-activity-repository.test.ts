@@ -391,6 +391,7 @@ describe("ControlActivity", () => {
     const records = await service.listByProject(project.id);
     assert.equal(records[0]?.owner, "Priya");
     assert.equal(records[0]?.implementationStatus, "in_review");
+    assert.equal(records[0]?.reviewStatus, "not_reviewed");
   });
 
   it("cascades deletion when a ControlRecord is deleted", async () => {

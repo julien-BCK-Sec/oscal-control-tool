@@ -1,7 +1,11 @@
-import { CONTROL_IMPLEMENTATION_STATUSES } from "./defaults";
+import {
+  CONTROL_IMPLEMENTATION_STATUSES,
+  CONTROL_REVIEW_STATUSES,
+} from "./defaults";
 import type {
   ControlRecordFields,
   ControlImplementationStatus,
+  ControlReviewStatus,
   UpsertControlRecordInput,
 } from "./types";
 
@@ -11,6 +15,15 @@ export function isControlImplementationStatus(
   return (
     typeof value === "string" &&
     (CONTROL_IMPLEMENTATION_STATUSES as readonly string[]).includes(value)
+  );
+}
+
+export function isControlReviewStatus(
+  value: unknown,
+): value is ControlReviewStatus {
+  return (
+    typeof value === "string" &&
+    (CONTROL_REVIEW_STATUSES as readonly string[]).includes(value)
   );
 }
 

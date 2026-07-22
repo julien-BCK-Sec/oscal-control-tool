@@ -36,6 +36,18 @@ export function formatControlActivitySummary(activity: ControlActivity): string 
     }
     case "review_due_date_changed":
       return `${actor} set review due date to ${formatActivityFieldDisplayValue("reviewDueDate", activity.newValue)}`;
+    case "review_requested":
+      return `${actor} submitted the control for review`;
+    case "review_started":
+      return `${actor} started the review`;
+    case "review_approved":
+      return `${actor} approved the review`;
+    case "changes_requested":
+      return `${actor} requested changes`;
+    case "review_resubmitted":
+      return `${actor} resubmitted the control for review`;
+    case "review_reopened":
+      return `${actor} reopened the review`;
     default:
       return `${actor} ${controlActivityTypeLabel(activity.activityType).toLowerCase()}`;
   }

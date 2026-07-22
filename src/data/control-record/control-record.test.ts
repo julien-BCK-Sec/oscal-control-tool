@@ -2,13 +2,17 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   DEFAULT_CONTROL_RECORD_FIELDS,
+  DEFAULT_CONTROL_REVIEW_STATUS,
   controlImplementationStatusLabel,
+  controlReviewStatusLabel,
   displayControlOwner,
   isControlOwnerUnassigned,
   isControlImplementationStatus,
+  isControlReviewStatus,
   parseControlRecordReviewDueDate,
   parseUpsertControlRecordInput,
   resolveControlRecordFields,
+  resolveControlReviewStatus,
 } from "@/data/control-record";
 
 describe("control-record domain helpers", () => {
@@ -20,6 +24,16 @@ describe("control-record domain helpers", () => {
     assert.equal(isControlImplementationStatus("not-started"), false);
   });
 
+  it("validates review status enum values", () => {
+    assert.equal(isControlReviewStatus("not_reviewed"), true);
+    assert.equal(isControlReviewStatus("ready_for_review"), true);
+    assert.equal(isControlReviewStatus("under_review"), true);
+    assert.equal(isControlReviewStatus("changes_requested"), true);
+    assert.equal(isControlReviewStatus("approved"), true);
+    assert.equal(isControlReviewStatus("in_review"), false);
+    assert.equal(isControlReviewStatus("draft"), false);
+  });
+
   it("maps implementation status labels for UI", () => {
     assert.equal(controlImplementationStatusLabel("draft"), "Draft");
     assert.equal(controlImplementationStatusLabel("in_review"), "In Review");
@@ -29,6 +43,20 @@ describe("control-record domain helpers", () => {
       "Implemented",
     );
     assert.equal(controlImplementationStatusLabel("deprecated"), "Deprecated");
+  });
+
+  it("maps review status labels for UI", () => {
+    assert.equal(controlReviewStatusLabel("not_reviewed"), "Not Reviewed");
+    assert.equal(
+      controlReviewStatusLabel("ready_for_review"),
+      "Ready for Review",
+    );
+    assert.equal(controlReviewStatusLabel("under_review"), "Under Review");
+    assert.equal(
+      controlReviewStatusLabel("changes_requested"),
+      "Changes Requested",
+    );
+    assert.equal(controlReviewStatusLabel("approved"), "Approved");
   });
 
   it("treats empty owner as unassigned", () => {
@@ -76,6 +104,25 @@ describe("control-record domain helpers", () => {
     assert.deepEqual(
       resolveControlRecordFields({}, "ac-99"),
       DEFAULT_CONTROL_RECORD_FIELDS,
+    );
+    assert.equal(resolveControlReviewStatus({}, "ac-99"), "not_reviewed");
+    assert.equal(DEFAULT_CONTROL_REVIEW_STATUS, "not_reviewed");
+  });
+
+  it("does not put reviewStatus on upsert metadata payload", () => {
+    const parsed = parseUpsertControlRecordInput({
+      controlId: "ac-2",
+      owner: "A",
+      coOwner: "",
+      businessUnit: "",
+      implementationStatus: "draft",
+      reviewDueDate: null,
+      reviewStatus: "approved",
+    });
+    assert.ok(parsed);
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(parsed, "reviewStatus"),
+      false,
     );
   });
 });

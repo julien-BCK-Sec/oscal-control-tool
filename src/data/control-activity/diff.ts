@@ -1,6 +1,8 @@
 import {
   controlImplementationStatusLabel,
+  controlReviewStatusLabel,
   isControlImplementationStatus,
+  isControlReviewStatus,
   type ControlRecordFields,
 } from "@/data/control-record";
 import type { ControlActivityTypeSupported } from "./types";
@@ -8,7 +10,13 @@ import type { ControlActivityTypeSupported } from "./types";
 export type ControlRecordFieldChange = {
   activityType: Exclude<
     ControlActivityTypeSupported,
-    "control_record_created"
+    | "control_record_created"
+    | "review_requested"
+    | "review_started"
+    | "review_approved"
+    | "changes_requested"
+    | "review_resubmitted"
+    | "review_reopened"
   >;
   fieldName: keyof ControlRecordFields;
   previousValue: string | null;
@@ -100,6 +108,9 @@ export function formatActivityFieldDisplayValue(
     isControlImplementationStatus(value)
   ) {
     return controlImplementationStatusLabel(value);
+  }
+  if (fieldName === "reviewStatus" && isControlReviewStatus(value)) {
+    return controlReviewStatusLabel(value);
   }
   return value;
 }

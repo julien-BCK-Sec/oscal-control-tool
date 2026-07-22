@@ -29,6 +29,9 @@
   --warning-muted: #f7efd9;
   --danger: #9b2c2c;
   --danger-muted: #f8e8e8;
+  /* Changes Requested / orange review badge */
+  --orange: #9a4e16;
+  --orange-muted: #f8ebe0;
   /* Implemented / teal lifecycle badge */
   --teal: #0f6e6a;
   --teal-muted: #e4f3f2;
@@ -61,6 +64,8 @@
   --color-warning-muted: var(--warning-muted);
   --color-danger: var(--danger);
   --color-danger-muted: var(--danger-muted);
+  --color-orange: var(--orange);
+  --color-orange-muted: var(--orange-muted);
   --color-teal: var(--teal);
   --color-teal-muted: var(--teal-muted);
   --font-sans: var(--font-geist-sans);

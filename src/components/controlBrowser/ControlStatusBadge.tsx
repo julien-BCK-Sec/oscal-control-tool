@@ -10,7 +10,7 @@ const IMPLEMENTATION_STATUS_BADGE_CLASS: Record<
   draft: "bg-surface-secondary text-text-secondary border-border",
   in_review: "bg-accent-muted text-accent border-accent/25",
   approved: "bg-success-muted text-success border-success/25",
-  implemented: "bg-teal-muted text-teal border-teal/25",
+  implemented: "bg-success-muted text-success border-success/25",
   deprecated: "bg-danger-muted text-danger border-danger/25",
 };
 

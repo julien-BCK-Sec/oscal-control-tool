@@ -1,6 +1,7 @@
 import type {
   ControlRecordFields,
   ControlImplementationStatus,
+  ControlReviewStatus,
 } from "./types";
 
 export const CONTROL_IMPLEMENTATION_STATUSES: readonly ControlImplementationStatus[] =
@@ -23,6 +24,25 @@ export const CONTROL_IMPLEMENTATION_STATUS_LABELS: Record<
   deprecated: "Deprecated",
 };
 
+export const CONTROL_REVIEW_STATUSES: readonly ControlReviewStatus[] = [
+  "not_reviewed",
+  "ready_for_review",
+  "under_review",
+  "changes_requested",
+  "approved",
+] as const;
+
+export const CONTROL_REVIEW_STATUS_LABELS: Record<ControlReviewStatus, string> =
+  {
+    not_reviewed: "Not Reviewed",
+    ready_for_review: "Ready for Review",
+    under_review: "Under Review",
+    changes_requested: "Changes Requested",
+    approved: "Approved",
+  };
+
+export const DEFAULT_CONTROL_REVIEW_STATUS: ControlReviewStatus = "not_reviewed";
+
 export const DEFAULT_CONTROL_RECORD_FIELDS: ControlRecordFields = {
   owner: "",
   coOwner: "",
@@ -35,6 +55,10 @@ export function controlImplementationStatusLabel(
   status: ControlImplementationStatus,
 ): string {
   return CONTROL_IMPLEMENTATION_STATUS_LABELS[status];
+}
+
+export function controlReviewStatusLabel(status: ControlReviewStatus): string {
+  return CONTROL_REVIEW_STATUS_LABELS[status];
 }
 
 /** True when owner is empty (unassigned). */

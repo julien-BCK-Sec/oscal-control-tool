@@ -176,3 +176,28 @@ Reason:
 
 Date:
 2026-07-22
+
+## ADR-012
+
+Decision:
+Add `reviewStatus` on ControlRecord (SQLite column `review_status`) as a
+separate review-workflow lifecycle from `implementationStatus`. Change
+`reviewStatus` only through a centralized state machine and
+`transitionReviewStatus` service method (never via the metadata autosave
+payload or arbitrary status assignment). Emit matching ControlActivity rows
+(`review_requested`, `review_started`, `review_approved`, `changes_requested`,
+`review_resubmitted`, `review_reopened`). Treat approval as a state transition
+plus activity, not a durable Approval entity. Keep review state and activity
+history live operational metadata that named `project_json` version restore
+does not roll back. Future RBAC will gate who may invoke each transition.
+
+Reason:
+- Keeps implementation maturity and review workflow independent.
+- Prevents UI/API drift by centralizing legal transitions, action labels, and
+  activity types.
+- `expectedCurrentStatus` concurrency check avoids silent overwrites across
+  tabs/users.
+- Defers comments, evidence, notifications, and Approval records until needed.
+
+Date:
+2026-07-22

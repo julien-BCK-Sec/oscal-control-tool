@@ -28,19 +28,25 @@ The application separates these concerns:
 5. Control management metadata (`ControlRecord`)
    - Application-facing `ControlRecordRepository` / `ControlRecordService`
    - Separate `control_records` table scoped by `projectId` + `controlId`
-   - Ownership / **implementationStatus** fields only — never written into OSCAL
-     or `project_json` implementations
-   - Lazy: missing rows resolve to draft / unassigned defaults in the UI
+   - Ownership / **implementationStatus** / **reviewStatus** fields — never
+     written into OSCAL or `project_json` implementations
+   - `implementationStatus` = implementation maturity (editable via metadata
+     autosave); `reviewStatus` = review workflow only (changed via controlled
+     transitions in `src/data/control-review` + `transitionReviewStatus`)
+   - Lazy: missing rows resolve to draft / not_reviewed / unassigned defaults
+     in the UI; first review action may create the row with those defaults
    - Append-only `control_activities` stream (`ControlActivityRepository`);
-     metadata upserts and activity inserts share one SQLite transaction
-   - Terminology: ControlRecord uses `implementationStatus` (not a generic
-     `status`) so a future review workflow can add `reviewStatus` cleanly
+     metadata upserts and review transitions share one SQLite transaction with
+     their activity inserts
+   - Named version restore affects `project_json` only — ControlRecord review
+     state and ControlActivity history remain live operational metadata
 
 6. In-session editor state
    - Working copy with debounced database autosave
    - Bounded undo/redo (not database revisions)
    - Optimistic concurrency via `revision` (project document)
-   - ControlRecord drafts participate in the same autosave / undo path
+   - ControlRecord metadata drafts participate in the same autosave / undo path
+   - Review workflow status is outside undo/autosave; updated via Server Action
 
 7. OSCAL
    - Export (current)
@@ -61,5 +67,5 @@ UI (ProjectWorkspace)
 ```
 
 Runtime domain `Project` is assembled with `FrameworkProvider` controls at export time.
-ControlRecord metadata and ControlActivity are not included in OSCAL SSP export
-and are not rolled back by named project version restore.
+ControlRecord metadata (including reviewStatus) and ControlActivity are not
+included in OSCAL SSP export and are not rolled back by named project version restore.

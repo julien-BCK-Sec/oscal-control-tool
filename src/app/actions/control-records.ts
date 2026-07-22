@@ -2,17 +2,24 @@
 
 import { headers } from "next/headers";
 import {
+  isControlReviewStatus,
   parseUpsertControlRecordInput,
   type ControlRecord,
+  type ControlReviewStatus,
   type UpsertControlRecordInput,
 } from "@/data/control-record";
 import type { ControlActivity } from "@/data/control-activity";
+import {
+  isControlReviewAction,
+  type ControlReviewAction,
+} from "@/data/control-review";
 import { resolveActor } from "@/persistence/actor";
 import {
   getControlActivityRepository,
   getControlRecordRepository,
   getControlRecordService,
 } from "@/persistence/server";
+import type { TransitionReviewStatusResult } from "@/persistence/control-record-service";
 
 function requireNonEmptyString(value: unknown, field: string): string {
   if (typeof value !== "string" || value.trim() === "") {
@@ -24,6 +31,8 @@ function requireNonEmptyString(value: unknown, field: string): string {
 export type UpsertControlRecordsResult =
   | { ok: true; records: ControlRecord[] }
   | { ok: false; reason: "validation" | "not-found"; message: string };
+
+export type TransitionReviewStatusActionResult = TransitionReviewStatusResult;
 
 /**
  * List persisted ControlRecords for a project.
@@ -38,7 +47,7 @@ export async function listControlRecordsAction(
 
 /**
  * Lazy-create or update ControlRecords and append ControlActivity rows.
- * Does not modify project_json / OSCAL.
+ * Does not modify project_json / OSCAL. Does not change reviewStatus.
  */
 export async function upsertControlRecordsAction(input: {
   projectId: string;
@@ -93,6 +102,66 @@ export async function upsertControlRecordsAction(input: {
     }
     return { ok: false, reason: "validation", message };
   }
+}
+
+/**
+ * Apply a legal review workflow transition. Rejects arbitrary status writes and
+ * stale expectedCurrentStatus conflicts.
+ */
+export async function transitionReviewStatusAction(input: {
+  projectId: string;
+  controlId: string;
+  action: unknown;
+  expectedCurrentStatus: unknown;
+}): Promise<TransitionReviewStatusActionResult> {
+  let projectId: string;
+  let controlId: string;
+  try {
+    projectId = requireNonEmptyString(input.projectId, "projectId");
+    controlId = requireNonEmptyString(input.controlId, "controlId");
+  } catch (error) {
+    return {
+      ok: false,
+      reason: "not-found",
+      message: error instanceof Error ? error.message : "Invalid identifiers.",
+    };
+  }
+
+  if (!isControlReviewAction(input.action)) {
+    return {
+      ok: false,
+      reason: "invalid-transition",
+      message: "Invalid review action.",
+      currentReviewStatus: isControlReviewStatus(input.expectedCurrentStatus)
+        ? input.expectedCurrentStatus
+        : "not_reviewed",
+    };
+  }
+
+  if (!isControlReviewStatus(input.expectedCurrentStatus)) {
+    return {
+      ok: false,
+      reason: "invalid-transition",
+      message: "Invalid expectedCurrentStatus.",
+      currentReviewStatus: "not_reviewed",
+    };
+  }
+
+  const action = input.action as ControlReviewAction;
+  const expectedCurrentStatus =
+    input.expectedCurrentStatus as ControlReviewStatus;
+
+  const headerList = await headers();
+  const actor = resolveActor(headerList);
+  return getControlRecordService().transitionReviewStatus(
+    {
+      projectId,
+      controlId,
+      action,
+      expectedCurrentStatus,
+    },
+    actor,
+  );
 }
 
 /**

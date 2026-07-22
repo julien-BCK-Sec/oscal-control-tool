@@ -3,17 +3,23 @@
  * Separate from OSCAL / project_json document history.
  */
 
-/** Currently emitted by ControlRecord metadata saves. */
+/** Currently emitted by ControlRecord metadata saves and review transitions. */
 export type ControlActivityTypeSupported =
   | "control_record_created"
   | "owner_changed"
   | "co_owner_changed"
   | "business_unit_changed"
   | "implementation_status_changed"
-  | "review_due_date_changed";
+  | "review_due_date_changed"
+  | "review_requested"
+  | "review_started"
+  | "review_approved"
+  | "changes_requested"
+  | "review_resubmitted"
+  | "review_reopened";
 
 /**
- * Reserved for future workflow / comment / evidence events.
+ * Reserved for future comment / evidence / narrative events.
  * Included in the union so new emitters can extend without renames.
  */
 export type ControlActivityTypeFuture =
@@ -21,9 +27,6 @@ export type ControlActivityTypeFuture =
   | "parameter_changed"
   | "comment_added"
   | "comment_resolved"
-  | "review_requested"
-  | "review_approved"
-  | "changes_requested"
   | "evidence_added"
   | "evidence_removed"
   | "assignment_changed";

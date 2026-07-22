@@ -1,12 +1,15 @@
 import "server-only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNotNull, lt, ne } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
-  normalizeControlRecordFields,
+  DEFAULT_CONTROL_REVIEW_STATUS,
   isControlImplementationStatus,
+  isControlReviewStatus,
+  normalizeControlRecordFields,
   type ControlRecord,
   type ControlImplementationStatus,
+  type ControlReviewStatus,
   type UpsertControlRecordInput,
 } from "@/data/control-record";
 import type { ControlRecordRepository } from "../control-record-repository";
@@ -17,6 +20,10 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+function todayIsoDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function toControlRecord(
   row: typeof controlRecords.$inferSelect,
 ): ControlRecord {
@@ -24,6 +31,11 @@ function toControlRecord(
     isControlImplementationStatus(row.implementationStatus)
       ? row.implementationStatus
       : "draft";
+  const reviewStatus: ControlReviewStatus = isControlReviewStatus(
+    row.reviewStatus,
+  )
+    ? row.reviewStatus
+    : DEFAULT_CONTROL_REVIEW_STATUS;
   return {
     id: row.id,
     projectId: row.projectId,
@@ -32,6 +44,7 @@ function toControlRecord(
     coOwner: row.coOwner,
     businessUnit: row.businessUnit,
     implementationStatus,
+    reviewStatus,
     reviewDueDate: row.reviewDueDate,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -111,6 +124,7 @@ export function createSqliteControlRecordRepository(
       coOwner: fields.coOwner,
       businessUnit: fields.businessUnit,
       implementationStatus: fields.implementationStatus,
+      reviewStatus: DEFAULT_CONTROL_REVIEW_STATUS,
       reviewDueDate: fields.reviewDueDate,
       createdAt,
       updatedAt,
@@ -124,6 +138,7 @@ export function createSqliteControlRecordRepository(
       coOwner: fields.coOwner,
       businessUnit: fields.businessUnit,
       implementationStatus: fields.implementationStatus,
+      reviewStatus: DEFAULT_CONTROL_REVIEW_STATUS,
       reviewDueDate: fields.reviewDueDate,
       createdAt,
       updatedAt,
@@ -182,5 +197,42 @@ export function createSqliteControlRecordRepository(
       }
       return results;
     },
+
+    async listByReviewStatus(
+      projectId: string,
+      reviewStatus: ControlReviewStatus,
+    ): Promise<ControlRecord[]> {
+      const rows = await db
+        .select()
+        .from(controlRecords)
+        .where(
+          and(
+            eq(controlRecords.projectId, projectId),
+            eq(controlRecords.reviewStatus, reviewStatus),
+          ),
+        );
+      return rows.map(toControlRecord);
+    },
+
+    async listOverdueForReview(
+      projectId: string,
+      asOfDate: string = todayIsoDate(),
+    ): Promise<ControlRecord[]> {
+      const rows = await db
+        .select()
+        .from(controlRecords)
+        .where(
+          and(
+            eq(controlRecords.projectId, projectId),
+            isNotNull(controlRecords.reviewDueDate),
+            lt(controlRecords.reviewDueDate, asOfDate),
+            ne(controlRecords.reviewStatus, "approved"),
+          ),
+        );
+      return rows.map(toControlRecord);
+    },
   };
 }
+
+/** Shared row → DTO mapping for ControlRecordService. */
+export { toControlRecord };

@@ -1,5 +1,6 @@
 import type {
   ControlRecord,
+  ControlReviewStatus,
   UpsertControlRecordInput,
 } from "@/data/control-record";
 
@@ -20,5 +21,13 @@ export interface ControlRecordRepository {
   upsertMany(
     projectId: string,
     inputs: UpsertControlRecordInput[],
+  ): Promise<ControlRecord[]>;
+  listByReviewStatus(
+    projectId: string,
+    reviewStatus: ControlReviewStatus,
+  ): Promise<ControlRecord[]>;
+  listOverdueForReview(
+    projectId: string,
+    asOfDate?: string,
   ): Promise<ControlRecord[]>;
 }

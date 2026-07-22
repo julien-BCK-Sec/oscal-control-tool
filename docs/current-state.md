@@ -79,12 +79,16 @@ Do not fetch standards files at runtime and do not use moving branches.
 - **Demo seed:** Canonical CGDS / SGOP development project via `npm run db:seed:demo` (idempotent; `--reset` recreates)
 - **UI polish + Overview (Milestones A/B):** shared visual tokens, redesigned project cards, Overview workspace dashboard, Controls authoring layout improvements, centralized completion calculation, on-demand OSCAL validation summary
 - **ControlRecord metadata:** application-level ownership / **implementation status**
-  table separate from OSCAL and `project_json`; Control Metadata editor section;
-  list implementation-status badges and unassigned warnings
+  / **review status** table separate from OSCAL and `project_json`; Control
+  Metadata editor section; Review section with action buttons (no raw
+  reviewStatus dropdown); list badges for both implementation and review status
 - **ControlActivity stream:** append-only operational history for ControlRecord
-  field changes (including `implementation_status_changed`); read-only History
-  panel in the control editor; actor resolution helper for future Cloudflare
-  Access / User identity
+  field changes (including `implementation_status_changed`) and review workflow
+  transitions; read-only History panel in the control editor; actor resolution
+  helper for future Cloudflare Access / User identity
+- **Review workflow:** centralized transitions in `src/data/control-review`;
+  `transitionReviewStatus` Server Action with `expectedCurrentStatus` concurrency;
+  approval is a state + activity, not an Approval entity
 
 ## Demo seed project
 
@@ -119,12 +123,13 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Autosave: ~1.5s debounce; statuses Unsaved / Saving / Saved / Save failed / Conflict
 - Snapshots: `project_snapshots` table (`automatic` | `named` | `pre-restore`)
 - ControlRecords: `control_records` table (`project_id` + `control_id` unique);
-  lazy create on first metadata edit; not stored in OSCAL or `project_json`;
-  column `implementation_status` (formerly `status`) holds the implementation
-  lifecycle — a future `reviewStatus` will be a separate field
+  lazy create on first metadata edit or first review transition; not stored in
+  OSCAL or `project_json`; column `implementation_status` holds implementation
+  maturity; column `review_status` holds review workflow (default
+  `not_reviewed`); metadata autosave never writes `review_status`
 - ControlActivity: append-only `control_activities` stream keyed by
-  `control_record_id`; written in the same transaction as metadata upserts;
-  independent lifecycle from named `project_json` versions
+  `control_record_id`; written in the same transaction as metadata upserts and
+  review transitions; independent lifecycle from named `project_json` versions
 - Auth: not implemented — assumes trusted local / single-user deployment with a durable filesystem and one Node instance
 
 ## Render / Docker deployment
@@ -190,10 +195,11 @@ Other gaps:
 - Overview OSCAL validation result is not persisted across reloads
 - Projects list completion requires loading each project document (acceptable locally; not optimized for large fleets)
 - No rich-text / Markdown / AI assist / collaboration features
-- ControlRecord comments / reviews / approvals / evidence not implemented yet
-  (activity types are reserved; ControlActivity stream is ready to receive them)
-- Named version restore does not roll back ControlRecord metadata or
-  ControlActivity (by design — operational metadata has an independent lifecycle)
+- ControlRecord comments / evidence / notifications / RBAC not implemented yet
+  (review workflow is a state machine + activity stream; no Approval entity)
+- Named version restore does not roll back ControlRecord metadata (including
+  reviewStatus) or ControlActivity (by design — operational metadata has an
+  independent lifecycle)
 
 ## Operational metadata vs named versions
 
@@ -201,9 +207,12 @@ Other gaps:
 content only (metadata + implementations). Restoring a named version rewrites
 `project_json` and bumps project revision; it does **not** delete or roll back:
 
-- ControlRecord ownership / lifecycle fields
-- ControlActivity history
-- future comments, approvals, or evidence rows keyed to ControlRecord
+- ControlRecord ownership / implementationStatus / reviewStatus
+- ControlActivity history (including review workflow events)
+- future comments, evidence, or Approval rows keyed to ControlRecord
+
+Review workflow is operational state and is not rolled back with named document
+versions.
 
 ## Next approved milestone
 

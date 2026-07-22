@@ -1,0 +1,1 @@
+ALTER TABLE `control_records` ADD `review_status` text DEFAULT 'not_reviewed' NOT NULL;

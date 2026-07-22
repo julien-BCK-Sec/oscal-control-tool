@@ -1,6 +1,9 @@
 import type { ActorIdentity } from "./actor";
+import type { ControlActivity } from "@/data/control-activity";
+import type { ControlReviewAction } from "@/data/control-review";
 import type {
   ControlRecord,
+  ControlReviewStatus,
   UpsertControlRecordInput,
 } from "@/data/control-record";
 
@@ -9,6 +12,46 @@ export type UpsertControlRecordWithActivityResult = {
   /** True when the row or any activity was written. */
   changed: boolean;
   activityCount: number;
+};
+
+export type TransitionReviewStatusInput = {
+  projectId: string;
+  controlId: string;
+  action: ControlReviewAction;
+  expectedCurrentStatus: ControlReviewStatus;
+};
+
+export type TransitionReviewStatusResult =
+  | {
+      ok: true;
+      record: ControlRecord;
+      activity: ControlActivity;
+      /** True when a ControlRecord row was created in this call. */
+      created: boolean;
+    }
+  | {
+      ok: false;
+      reason: "conflict";
+      message: string;
+      currentReviewStatus: ControlReviewStatus;
+    }
+  | {
+      ok: false;
+      reason: "invalid-transition";
+      message: string;
+      currentReviewStatus: ControlReviewStatus;
+    }
+  | {
+      ok: false;
+      reason: "not-found";
+      message: string;
+    };
+
+export type ControlReviewStatusCounts = Record<ControlReviewStatus, number>;
+
+export type ControlReviewQuerySummary = {
+  counts: ControlReviewStatusCounts;
+  overdue: ControlRecord[];
 };
 
 /**
@@ -27,4 +70,33 @@ export interface ControlRecordService {
     inputs: UpsertControlRecordInput[],
     actor: ActorIdentity,
   ): Promise<UpsertControlRecordWithActivityResult[]>;
+  /**
+   * Apply a legal review workflow transition. Does not accept arbitrary
+   * reviewStatus assignment. Uses expectedCurrentStatus for concurrency.
+   */
+  transitionReviewStatus(
+    input: TransitionReviewStatusInput,
+    actor: ActorIdentity,
+  ): Promise<TransitionReviewStatusResult>;
+  listByReviewStatus(
+    projectId: string,
+    reviewStatus: ControlReviewStatus,
+  ): Promise<ControlRecord[]>;
+  /**
+   * Counts by reviewStatus. When `allControlIds` is provided, controls without
+   * a persisted row are counted as not_reviewed.
+   */
+  countByReviewStatus(
+    projectId: string,
+    allControlIds?: readonly string[],
+  ): Promise<ControlReviewStatusCounts>;
+  listOverdueForReview(
+    projectId: string,
+    asOfDate?: string,
+  ): Promise<ControlRecord[]>;
+  summarizeReviewStatuses(
+    projectId: string,
+    allControlIds: readonly string[],
+    asOfDate?: string,
+  ): Promise<ControlReviewQuerySummary>;
 }

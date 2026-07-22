@@ -23,8 +23,10 @@ import { upsertControlRecordsAction } from "@/app/actions/control-records";
 import type { ControlImplementation } from "@/data/implementation";
 import {
   controlRecordsToFieldMap,
+  controlRecordsToReviewStatusMap,
   type ControlRecord,
   type ControlRecordFields,
+  type ControlReviewStatus,
 } from "@/data/control-record";
 import type { ProjectMetadata } from "@/data/project";
 import { FRAMEWORK_CONTROLS } from "@/data/framework";
@@ -85,6 +87,10 @@ export function ProjectWorkspace({
     () => controlRecordsToFieldMap(initialControlRecords),
     [initialControlRecords],
   );
+  const initialReviewStatusMap = useMemo(
+    () => controlRecordsToReviewStatusMap(initialControlRecords),
+    [initialControlRecords],
+  );
 
   const [name, setName] = useState(initialProject.name);
   const [metadata, setMetadata] = useState(initialProject.metadata);
@@ -93,6 +99,9 @@ export function ProjectWorkspace({
   );
   const [controlRecords, setControlRecords] =
     useState<Record<string, ControlRecordFields>>(initialRecordsMap);
+  const [controlReviewStatuses, setControlReviewStatuses] = useState<
+    Record<string, ControlReviewStatus>
+  >(initialReviewStatusMap);
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [revision, setRevision] = useState(initialProject.revision);
   const [updatedAt, setUpdatedAt] = useState(initialProject.updatedAt);
@@ -677,7 +686,12 @@ export function ProjectWorkspace({
             onImplementationsChange={handleImplementationsChange}
             controlRecords={controlRecords}
             onControlRecordsChange={handleControlRecordsChange}
+            controlReviewStatuses={controlReviewStatuses}
+            onControlReviewStatusesChange={setControlReviewStatuses}
             activityRefreshToken={activityRefreshToken}
+            onActivityRefresh={() =>
+              setActivityRefreshToken((token) => token + 1)
+            }
             focusRequest={controlsFocus}
             onFocusRequestHandled={() => setControlsFocus(null)}
           />

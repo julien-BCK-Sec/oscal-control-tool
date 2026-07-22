@@ -108,3 +108,5 @@ export function appendActivitiesInTransaction(
 ): ControlActivity[] {
   return insertActivities(tx, inputs);
 }
+
+export { toControlActivity };

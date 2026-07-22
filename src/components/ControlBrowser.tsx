@@ -17,7 +17,9 @@ import {
   displayControlOwner,
   isControlOwnerUnassigned,
   resolveControlRecordFields,
+  resolveControlReviewStatus,
   type ControlRecordFields,
+  type ControlReviewStatus,
 } from "@/data/control-record";
 import {
   computeFamilyCompletion,
@@ -33,8 +35,10 @@ import {
   parentIdsWithEnhancements,
 } from "@/components/controlBrowser/presentation";
 import { ControlMetadataSection } from "@/components/controlBrowser/ControlMetadataSection";
+import { ControlReviewSection } from "@/components/controlBrowser/ControlReviewSection";
 import { ControlActivityHistory } from "@/components/controlBrowser/ControlActivityHistory";
 import { ControlStatusBadge } from "@/components/controlBrowser/ControlStatusBadge";
+import { ControlReviewStatusBadge } from "@/components/controlBrowser/ControlReviewStatusBadge";
 import { splitRequirementSegments } from "@/components/controlBrowser/requirementText";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { ControlsFocusRequest } from "@/components/workspace/presentation";
@@ -71,8 +75,13 @@ export type ControlBrowserProps = {
   ) => void;
   controlRecords: Record<string, ControlRecordFields>;
   onControlRecordsChange: (next: Record<string, ControlRecordFields>) => void;
-  /** Bumped after ControlRecord autosave so History reloads. */
+  controlReviewStatuses: Record<string, ControlReviewStatus>;
+  onControlReviewStatusesChange: (
+    next: Record<string, ControlReviewStatus>,
+  ) => void;
+  /** Bumped after ControlRecord autosave / review transition so History reloads. */
   activityRefreshToken?: number;
+  onActivityRefresh?: () => void;
   /** Optional focus when navigating from Overview. */
   focusRequest?: ControlsFocusRequest | null;
   onFocusRequestHandled?: () => void;
@@ -84,7 +93,10 @@ export function ControlBrowser({
   onImplementationsChange,
   controlRecords,
   onControlRecordsChange,
+  controlReviewStatuses,
+  onControlReviewStatusesChange,
   activityRefreshToken = 0,
+  onActivityRefresh,
   focusRequest = null,
   onFocusRequestHandled,
 }: ControlBrowserProps) {
@@ -164,6 +176,10 @@ export function ControlBrowser({
   const selectedComplete = isImplementationComplete(implementation);
   const selectedRecord = resolveControlRecordFields(
     controlRecords,
+    selected.id,
+  );
+  const selectedReviewStatus = resolveControlReviewStatus(
+    controlReviewStatuses,
     selected.id,
   );
   const requirementSegments = splitRequirementSegments(selected.statement);
@@ -249,6 +265,10 @@ export function ControlBrowser({
 
   function renderListMeta(controlId: string) {
     const record = resolveControlRecordFields(controlRecords, controlId);
+    const reviewStatus = resolveControlReviewStatus(
+      controlReviewStatuses,
+      controlId,
+    );
     const ownerLabel = displayControlOwner(record.owner);
     const unassigned = isControlOwnerUnassigned(record.owner);
     return (
@@ -256,6 +276,7 @@ export function ControlBrowser({
         <ControlStatusBadge
           implementationStatus={record.implementationStatus}
         />
+        <ControlReviewStatusBadge reviewStatus={reviewStatus} />
         <span
           className={`text-[11px] ${
             unassigned ? "text-warning" : "text-text-muted"
@@ -568,6 +589,7 @@ export function ControlBrowser({
             <ControlStatusBadge
               implementationStatus={selectedRecord.implementationStatus}
             />
+            <ControlReviewStatusBadge reviewStatus={selectedReviewStatus} />
             <span
               className={
                 isControlOwnerUnassigned(selectedRecord.owner)
@@ -616,6 +638,21 @@ export function ControlBrowser({
             controlId={selected.id}
             fields={selectedRecord}
             onChange={(patch) => updateControlRecord(selected.id, patch)}
+          />
+
+          <ControlReviewSection
+            projectId={projectId}
+            controlId={selected.id}
+            reviewStatus={selectedReviewStatus}
+            onReviewStatusChange={(next) => {
+              onControlReviewStatusesChange({
+                ...controlReviewStatuses,
+                [selected.id]: next,
+              });
+            }}
+            onTransitionSuccess={() => {
+              onActivityRefresh?.();
+            }}
           />
 
           <ControlActivityHistory
