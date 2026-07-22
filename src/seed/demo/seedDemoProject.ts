@@ -232,7 +232,7 @@ export async function seedDemoProject(
   const reset = options.reset === true;
   const validateOscal = options.validateOscal !== false;
   const databasePathHint =
-    context.databasePathHint ?? "(configured DATABASE_PATH)";
+    context.databasePathHint ?? "(configured DATABASE_URL)";
   const baselineControlCount = demoBaselineControlCount();
   const frameworkLabel = demoFrameworkLabel();
 

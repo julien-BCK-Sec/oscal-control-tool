@@ -1,12 +1,16 @@
 /**
- * Seed the canonical CGDS / SGOP demo project into DATABASE_PATH.
+ * Seed the canonical CGDS / SGOP demo project into DATABASE_URL.
  *
  * Usage:
  *   npm run db:seed:demo
  *   npm run db:seed:demo -- --reset
  */
-import { closeDb, getDb, resolveDatabasePath } from "../src/persistence/sqlite/client";
-import { createSqliteProjectRepository } from "../src/persistence/sqlite/project-repository";
+import {
+  closeDb,
+  getDb,
+  resolveDatabaseUrl,
+} from "../src/persistence/postgres/client";
+import { createPostgresProjectRepository } from "../src/persistence/postgres/project-repository";
 import {
   formatSeedDemoSummary,
   seedDemoProject,
@@ -20,21 +24,28 @@ function parseArgs(argv: string[]): { reset: boolean } {
 
 async function main(): Promise<void> {
   const { reset } = parseArgs(process.argv.slice(2));
-  const databasePath = resolveDatabasePath();
-  const repository = createSqliteProjectRepository(getDb(databasePath));
+  const databaseUrl = resolveDatabaseUrl();
+  if (!databaseUrl) {
+    throw new Error(
+      "DATABASE_URL is required to seed the demo project. Set it before running db:seed:demo.",
+    );
+  }
+
+  const db = await getDb(databaseUrl);
+  const repository = createPostgresProjectRepository(db);
 
   const result = await seedDemoProject(
     repository,
     { reset, validateOscal: true },
-    { databasePathHint: databasePath },
+    { databasePathHint: databaseUrl },
   );
 
   console.log(formatSeedDemoSummary(result));
-  closeDb();
+  await closeDb();
 }
 
-main().catch((error) => {
+main().catch(async (error) => {
   console.error(error);
-  closeDb();
+  await closeDb();
   process.exit(1);
 });

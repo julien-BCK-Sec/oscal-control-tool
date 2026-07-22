@@ -5,7 +5,7 @@
  *
  * Usage: npm start
  * Env:
- *   DATABASE_PATH     required when NODE_ENV=production
+ *   DATABASE_URL      required when NODE_ENV=production
  *   SEED_DEMO_PROJECT set to "true" to run the idempotent demo seed
  *   PORT              listen port (default 3000; Render supplies this)
  */
@@ -15,9 +15,9 @@ import path from "node:path";
 import {
   closeDb,
   getDb,
-  resolveDatabasePath,
-} from "../src/persistence/sqlite/client";
-import { createSqliteProjectRepository } from "../src/persistence/sqlite/project-repository";
+  resolveDatabaseUrl,
+} from "../src/persistence/postgres/client";
+import { createPostgresProjectRepository } from "../src/persistence/postgres/project-repository";
 import {
   formatSeedDemoSummary,
   seedDemoProject,
@@ -34,16 +34,20 @@ function resolveListenPort(env: NodeJS.ProcessEnv): string {
 }
 
 async function migrate(): Promise<string> {
-  const databasePath = resolveDatabasePath();
-  fs.mkdirSync(path.dirname(databasePath), { recursive: true });
-  console.log(`Migrating database at ${databasePath}`);
-  getDb(databasePath);
-  closeDb();
+  const databaseUrl = resolveDatabaseUrl();
+  if (!databaseUrl) {
+    throw new Error(
+      "DATABASE_URL is required in production. Set it before starting the application.",
+    );
+  }
+  console.log("Migrating PostgreSQL database...");
+  await getDb(databaseUrl);
+  await closeDb();
   console.log("Migrations applied.");
-  return databasePath;
+  return databaseUrl;
 }
 
-async function seedDemoIfRequested(databasePath: string): Promise<void> {
+async function seedDemoIfRequested(databaseUrl: string): Promise<void> {
   if (!shouldSeedDemo(process.env)) {
     console.log("SEED_DEMO_PROJECT not enabled; skipping demo seed.");
     return;
@@ -52,14 +56,14 @@ async function seedDemoIfRequested(databasePath: string): Promise<void> {
   console.log(
     "SEED_DEMO_PROJECT enabled; seeding demo (idempotent, no --reset)...",
   );
-  const repository = createSqliteProjectRepository(getDb(databasePath));
+  const repository = createPostgresProjectRepository(await getDb(databaseUrl));
   const result = await seedDemoProject(
     repository,
     { reset: false, validateOscal: true },
-    { databasePathHint: databasePath },
+    { databasePathHint: databaseUrl },
   );
   console.log(formatSeedDemoSummary(result));
-  closeDb();
+  await closeDb();
 }
 
 function startNextServer(): void {
@@ -110,13 +114,13 @@ function startNextServer(): void {
 }
 
 async function main(): Promise<void> {
-  const databasePath = await migrate();
-  await seedDemoIfRequested(databasePath);
+  const databaseUrl = await migrate();
+  await seedDemoIfRequested(databaseUrl);
   startNextServer();
 }
 
-main().catch((error) => {
+main().catch(async (error) => {
   console.error(error);
-  closeDb();
+  await closeDb();
   process.exit(1);
 });

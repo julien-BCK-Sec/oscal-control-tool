@@ -4,31 +4,31 @@ import type { ControlActivityRepository } from "./control-activity-repository";
 import type { ControlRecordRepository } from "./control-record-repository";
 import type { ControlRecordService } from "./control-record-service";
 import type { ProjectRepository } from "./repository";
-import { getDb } from "./sqlite/client";
-import { createSqliteControlActivityRepository } from "./sqlite/control-activity-repository";
-import { createSqliteControlRecordRepository } from "./sqlite/control-record-repository";
-import { createSqliteControlRecordService } from "./sqlite/control-record-service";
-import { createSqliteProjectRepository } from "./sqlite/project-repository";
+import { getDb } from "./postgres/client";
+import { createPostgresControlActivityRepository } from "./postgres/control-activity-repository";
+import { createPostgresControlRecordRepository } from "./postgres/control-record-repository";
+import { createPostgresControlRecordService } from "./postgres/control-record-service";
+import { createPostgresProjectRepository } from "./postgres/project-repository";
 
-/** Default server-side repository bound to DATABASE_PATH. */
-export function getProjectRepository(): ProjectRepository {
-  return createSqliteProjectRepository(getDb());
+/** Default server-side repository bound to DATABASE_URL (PostgreSQL). */
+export async function getProjectRepository(): Promise<ProjectRepository> {
+  return createPostgresProjectRepository(await getDb());
 }
 
 /** ControlRecord persistence (application metadata; not OSCAL). */
-export function getControlRecordRepository(): ControlRecordRepository {
-  return createSqliteControlRecordRepository(getDb());
+export async function getControlRecordRepository(): Promise<ControlRecordRepository> {
+  return createPostgresControlRecordRepository(await getDb());
 }
 
 /** Append-only ControlActivity stream. */
-export function getControlActivityRepository(): ControlActivityRepository {
-  return createSqliteControlActivityRepository(getDb());
+export async function getControlActivityRepository(): Promise<ControlActivityRepository> {
+  return createPostgresControlActivityRepository(await getDb());
 }
 
 /**
  * ControlRecord writes coordinated with ControlActivity appends.
  * Prefer this over ControlRecordRepository for metadata saves.
  */
-export function getControlRecordService(): ControlRecordService {
-  return createSqliteControlRecordService(getDb());
+export async function getControlRecordService(): Promise<ControlRecordService> {
+  return createPostgresControlRecordService(await getDb());
 }

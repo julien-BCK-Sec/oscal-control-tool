@@ -48,7 +48,7 @@ function parseImplementations(
 }
 
 export async function listProjectsAction(): Promise<ProjectSummary[]> {
-  return getProjectRepository().list();
+  return (await getProjectRepository()).list();
 }
 
 export async function createProjectAction(input: {
@@ -67,7 +67,7 @@ export async function createProjectAction(input: {
             throw new Error("Invalid project metadata.");
           })();
 
-  return getProjectRepository().create({
+  return (await getProjectRepository()).create({
     name,
     organizationName:
       typeof input.organizationName === "string"
@@ -83,7 +83,7 @@ export async function loadProjectAction(
   projectId: string,
 ): Promise<ProjectLoadResult> {
   const id = requireNonEmptyString(projectId, "projectId");
-  return getProjectRepository().load(id);
+  return (await getProjectRepository()).load(id);
 }
 
 export async function saveProjectAction(
@@ -122,7 +122,7 @@ export async function saveProjectAction(
     };
   }
 
-  const result = await getProjectRepository().save({
+  const result = await (await getProjectRepository()).save({
     id,
     name,
     frameworkId,
@@ -132,7 +132,7 @@ export async function saveProjectAction(
   });
 
   if (result.ok) {
-    await getProjectRepository().createAutomaticSnapshot(id);
+    await (await getProjectRepository()).createAutomaticSnapshot(id);
   }
 
   return result;
@@ -144,19 +144,19 @@ export async function renameProjectAction(
 ): Promise<StoredProject | null> {
   const id = requireNonEmptyString(projectId, "projectId");
   const nextName = requireNonEmptyString(name, "name");
-  return getProjectRepository().rename(id, nextName);
+  return (await getProjectRepository()).rename(id, nextName);
 }
 
 export async function deleteProjectAction(projectId: string): Promise<void> {
   const id = requireNonEmptyString(projectId, "projectId");
-  await getProjectRepository().delete(id);
+  await (await getProjectRepository()).delete(id);
 }
 
 export async function listSnapshotsAction(
   projectId: string,
 ): Promise<ProjectSnapshotSummary[]> {
   const id = requireNonEmptyString(projectId, "projectId");
-  return getProjectRepository().listSnapshots(id);
+  return (await getProjectRepository()).listSnapshots(id);
 }
 
 export async function createNamedVersionAction(input: {
@@ -180,7 +180,7 @@ export async function createNamedVersionAction(input: {
     };
   }
 
-  return getProjectRepository().createNamedVersion({
+  return (await getProjectRepository()).createNamedVersion({
     projectId,
     name,
     expectedRevision: input.expectedRevision,
@@ -205,7 +205,7 @@ export async function restoreSnapshotAction(input: {
     };
   }
 
-  return getProjectRepository().restoreSnapshot({
+  return (await getProjectRepository()).restoreSnapshot({
     projectId,
     snapshotId,
     expectedRevision: input.expectedRevision,
@@ -217,7 +217,7 @@ export async function createAutomaticSnapshotAction(
   projectId: string,
 ): Promise<ProjectSnapshotSummary | null> {
   const id = requireNonEmptyString(projectId, "projectId");
-  return getProjectRepository().createAutomaticSnapshotNow(id);
+  return (await getProjectRepository()).createAutomaticSnapshotNow(id);
 }
 
 export async function importLegacyProjectAction(input: {
@@ -231,7 +231,7 @@ export async function importLegacyProjectAction(input: {
   }
   const implementations = parseImplementations(input.implementations) ?? {};
 
-  return getProjectRepository().create({
+  return (await getProjectRepository()).create({
     name,
     frameworkId: NIST_MODERATE_FRAMEWORK_ID,
     metadata: input.metadata,

@@ -1,15 +1,30 @@
-import { resolveDatabasePath, getDb, closeDb } from "../src/persistence/sqlite/client";
+import {
+  closeDb,
+  getDb,
+  resolveDatabaseUrl,
+} from "../src/persistence/postgres/client";
 
 /**
- * Apply Drizzle migrations to DATABASE_PATH (or the default local file).
+ * Apply Drizzle PostgreSQL migrations to DATABASE_URL.
  * Usage: npm run db:migrate
+ *
+ * SQLite migration tooling remains under `drizzle/` + `src/persistence/sqlite/`
+ * for the one-shot cutover path (ADR-016).
  */
-function main(): void {
-  const databasePath = resolveDatabasePath();
-  console.log(`Migrating database at ${databasePath}`);
-  getDb(databasePath);
-  closeDb();
+async function main(): Promise<void> {
+  const databaseUrl = resolveDatabaseUrl();
+  if (!databaseUrl) {
+    throw new Error(
+      "DATABASE_URL is required to run migrations. Set it in the environment.",
+    );
+  }
+  console.log("Migrating PostgreSQL database…");
+  await getDb(databaseUrl);
+  await closeDb();
   console.log("Migrations applied.");
 }
 
-main();
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

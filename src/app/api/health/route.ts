@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { getDb } from "@/persistence/sqlite/client";
+import { getDb } from "@/persistence/postgres/client";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -10,8 +10,8 @@ export const runtime = "nodejs";
  */
 export async function GET(): Promise<Response> {
   try {
-    const db = getDb();
-    db.run(sql`select 1`);
+    const db = await getDb();
+    await db.execute(sql`select 1`);
     return Response.json({ status: "ok" }, { status: 200 });
   } catch {
     return Response.json({ status: "unavailable" }, { status: 503 });

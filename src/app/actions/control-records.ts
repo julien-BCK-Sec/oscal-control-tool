@@ -42,7 +42,7 @@ export async function listControlRecordsAction(
   projectId: string,
 ): Promise<ControlRecord[]> {
   const id = requireNonEmptyString(projectId, "projectId");
-  return getControlRecordRepository().listByProject(id);
+  return (await getControlRecordRepository()).listByProject(id);
 }
 
 /**
@@ -88,7 +88,7 @@ export async function upsertControlRecordsAction(input: {
   try {
     const headerList = await headers();
     const actor = resolveActor(headerList);
-    const results = await getControlRecordService().upsertManyWithActivity(
+    const results = await (await getControlRecordService()).upsertManyWithActivity(
       projectId,
       parsed,
       actor,
@@ -153,7 +153,7 @@ export async function transitionReviewStatusAction(input: {
 
   const headerList = await headers();
   const actor = resolveActor(headerList);
-  return getControlRecordService().transitionReviewStatus(
+  return (await getControlRecordService()).transitionReviewStatus(
     {
       projectId,
       controlId,
@@ -174,12 +174,12 @@ export async function listControlActivitiesAction(
 ): Promise<ControlActivity[]> {
   const pid = requireNonEmptyString(projectId, "projectId");
   const cid = requireNonEmptyString(controlId, "controlId");
-  const record = await getControlRecordRepository().getByProjectAndControl(
+  const record = await (await getControlRecordRepository()).getByProjectAndControl(
     pid,
     cid,
   );
   if (!record) {
     return [];
   }
-  return getControlActivityRepository().listByControlRecordId(record.id);
+  return (await getControlActivityRepository()).listByControlRecordId(record.id);
 }

@@ -7,11 +7,22 @@ import { FRAMEWORK_CONTROLS } from "../src/data/framework";
 import { assembleProject } from "../src/domain";
 import { NIST_MODERATE_FRAMEWORK_ID } from "../src/framework/nist-moderate/derive";
 import { projectToOscalSsp, validateOscalSspDocument } from "../src/oscal";
-import { closeDb, getDb } from "../src/persistence/sqlite/client";
-import { createSqliteProjectRepository } from "../src/persistence/sqlite/project-repository";
+import {
+  closeDb,
+  getDb,
+  resolveDatabaseUrl,
+} from "../src/persistence/postgres/client";
+import { createPostgresProjectRepository } from "../src/persistence/postgres/project-repository";
 
 async function main(): Promise<void> {
-  const repo = createSqliteProjectRepository(getDb());
+  const databaseUrl = resolveDatabaseUrl();
+  if (!databaseUrl) {
+    throw new Error(
+      "DATABASE_URL is required for smoke persistence checks. Set it before running smoke:persistence.",
+    );
+  }
+
+  const repo = createPostgresProjectRepository(await getDb(databaseUrl));
 
   const created = await repo.create({
     name: "Smoke Project",
@@ -93,12 +104,12 @@ async function main(): Promise<void> {
   assert.equal(validation.ok, true);
 
   await repo.delete(created.id);
-  closeDb();
+  await closeDb();
   console.log("Smoke persistence checks passed.");
 }
 
-main().catch((error) => {
+main().catch(async (error) => {
   console.error(error);
-  closeDb();
+  await closeDb();
   process.exit(1);
 });
