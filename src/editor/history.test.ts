@@ -16,6 +16,7 @@ const base = {
   implementations: {
     "ac-1": { status: "not-started" as const, narrative: "" },
   },
+  controlRecords: {},
 };
 
 describe("EditorHistory", () => {

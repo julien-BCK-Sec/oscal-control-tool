@@ -25,16 +25,28 @@ The application separates these concerns:
    - Automatic snapshots and immutable named versions
    - UI mutates through Next.js Server Actions only
 
-5. In-session editor state
+5. Control management metadata (`ControlRecord`)
+   - Application-facing `ControlRecordRepository` / `ControlRecordService`
+   - Separate `control_records` table scoped by `projectId` + `controlId`
+   - Ownership / **implementationStatus** fields only — never written into OSCAL
+     or `project_json` implementations
+   - Lazy: missing rows resolve to draft / unassigned defaults in the UI
+   - Append-only `control_activities` stream (`ControlActivityRepository`);
+     metadata upserts and activity inserts share one SQLite transaction
+   - Terminology: ControlRecord uses `implementationStatus` (not a generic
+     `status`) so a future review workflow can add `reviewStatus` cleanly
+
+6. In-session editor state
    - Working copy with debounced database autosave
    - Bounded undo/redo (not database revisions)
-   - Optimistic concurrency via `revision`
+   - Optimistic concurrency via `revision` (project document)
+   - ControlRecord drafts participate in the same autosave / undo path
 
-6. OSCAL
+7. OSCAL
    - Export (current)
    - Import / schema validation (partial — SSP schema validation current)
 
-7. FedRAMP policy evaluation (future, separate)
+8. FedRAMP policy evaluation (future, separate)
    - Consolidated Rules — not a catalog/profile substitute
 
 React components never contain OSCAL serialization, profile/catalog parsing, or Drizzle/SQLite types.
@@ -43,9 +55,11 @@ React components never contain OSCAL serialization, profile/catalog parsing, or 
 
 ```text
 UI (ProjectWorkspace)
-  → Server Actions (src/app/actions/projects.ts)
-    → ProjectRepository
-      → SQLite (projects + project_snapshots)
+  → Server Actions (src/app/actions/projects.ts, control-records.ts)
+    → ProjectRepository / ControlRecordService / ControlActivityRepository
+      → SQLite (projects + project_snapshots + control_records + control_activities)
 ```
 
 Runtime domain `Project` is assembled with `FrameworkProvider` controls at export time.
+ControlRecord metadata and ControlActivity are not included in OSCAL SSP export
+and are not rolled back by named project version restore.

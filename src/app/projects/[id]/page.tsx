@@ -3,6 +3,7 @@ import {
   listSnapshotsAction,
   loadProjectAction,
 } from "@/app/actions/projects";
+import { listControlRecordsAction } from "@/app/actions/control-records";
 import { ProjectWorkspace } from "@/components/ProjectWorkspace";
 import { parseWorkspaceViewParam } from "@/components/workspace/presentation";
 
@@ -39,11 +40,15 @@ export default async function ProjectPage({
     );
   }
 
-  const snapshots = await listSnapshotsAction(id);
+  const [snapshots, controlRecords] = await Promise.all([
+    listSnapshotsAction(id),
+    listControlRecordsAction(id),
+  ]);
   return (
     <ProjectWorkspace
       key={loaded.project.id}
       initialProject={loaded.project}
+      initialControlRecords={controlRecords}
       initialSnapshots={snapshots}
       initialView={initialView}
     />

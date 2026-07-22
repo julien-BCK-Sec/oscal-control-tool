@@ -16,7 +16,15 @@ export {
   serializeProjectDocument,
   type DocumentParseResult,
 } from "./document";
+export type { ControlActivityRepository } from "./control-activity-repository";
+export type { ControlRecordRepository } from "./control-record-repository";
+export type {
+  ControlRecordService,
+  UpsertControlRecordWithActivityResult,
+} from "./control-record-service";
 export type { ProjectRepository } from "./repository";
+export { resolveActor, SYSTEM_ACTOR, UNKNOWN_ACTOR } from "./actor";
+export type { ActorIdentity } from "./actor";
 export { PROJECT_DOCUMENT_SCHEMA_VERSION } from "./types";
 export type {
   CreateNamedVersionInput,
@@ -35,3 +43,4 @@ export type {
   StoredProjectDocument,
   StoredProjectDocumentV1,
 } from "./types";
+

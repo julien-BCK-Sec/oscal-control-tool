@@ -19,7 +19,13 @@ import {
   restoreSnapshotAction,
   saveProjectAction,
 } from "@/app/actions/projects";
+import { upsertControlRecordsAction } from "@/app/actions/control-records";
 import type { ControlImplementation } from "@/data/implementation";
+import {
+  controlRecordsToFieldMap,
+  type ControlRecord,
+  type ControlRecordFields,
+} from "@/data/control-record";
 import type { ProjectMetadata } from "@/data/project";
 import { FRAMEWORK_CONTROLS } from "@/data/framework";
 import { computeOverallCompletion } from "@/domain";
@@ -45,6 +51,7 @@ import type {
 
 export type ProjectWorkspaceProps = {
   initialProject: StoredProject;
+  initialControlRecords: ControlRecord[];
   initialSnapshots: ProjectSnapshotSummary[];
   initialView?: WorkspaceTabId;
 };
@@ -53,27 +60,40 @@ type FlushSaveResult =
   | { ok: true }
   | { ok: false; reason: "conflict" | "error" };
 
-function initialWorkingCopy(project: StoredProject): EditorWorkingCopy {
+function initialWorkingCopy(
+  project: StoredProject,
+  controlRecords: Record<string, ControlRecordFields>,
+): EditorWorkingCopy {
   return {
     name: project.name,
     metadata: project.metadata,
     implementations: project.implementations,
+    controlRecords,
   };
 }
 
 export function ProjectWorkspace({
   initialProject,
+  initialControlRecords,
   initialSnapshots,
   initialView = DEFAULT_WORKSPACE_TAB,
 }: ProjectWorkspaceProps) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const initialRecordsMap = useMemo(
+    () => controlRecordsToFieldMap(initialControlRecords),
+    [initialControlRecords],
+  );
+
   const [name, setName] = useState(initialProject.name);
   const [metadata, setMetadata] = useState(initialProject.metadata);
   const [implementations, setImplementations] = useState(
     initialProject.implementations,
   );
+  const [controlRecords, setControlRecords] =
+    useState<Record<string, ControlRecordFields>>(initialRecordsMap);
+  const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [revision, setRevision] = useState(initialProject.revision);
   const [updatedAt, setUpdatedAt] = useState(initialProject.updatedAt);
   const frameworkId = initialProject.frameworkId;
@@ -91,12 +111,14 @@ export function ProjectWorkspace({
   const [controlsFocus, setControlsFocus] =
     useState<ControlsFocusRequest | null>(null);
 
-  const historyRef = useRef(new EditorHistory(initialWorkingCopy(initialProject)));
+  const historyRef = useRef(
+    new EditorHistory(initialWorkingCopy(initialProject, initialRecordsMap)),
+  );
   const savedCopyRef = useRef(
-    cloneWorkingCopy(initialWorkingCopy(initialProject)),
+    cloneWorkingCopy(initialWorkingCopy(initialProject, initialRecordsMap)),
   );
   const workingCopyRef = useRef(
-    cloneWorkingCopy(initialWorkingCopy(initialProject)),
+    cloneWorkingCopy(initialWorkingCopy(initialProject, initialRecordsMap)),
   );
   const revisionRef = useRef(initialProject.revision);
   const autosaveStatusRef = useRef<AutosaveStatus>("clean");
@@ -147,6 +169,7 @@ export function ProjectWorkspace({
     setName(copy.name);
     setMetadata(copy.metadata);
     setImplementations(copy.implementations);
+    setControlRecords(copy.controlRecords);
   }
 
   function selectTab(tab: WorkspaceTabId) {
@@ -181,37 +204,77 @@ export function ProjectWorkspace({
 
         setStatus("saving", null);
 
+        const projectDirty =
+          current.name !== savedCopyRef.current.name ||
+          JSON.stringify(current.metadata) !==
+            JSON.stringify(savedCopyRef.current.metadata) ||
+          JSON.stringify(current.implementations) !==
+            JSON.stringify(savedCopyRef.current.implementations);
+        const recordsDirty =
+          JSON.stringify(current.controlRecords) !==
+          JSON.stringify(savedCopyRef.current.controlRecords);
+
         try {
-          const result = await saveProjectAction({
-            id: projectId,
-            name: current.name,
-            frameworkId,
-            metadata: current.metadata,
-            implementations: current.implementations,
-            expectedRevision: revisionRef.current,
-          });
+          let nextSaved = cloneWorkingCopy(savedCopyRef.current);
 
-          if (!result.ok) {
-            if (result.reason === "conflict") {
-              setStatus("conflict", result.message);
-              return { ok: false, reason: "conflict" };
+          if (projectDirty) {
+            const result = await saveProjectAction({
+              id: projectId,
+              name: current.name,
+              frameworkId,
+              metadata: current.metadata,
+              implementations: current.implementations,
+              expectedRevision: revisionRef.current,
+            });
+
+            if (!result.ok) {
+              if (result.reason === "conflict") {
+                setStatus("conflict", result.message);
+                return { ok: false, reason: "conflict" };
+              }
+              setStatus("error", result.message);
+              return { ok: false, reason: "error" };
             }
-            setStatus("error", result.message);
-            return { ok: false, reason: "error" };
+
+            revisionRef.current = result.project.revision;
+            if (mountedRef.current) {
+              setRevision(result.project.revision);
+              setUpdatedAt(result.project.updatedAt);
+            }
+            nextSaved = {
+              ...nextSaved,
+              name: result.project.name,
+              metadata: result.project.metadata,
+              implementations: result.project.implementations,
+            };
+            await refreshSnapshots();
           }
 
-          revisionRef.current = result.project.revision;
-          if (mountedRef.current) {
-            setRevision(result.project.revision);
-            setUpdatedAt(result.project.updatedAt);
+          if (recordsDirty) {
+            const records = Object.entries(current.controlRecords).map(
+              ([controlId, fields]) => ({
+                controlId,
+                ...fields,
+              }),
+            );
+            const result = await upsertControlRecordsAction({
+              projectId,
+              records,
+            });
+            if (!result.ok) {
+              setStatus("error", result.message);
+              return { ok: false, reason: "error" };
+            }
+            nextSaved = {
+              ...nextSaved,
+              controlRecords: { ...current.controlRecords },
+            };
+            if (mountedRef.current) {
+              setActivityRefreshToken((token) => token + 1);
+            }
           }
-          savedCopyRef.current = cloneWorkingCopy({
-            name: result.project.name,
-            metadata: result.project.metadata,
-            implementations: result.project.implementations,
-          });
 
-          await refreshSnapshots();
+          savedCopyRef.current = cloneWorkingCopy(nextSaved);
 
           if (isDirtyAgainstSaved()) {
             setStatus("dirty", null);
@@ -274,6 +337,7 @@ export function ProjectWorkspace({
       setName(next.name);
       setMetadata(next.metadata);
       setImplementations(next.implementations);
+      setControlRecords(next.controlRecords);
       typingGroupRef.current = setTimeout(() => {
         historyRef.current.push(next);
         syncHistoryFlags();
@@ -284,6 +348,7 @@ export function ProjectWorkspace({
       setName(next.name);
       setMetadata(next.metadata);
       setImplementations(next.implementations);
+      setControlRecords(next.controlRecords);
       syncHistoryFlags();
       typingGroupRef.current = setTimeout(() => {
         typingGroupRef.current = null;
@@ -297,6 +362,7 @@ export function ProjectWorkspace({
       name: workingCopyRef.current.name,
       metadata: next,
       implementations: workingCopyRef.current.implementations,
+      controlRecords: workingCopyRef.current.controlRecords,
     });
   }
 
@@ -307,6 +373,18 @@ export function ProjectWorkspace({
       name: workingCopyRef.current.name,
       metadata: workingCopyRef.current.metadata,
       implementations: next,
+      controlRecords: workingCopyRef.current.controlRecords,
+    });
+  }
+
+  function handleControlRecordsChange(
+    next: Record<string, ControlRecordFields>,
+  ) {
+    commitEdit({
+      name: workingCopyRef.current.name,
+      metadata: workingCopyRef.current.metadata,
+      implementations: workingCopyRef.current.implementations,
+      controlRecords: next,
     });
   }
 
@@ -436,6 +514,8 @@ export function ProjectWorkspace({
       name: result.project.name,
       metadata: result.project.metadata,
       implementations: result.project.implementations,
+      // Snapshots restore project_json only; ControlRecords stay as currently saved.
+      controlRecords: savedCopyRef.current.controlRecords,
     };
     historyRef.current.replace(copy);
     applyWorkingCopyToState(copy);
@@ -544,6 +624,7 @@ export function ProjectWorkspace({
             name: nextName,
             metadata,
             implementations,
+            controlRecords,
           })
         }
         onUndo={undo}
@@ -591,8 +672,12 @@ export function ProjectWorkspace({
           }
         >
           <ControlBrowser
+            projectId={projectId}
             implementations={implementations}
             onImplementationsChange={handleImplementationsChange}
+            controlRecords={controlRecords}
+            onControlRecordsChange={handleControlRecordsChange}
+            activityRefreshToken={activityRefreshToken}
             focusRequest={controlsFocus}
             onFocusRequestHandled={() => setControlsFocus(null)}
           />

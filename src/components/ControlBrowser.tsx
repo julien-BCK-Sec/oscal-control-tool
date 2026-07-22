@@ -13,6 +13,13 @@ import {
   type ImplementationStatus,
 } from "@/data/implementation";
 import {
+  DEFAULT_CONTROL_RECORD_FIELDS,
+  displayControlOwner,
+  isControlOwnerUnassigned,
+  resolveControlRecordFields,
+  type ControlRecordFields,
+} from "@/data/control-record";
+import {
   computeFamilyCompletion,
   computeOverallCompletion,
   formatCompletionCount,
@@ -25,6 +32,9 @@ import {
   formatControlIdDisplay,
   parentIdsWithEnhancements,
 } from "@/components/controlBrowser/presentation";
+import { ControlMetadataSection } from "@/components/controlBrowser/ControlMetadataSection";
+import { ControlActivityHistory } from "@/components/controlBrowser/ControlActivityHistory";
+import { ControlStatusBadge } from "@/components/controlBrowser/ControlStatusBadge";
 import { splitRequirementSegments } from "@/components/controlBrowser/requirementText";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { ControlsFocusRequest } from "@/components/workspace/presentation";
@@ -54,18 +64,27 @@ function toggleId(set: Set<string>, id: string): Set<string> {
 }
 
 export type ControlBrowserProps = {
+  projectId: string;
   implementations: Record<string, ControlImplementation>;
   onImplementationsChange: (
     next: Record<string, ControlImplementation>,
   ) => void;
+  controlRecords: Record<string, ControlRecordFields>;
+  onControlRecordsChange: (next: Record<string, ControlRecordFields>) => void;
+  /** Bumped after ControlRecord autosave so History reloads. */
+  activityRefreshToken?: number;
   /** Optional focus when navigating from Overview. */
   focusRequest?: ControlsFocusRequest | null;
   onFocusRequestHandled?: () => void;
 };
 
 export function ControlBrowser({
+  projectId,
   implementations,
   onImplementationsChange,
+  controlRecords,
+  onControlRecordsChange,
+  activityRefreshToken = 0,
   focusRequest = null,
   onFocusRequestHandled,
 }: ControlBrowserProps) {
@@ -143,10 +162,11 @@ export function ControlBrowser({
     FRAMEWORK_CONTROLS[0];
   const implementation = getImplementation(implementations, selected.id);
   const selectedComplete = isImplementationComplete(implementation);
-  const requirementSegments = useMemo(
-    () => splitRequirementSegments(selected.statement),
-    [selected.statement],
+  const selectedRecord = resolveControlRecordFields(
+    controlRecords,
+    selected.id,
   );
+  const requirementSegments = splitRequirementSegments(selected.statement);
 
   useEffect(() => {
     selectedItemRef.current?.scrollIntoView({
@@ -163,6 +183,21 @@ export function ControlBrowser({
     onImplementationsChange({
       ...implementations,
       [controlId]: {
+        ...current,
+        ...patch,
+      },
+    });
+  }
+
+  function updateControlRecord(
+    controlId: string,
+    patch: Partial<ControlRecordFields>,
+  ) {
+    const current = resolveControlRecordFields(controlRecords, controlId);
+    onControlRecordsChange({
+      ...controlRecords,
+      [controlId]: {
+        ...DEFAULT_CONTROL_RECORD_FIELDS,
         ...current,
         ...patch,
       },
@@ -191,7 +226,7 @@ export function ControlBrowser({
     setCollapsedFamilies(new Set(allFamilyNames));
   }
 
-  function renderCompletionMark(controlId: string, selected: boolean) {
+  function renderCompletionMark(controlId: string, isSelected: boolean) {
     const complete = isImplementationComplete(
       getImplementation(implementations, controlId),
     );
@@ -200,7 +235,7 @@ export function ControlBrowser({
         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border text-[10px] font-medium leading-none ${
           complete
             ? "border-success/40 bg-success-muted text-success"
-            : selected
+            : isSelected
               ? "border-border-strong bg-surface text-text-muted"
               : "border-border bg-surface-secondary text-text-muted"
         }`}
@@ -208,6 +243,29 @@ export function ControlBrowser({
         aria-label={complete ? "Complete" : "Incomplete"}
       >
         {complete ? "✓" : "·"}
+      </span>
+    );
+  }
+
+  function renderListMeta(controlId: string) {
+    const record = resolveControlRecordFields(controlRecords, controlId);
+    const ownerLabel = displayControlOwner(record.owner);
+    const unassigned = isControlOwnerUnassigned(record.owner);
+    return (
+      <span className="mt-1 flex flex-wrap items-center gap-1.5">
+        <ControlStatusBadge
+          implementationStatus={record.implementationStatus}
+        />
+        <span
+          className={`text-[11px] ${
+            unassigned ? "text-warning" : "text-text-muted"
+          }`}
+        >
+          {ownerLabel}
+        </span>
+        {unassigned ? (
+          <span className="sr-only">No owner assigned</span>
+        ) : null}
       </span>
     );
   }
@@ -404,6 +462,7 @@ export function ControlBrowser({
                                     <span className="block text-[13px] leading-snug">
                                       {node.control.title}
                                     </span>
+                                    {renderListMeta(node.control.id)}
                                   </span>
                                   {renderCompletionMark(
                                     node.control.id,
@@ -455,6 +514,7 @@ export function ControlBrowser({
                                             <span className="text-[13px] leading-snug">
                                               {enhancement.title}
                                             </span>
+                                            {renderListMeta(enhancement.id)}
                                           </span>
                                           {renderCompletionMark(
                                             enhancement.id,
@@ -502,7 +562,27 @@ export function ControlBrowser({
               <span aria-hidden="true">{selectedComplete ? "✓ " : "○ "}</span>
               {selectedComplete ? "Complete" : "Incomplete"}
             </span>
+            <span aria-hidden="true" className="text-border-strong">
+              ·
+            </span>
+            <ControlStatusBadge
+              implementationStatus={selectedRecord.implementationStatus}
+            />
+            <span
+              className={
+                isControlOwnerUnassigned(selectedRecord.owner)
+                  ? "text-warning"
+                  : undefined
+              }
+            >
+              {displayControlOwner(selectedRecord.owner)}
+            </span>
           </div>
+          {isControlOwnerUnassigned(selectedRecord.owner) ? (
+            <p className="mt-2 text-xs text-warning" role="status">
+              No owner assigned
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-1 flex-col gap-6 px-4 py-5 sm:px-8">
@@ -532,6 +612,18 @@ export function ControlBrowser({
             </div>
           </section>
 
+          <ControlMetadataSection
+            controlId={selected.id}
+            fields={selectedRecord}
+            onChange={(patch) => updateControlRecord(selected.id, patch)}
+          />
+
+          <ControlActivityHistory
+            projectId={projectId}
+            controlId={selected.id}
+            refreshToken={activityRefreshToken}
+          />
+
           <section
             className="max-w-3xl"
             aria-labelledby="implementation-heading"
@@ -545,7 +637,7 @@ export function ControlBrowser({
 
             <div className="mt-3">
               <label htmlFor="implementation-status" className="label">
-                Status
+                Implementation status
               </label>
               <select
                 id="implementation-status"

@@ -1,4 +1,9 @@
 import type { ControlImplementation } from "@/data/implementation";
+import type { ControlRecordFields } from "@/data/control-record";
+import {
+  cloneControlRecords,
+  controlRecordsEqual,
+} from "@/data/control-record";
 import type { ProjectMetadata } from "@/data/project";
 import {
   AUTOSAVE_DEBOUNCE_MS,
@@ -12,6 +17,8 @@ export type EditorWorkingCopy = {
   name: string;
   metadata: ProjectMetadata;
   implementations: Record<string, ControlImplementation>;
+  /** Lazily populated ControlRecord drafts keyed by control id. */
+  controlRecords: Record<string, ControlRecordFields>;
 };
 
 export function cloneWorkingCopy(copy: EditorWorkingCopy): EditorWorkingCopy {
@@ -24,6 +31,7 @@ export function cloneWorkingCopy(copy: EditorWorkingCopy): EditorWorkingCopy {
         { status: impl.status, narrative: impl.narrative },
       ]),
     ),
+    controlRecords: cloneControlRecords(copy.controlRecords),
   };
 }
 
@@ -31,7 +39,12 @@ export function workingCopiesEqual(
   a: EditorWorkingCopy,
   b: EditorWorkingCopy,
 ): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+  return (
+    a.name === b.name &&
+    JSON.stringify(a.metadata) === JSON.stringify(b.metadata) &&
+    JSON.stringify(a.implementations) === JSON.stringify(b.implementations) &&
+    controlRecordsEqual(a.controlRecords, b.controlRecords)
+  );
 }
 
 /**

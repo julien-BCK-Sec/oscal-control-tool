@@ -121,3 +121,58 @@ Reason:
 
 Date:
 2026-07-21
+
+## ADR-009
+
+Decision:
+Store Control Freak ownership and lifecycle metadata in a separate
+`control_records` SQLite table (`ControlRecord`), scoped by `projectId` and
+keyed uniquely with framework `controlId`. Do not put these fields in OSCAL
+models, `FrameworkControl`, or `project_json` implementations.
+
+Reason:
+- Keeps standards-based OSCAL / framework content separate from application
+  management data.
+- Gives future entities (comments, reviews, approvals, evidence, history) a
+  stable `ControlRecord.id` to reference.
+- Allows lazy creation: missing rows resolve to draft / unassigned defaults
+  without backfilling every baseline control up front.
+
+Date:
+2026-07-22
+
+## ADR-010
+
+Decision:
+Introduce an append-only `control_activities` table (`ControlActivity`) keyed by
+`control_record_id`, written in the same SQLite transaction as ControlRecord
+metadata upserts. Emit `control_record_created` on first create without
+per-field events for initial values; on update emit field-change events only
+for values that actually changed. Actor identity is resolved via a small
+`resolveActor` helper (System fallback today; Cloudflare Access headers later).
+
+Reason:
+- Gives ownership, workflow, comments, approvals, evidence, and history a
+  shared durable activity stream without mixing into OSCAL / project_json.
+- Named version restore stays document-only; operational metadata keeps an
+  independent lifecycle.
+- No-op autosaves must not spam the stream.
+
+Date:
+2026-07-22
+
+## ADR-011
+
+Decision:
+Rename ControlRecord.`status` to `implementationStatus` (SQLite column
+`implementation_status`) and rename the activity type `status_changed` to
+`implementation_status_changed`. Do not keep compatibility aliases.
+
+Reason:
+- Makes clear that this field is the implementation lifecycle, not review
+  progress.
+- Prepares for a separate future `reviewStatus` without overloaded “status”
+  wording in types, UI, or activity history.
+
+Date:
+2026-07-22
