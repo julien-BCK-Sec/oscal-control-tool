@@ -18,6 +18,7 @@ import {
   type UpsertControlRecordInput,
 } from "@/data/control-record";
 import { resolveReviewTransition } from "@/data/control-review";
+import { nextActivityTimestamp } from "../activity-clock";
 import type { ActorIdentity } from "../actor";
 import type {
   ControlRecordService,
@@ -33,7 +34,7 @@ import {
 import { controlRecords, projects } from "./schema";
 
 function nowIso(): string {
-  return new Date().toISOString();
+  return nextActivityTimestamp();
 }
 
 function todayIsoDate(): string {
