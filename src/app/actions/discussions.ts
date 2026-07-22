@@ -7,6 +7,7 @@ import { getSessionUser, resolveOrgContext, sessionActor } from "@/auth/context"
 import type { ProjectRepository } from "@/persistence/repository";
 import { getProjectRepository } from "@/persistence/server";
 import { createPostgresDiscussionService } from "@/persistence/postgres/discussion-service";
+import { createPostgresOrganizationRepository } from "@/persistence/postgres/organization-repository";
 import { getDb } from "@/persistence/postgres/client";
 import {
   createDiscussionForOrg,
@@ -47,6 +48,10 @@ async function resolveProjectContext(
 
 async function getDiscussionService() {
   return createPostgresDiscussionService(await getDb());
+}
+
+async function getOrgRepository() {
+  return createPostgresOrganizationRepository(await getDb());
 }
 
 function mapAuthError(error: unknown): DiscussionMutationResult {
@@ -105,6 +110,7 @@ export async function createDiscussionAction(input: {
     return await createDiscussionForOrg(
       projectRepo,
       await getDiscussionService(),
+      await getOrgRepository(),
       resolved.ctx,
       {
         projectId,
@@ -136,6 +142,7 @@ export async function editDiscussionAction(input: {
     return await editDiscussionForOrg(
       projectRepo,
       await getDiscussionService(),
+      await getOrgRepository(),
       resolved.ctx,
       commentId,
       body,

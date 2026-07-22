@@ -5,11 +5,12 @@ import type { ControlActivity } from "@/data/control-activity";
 export type DiscussionCommentResult = {
   comment: Comment;
   activity: ControlActivity;
+  mentionedUserIds: string[];
 };
 
 /**
  * Coordinates threaded discussions with ControlActivity audit events.
- * Mentions and notifications are layered on by later work packages.
+ * Mentions are persisted when callers supply resolved org member user ids.
  */
 export interface DiscussionService {
   listComments(
@@ -31,6 +32,7 @@ export interface DiscussionService {
       controlId: string;
       parentCommentId?: string | null;
       body: string;
+      mentionedUserIds?: readonly string[];
     },
     actor: ActorIdentity,
   ): Promise<DiscussionCommentResult>;
@@ -40,6 +42,7 @@ export interface DiscussionService {
     commentId: string,
     body: string,
     actor: ActorIdentity,
+    mentionedUserIds?: readonly string[],
   ): Promise<DiscussionCommentResult | null>;
 
   softDeleteComment(

@@ -1,7 +1,9 @@
 import type { ActorIdentity } from "@/persistence/actor";
 import type { ProjectRepository } from "@/persistence/repository";
 import type { DiscussionService } from "@/persistence/discussion-service";
+import type { OrganizationRepository } from "@/persistence/postgres/organization-repository";
 import type { Comment } from "@/data/collaboration";
+import { resolveMentions } from "@/data/collaboration/resolve-mentions";
 import type { ControlActivity } from "@/data/control-activity";
 import {
   AuthorizationError,
@@ -26,8 +28,22 @@ async function projectBelongsToOrg(
 }
 
 export type DiscussionMutationResult =
-  | { ok: true; comment: Comment; activity: ControlActivity }
+  | {
+      ok: true;
+      comment: Comment;
+      activity: ControlActivity;
+      mentionedUserIds: string[];
+    }
   | { ok: false; reason: "not-found" | "forbidden"; message: string };
+
+async function resolveBodyMentions(
+  orgRepo: OrganizationRepository,
+  organizationId: string,
+  body: string,
+): Promise<string[]> {
+  const members = await orgRepo.listMembers(organizationId);
+  return resolveMentions(body, members).map((m) => m.userId);
+}
 
 function assertOwnOrModerate(
   ctx: OrgContext,
@@ -68,6 +84,7 @@ export async function listDiscussionsForOrg(
 export async function createDiscussionForOrg(
   projectRepo: ProjectRepository,
   discussionService: DiscussionService,
+  orgRepo: OrganizationRepository,
   ctx: OrgContext,
   input: {
     projectId: string;
@@ -84,6 +101,11 @@ export async function createDiscussionForOrg(
   if (!(await projectBelongsToOrg(projectRepo, ctx, input.projectId))) {
     return { ok: false, reason: "not-found", message: "Project not found." };
   }
+  const mentionedUserIds = await resolveBodyMentions(
+    orgRepo,
+    ctx.organizationId,
+    input.body,
+  );
   const result = await discussionService.createComment(
     {
       organizationId: ctx.organizationId,
@@ -91,15 +113,22 @@ export async function createDiscussionForOrg(
       controlId: input.controlId,
       parentCommentId: input.parentCommentId,
       body: input.body,
+      mentionedUserIds,
     },
     { ...actor, actorId: ctx.userId },
   );
-  return { ok: true, comment: result.comment, activity: result.activity };
+  return {
+    ok: true,
+    comment: result.comment,
+    activity: result.activity,
+    mentionedUserIds: result.mentionedUserIds,
+  };
 }
 
 export async function editDiscussionForOrg(
   projectRepo: ProjectRepository,
   discussionService: DiscussionService,
+  orgRepo: OrganizationRepository,
   ctx: OrgContext,
   commentId: string,
   body: string,
@@ -116,16 +145,27 @@ export async function editDiscussionForOrg(
     return { ok: false, reason: "not-found", message: "Comment not found." };
   }
   assertOwnOrModerate(ctx, existing.authorId, "discussion.edit_own");
+  const mentionedUserIds = await resolveBodyMentions(
+    orgRepo,
+    ctx.organizationId,
+    body,
+  );
   const result = await discussionService.editComment(
     ctx.organizationId,
     commentId,
     body,
     { ...actor, actorId: ctx.userId },
+    mentionedUserIds,
   );
   if (!result) {
     return { ok: false, reason: "not-found", message: "Comment not found." };
   }
-  return { ok: true, comment: result.comment, activity: result.activity };
+  return {
+    ok: true,
+    comment: result.comment,
+    activity: result.activity,
+    mentionedUserIds: result.mentionedUserIds,
+  };
 }
 
 export async function deleteDiscussionForOrg(
@@ -154,7 +194,12 @@ export async function deleteDiscussionForOrg(
   if (!result) {
     return { ok: false, reason: "not-found", message: "Comment not found." };
   }
-  return { ok: true, comment: result.comment, activity: result.activity };
+  return {
+    ok: true,
+    comment: result.comment,
+    activity: result.activity,
+    mentionedUserIds: result.mentionedUserIds,
+  };
 }
 
 export async function restoreDiscussionForOrg(
@@ -183,7 +228,12 @@ export async function restoreDiscussionForOrg(
   if (!result) {
     return { ok: false, reason: "not-found", message: "Comment not found." };
   }
-  return { ok: true, comment: result.comment, activity: result.activity };
+  return {
+    ok: true,
+    comment: result.comment,
+    activity: result.activity,
+    mentionedUserIds: result.mentionedUserIds,
+  };
 }
 
 export async function resolveDiscussionForOrg(
@@ -231,7 +281,12 @@ export async function resolveDiscussionForOrg(
   if (!result) {
     return { ok: false, reason: "not-found", message: "Comment not found." };
   }
-  return { ok: true, comment: result.comment, activity: result.activity };
+  return {
+    ok: true,
+    comment: result.comment,
+    activity: result.activity,
+    mentionedUserIds: result.mentionedUserIds,
+  };
 }
 
 export async function reopenDiscussionForOrg(
@@ -269,5 +324,10 @@ export async function reopenDiscussionForOrg(
   if (!result) {
     return { ok: false, reason: "not-found", message: "Comment not found." };
   }
-  return { ok: true, comment: result.comment, activity: result.activity };
+  return {
+    ok: true,
+    comment: result.comment,
+    activity: result.activity,
+    mentionedUserIds: result.mentionedUserIds,
+  };
 }

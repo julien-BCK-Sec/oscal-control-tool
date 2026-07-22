@@ -1,13 +1,14 @@
 /**
  * Mention parsing helpers (Milestone 02A WP3).
  *
- * Mentions use `@token` where token is a contiguous non-whitespace run after
- * `@`. Tokens are resolved against organization members by email local-part,
- * full email, or display name (case-insensitive). Mentions that do not resolve
- * to an org member are ignored (never create cross-tenant references).
+ * Mentions use `@token` where token is letters, digits, `.`, `_`, `+`, or `-`
+ * (email-local and simple name fragments). Tokens are resolved against
+ * organization members by email local-part, full email, or display name
+ * (case-insensitive). Mentions that do not resolve to an org member are
+ * ignored (never create cross-tenant references).
  */
 
-export const MENTIONS_PATTERN = /@([^\s@]+)/g;
+export const MENTIONS_PATTERN = /@([A-Za-z0-9._+-]+)/g;
 
 export type MentionToken = {
   /** Raw token without the leading `@`. */

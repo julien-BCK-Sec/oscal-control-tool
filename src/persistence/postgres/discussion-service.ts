@@ -15,8 +15,13 @@ import type {
 } from "../discussion-service";
 import { createPostgresCommentRepository } from "./comment-repository";
 import { appendActivitiesInTransaction } from "./control-activity-repository";
+import {
+  filterMentionIdsToOrgMembers,
+  replaceCommentMentions,
+} from "./comment-mentions";
 import type { AppDatabase } from "./client";
 import { controlRecords, projects } from "./schema";
+import { member as memberTable } from "./auth-schema";
 
 function toControlRecord(
   row: typeof controlRecords.$inferSelect,
@@ -118,8 +123,38 @@ async function ensureControlRecord(
   };
 }
 
-function commentMetadata(commentId: string, parentCommentId: string | null) {
-  return JSON.stringify({ commentId, parentCommentId });
+async function orgMemberUserIds(
+  db: AppDatabase,
+  organizationId: string,
+): Promise<Set<string>> {
+  const rows = await db
+    .select({ userId: memberTable.userId })
+    .from(memberTable)
+    .where(eq(memberTable.organizationId, organizationId));
+  return new Set(rows.map((row) => row.userId));
+}
+
+async function persistMentions(
+  db: AppDatabase,
+  organizationId: string,
+  commentId: string,
+  mentionedUserIds: readonly string[] | undefined,
+): Promise<string[]> {
+  const allowed = await orgMemberUserIds(db, organizationId);
+  const filtered = filterMentionIdsToOrgMembers(
+    mentionedUserIds ?? [],
+    allowed,
+  );
+  await replaceCommentMentions(db, commentId, filtered);
+  return filtered;
+}
+
+function commentMetadata(
+  commentId: string,
+  parentCommentId: string | null,
+  mentionedUserIds: readonly string[] = [],
+) {
+  return JSON.stringify({ commentId, parentCommentId, mentionedUserIds });
 }
 
 export function createPostgresDiscussionService(
@@ -158,6 +193,12 @@ export function createPostgresDiscussionService(
         authorId: actor.actorId ?? "unknown",
         body: input.body,
       });
+      const mentionedUserIds = await persistMentions(
+        db,
+        input.organizationId,
+        comment.id,
+        input.mentionedUserIds,
+      );
       const [activity] = await appendActivitiesInTransaction(db, [
         {
           controlRecordId: record.id,
@@ -165,14 +206,24 @@ export function createPostgresDiscussionService(
           actorId: actor.actorId,
           actorDisplayName: actor.actorDisplayName,
           newValue: comment.body.slice(0, 200),
-          metadataJson: commentMetadata(comment.id, comment.parentCommentId),
+          metadataJson: commentMetadata(
+            comment.id,
+            comment.parentCommentId,
+            mentionedUserIds,
+          ),
           createdAt: nextActivityTimestamp(),
         },
       ]);
-      return { comment, activity };
+      return { comment, activity, mentionedUserIds };
     },
 
-    async editComment(organizationId, commentId, body, actor) {
+    async editComment(
+      organizationId,
+      commentId,
+      body,
+      actor,
+      mentionedUserIdsInput,
+    ) {
       const existing = await comments.getById(organizationId, commentId);
       if (!existing || existing.deletedAt) {
         return null;
@@ -181,6 +232,12 @@ export function createPostgresDiscussionService(
       if (!comment) {
         return null;
       }
+      const mentionedUserIds = await persistMentions(
+        db,
+        organizationId,
+        comment.id,
+        mentionedUserIdsInput,
+      );
       const record = await ensureControlRecord(
         db,
         organizationId,
@@ -196,11 +253,15 @@ export function createPostgresDiscussionService(
           actorDisplayName: actor.actorDisplayName,
           previousValue: existing.body.slice(0, 200),
           newValue: comment.body.slice(0, 200),
-          metadataJson: commentMetadata(comment.id, comment.parentCommentId),
+          metadataJson: commentMetadata(
+            comment.id,
+            comment.parentCommentId,
+            mentionedUserIds,
+          ),
           createdAt: nextActivityTimestamp(),
         },
       ]);
-      return { comment, activity };
+      return { comment, activity, mentionedUserIds };
     },
 
     async softDeleteComment(organizationId, commentId, actor) {
@@ -225,7 +286,7 @@ export function createPostgresDiscussionService(
           createdAt: nextActivityTimestamp(),
         },
       ]);
-      return { comment, activity };
+      return { comment, activity, mentionedUserIds: [] };
     },
 
     async restoreComment(organizationId, commentId, actor) {
@@ -250,7 +311,7 @@ export function createPostgresDiscussionService(
           createdAt: nextActivityTimestamp(),
         },
       ]);
-      return { comment, activity };
+      return { comment, activity, mentionedUserIds: [] };
     },
 
     async resolveDiscussion(organizationId, commentId, actor) {
@@ -286,7 +347,7 @@ export function createPostgresDiscussionService(
           createdAt: nextActivityTimestamp(),
         },
       ]);
-      return { comment, activity };
+      return { comment, activity, mentionedUserIds: [] };
     },
 
     async reopenDiscussion(organizationId, commentId, actor) {
@@ -322,7 +383,7 @@ export function createPostgresDiscussionService(
           createdAt: nextActivityTimestamp(),
         },
       ]);
-      return { comment, activity };
+      return { comment, activity, mentionedUserIds: [] };
     },
   };
 }

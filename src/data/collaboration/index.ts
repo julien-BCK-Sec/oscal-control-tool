@@ -23,3 +23,7 @@ export {
   extractMentionTokens,
   type MentionToken,
 } from "./mentions";
+export {
+  resolveMentions,
+  type ResolvedMention,
+} from "./resolve-mentions";
