@@ -48,11 +48,17 @@ The application separates these concerns:
    - ControlRecord metadata drafts participate in the same autosave / undo path
    - Review workflow status is outside undo/autosave; updated via Server Action
 
-7. OSCAL
+7. Presentation / design system
+   - Tokens and shared CSS primitives in `src/app/globals.css`
+   - Reusable UI under `src/components/design-system` (Brand, Card, StatusBadge,
+     AppShell / ProductHeader, form and layout helpers)
+   - Domain screens compose these primitives; see `docs/design-system.md`
+
+8. OSCAL
    - Export (current)
    - Import / schema validation (partial — SSP schema validation current)
 
-8. FedRAMP policy evaluation (future, separate)
+9. FedRAMP policy evaluation (future, separate)
    - Consolidated Rules — not a catalog/profile substitute
 
 React components never contain OSCAL serialization, profile/catalog parsing, or Drizzle/SQLite types.

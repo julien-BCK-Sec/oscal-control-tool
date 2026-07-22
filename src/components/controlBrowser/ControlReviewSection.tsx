@@ -5,7 +5,9 @@ import {
   type ControlReviewAction,
 } from "@/data/control-review";
 import type { ControlReviewStatus } from "@/data/control-record";
-import { ControlReviewStatusBadge } from "@/components/controlBrowser/ControlReviewStatusBadge";
+import { ReviewStatusBadge } from "@/components/design-system/badge/statusMaps";
+import { Button } from "@/components/design-system/button/Button";
+import { CardFooter } from "@/components/design-system/card/Card";
 import { SidebarCard } from "@/components/controlBrowser/SidebarCard";
 import { REVIEW_HELPER_TEXT } from "@/components/controlBrowser/useControlReviewTransition";
 
@@ -17,6 +19,11 @@ export type ControlReviewSectionProps = {
   pendingAction: ControlReviewAction | null;
   error: string | null;
   onAction: (action: ControlReviewAction) => void;
+  /**
+   * When true (desktop), omit the primary action from this card because the
+   * control header already exposes it. Mobile always shows all actions here.
+   */
+  omitPrimaryOnDesktop?: boolean;
 };
 
 /**
@@ -30,39 +37,45 @@ export function ControlReviewSection({
   pendingAction,
   error,
   onAction,
+  omitPrimaryOnDesktop = true,
 }: ControlReviewSectionProps) {
   const helper = REVIEW_HELPER_TEXT[reviewStatus];
 
   return (
     <SidebarCard title="Review" titleId="control-review-heading" prominent>
-      <div className="flex flex-col gap-2.5">
-        <ControlReviewStatusBadge reviewStatus={reviewStatus} />
+      <div className="flex flex-col gap-2">
+        <div className="w-fit">
+          <ReviewStatusBadge status={reviewStatus} size="sm" />
+        </div>
 
         {helper ? (
           <p className="text-xs leading-relaxed text-text-secondary">{helper}</p>
         ) : null}
 
         {actions.length > 0 ? (
-          <div className="flex flex-wrap gap-2 pt-0.5">
+          <CardFooter className="mt-1">
             {actions.map((action) => {
               const isThisPending = pendingAction === action;
               const isPrimary = action === primaryAction;
+              const hideOnDesktop =
+                omitPrimaryOnDesktop && isPrimary && primaryAction !== null;
               return (
-                <button
+                <Button
                   key={action}
-                  type="button"
-                  className={`btn px-3 py-1.5 text-sm ${isPrimary ? "btn-primary" : ""}`}
+                  variant={isPrimary ? "primary" : "default"}
+                  size="sm"
                   disabled={pending}
                   aria-busy={isThisPending}
+                  className={hideOnDesktop ? "lg:hidden" : undefined}
                   onClick={() => onAction(action)}
                 >
                   {isThisPending
                     ? "Working…"
                     : controlReviewActionLabel(action)}
-                </button>
+                </Button>
               );
             })}
-          </div>
+          </CardFooter>
         ) : null}
 
         {error ? (

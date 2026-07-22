@@ -13,9 +13,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OSCAL Control Tool",
+  title: {
+    default: "Control Freak",
+    template: "%s · Control Freak",
+  },
   description:
     "Document NIST SP 800-53 Rev. 5 Moderate controls and export OSCAL SSP JSON.",
+  applicationName: "Control Freak",
+  icons: {
+    icon: [{ url: "/brand/mark-on-light.png", type: "image/png" }],
+    apple: [{ url: "/brand/mark-on-light.png", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({

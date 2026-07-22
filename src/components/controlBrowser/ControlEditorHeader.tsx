@@ -5,13 +5,16 @@ import {
   type ControlReviewAction,
 } from "@/data/control-review";
 import {
+  controlImplementationStatusLabel,
+  controlReviewStatusLabel,
   displayControlOwner,
   isControlOwnerUnassigned,
   type ControlRecordFields,
   type ControlReviewStatus,
 } from "@/data/control-record";
-import { ControlStatusBadge } from "@/components/controlBrowser/ControlStatusBadge";
-import { ControlReviewStatusBadge } from "@/components/controlBrowser/ControlReviewStatusBadge";
+import { ImplementationStatusBadge } from "@/components/design-system/badge/statusMaps";
+import { ReviewStatusBadge } from "@/components/design-system/badge/statusMaps";
+import { Button } from "@/components/design-system/button/Button";
 import { formatControlIdDisplay } from "@/components/controlBrowser/presentation";
 
 export type ControlEditorHeaderProps = {
@@ -28,8 +31,7 @@ export type ControlEditorHeaderProps = {
 };
 
 /**
- * Control workspace header — identity, status, and primary review action.
- * Remains visible above the scrollable editor body.
+ * Control workspace header — identity, labeled statuses, and desktop primary action.
  */
 export function ControlEditorHeader({
   controlId,
@@ -48,7 +50,7 @@ export function ControlEditorHeader({
     primaryAction !== null && pendingAction === primaryAction;
 
   return (
-    <header className="shrink-0 border-b border-border bg-surface px-4 py-4 sm:px-6">
+    <header className="shrink-0 border-b border-border bg-surface px-4 py-3 sm:px-6">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
         <div className="min-w-0 flex-1">
           <p className="control-id text-sm text-accent">
@@ -59,43 +61,58 @@ export function ControlEditorHeader({
           </h2>
           <p className="mt-1 text-xs text-text-muted">{family}</p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <ControlStatusBadge
-              implementationStatus={fields.implementationStatus}
-            />
-            <ControlReviewStatusBadge reviewStatus={reviewStatus} />
-            <span
-              className={`text-xs ${
-                narrativeComplete ? "text-success" : "text-warning"
-              }`}
-              title={
-                narrativeComplete
-                  ? "Narrative is complete"
-                  : "Narrative is incomplete"
-              }
-            >
-              <span aria-hidden="true">{narrativeComplete ? "✓ " : "○ "}</span>
-              {narrativeComplete ? "Complete" : "Incomplete"}
-            </span>
-          </div>
-
-          {!unassigned ? (
-            <p className="mt-2 text-sm text-text-secondary">
-              <span className="text-text-muted">Owner:</span>{" "}
-              {displayControlOwner(fields.owner)}
-            </p>
-          ) : (
-            <p className="mt-2 text-xs text-warning" role="status">
-              No owner assigned
-            </p>
-          )}
+          <dl className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+            <div className="inline-flex items-center gap-1.5">
+              <dt className="text-text-muted">Implementation:</dt>
+              <dd>
+                <ImplementationStatusBadge
+                  status={fields.implementationStatus}
+                  size="sm"
+                />
+                <span className="sr-only">
+                  {controlImplementationStatusLabel(
+                    fields.implementationStatus,
+                  )}
+                </span>
+              </dd>
+            </div>
+            <div className="inline-flex items-center gap-1.5">
+              <dt className="text-text-muted">Review:</dt>
+              <dd>
+                <ReviewStatusBadge status={reviewStatus} size="sm" />
+                <span className="sr-only">
+                  {controlReviewStatusLabel(reviewStatus)}
+                </span>
+              </dd>
+            </div>
+            <div className="inline-flex items-center gap-1.5">
+              <dt className="text-text-muted">Narrative:</dt>
+              <dd
+                className={
+                  narrativeComplete ? "text-success" : "text-text-secondary"
+                }
+              >
+                {narrativeComplete ? "Complete" : "Incomplete"}
+              </dd>
+            </div>
+            <div className="inline-flex items-center gap-1.5">
+              <dt className="text-text-muted">Owner:</dt>
+              <dd
+                className={
+                  unassigned ? "text-text-muted" : "text-text-secondary"
+                }
+                role={unassigned ? "status" : undefined}
+              >
+                {displayControlOwner(fields.owner)}
+              </dd>
+            </div>
+          </dl>
         </div>
 
         {primaryAction ? (
-          <div className="shrink-0 self-start">
-            <button
-              type="button"
-              className="btn btn-primary px-4 py-2 text-sm"
+          <div className="hidden shrink-0 self-start lg:block">
+            <Button
+              variant="primary"
               disabled={pending}
               aria-busy={isPrimaryPending}
               onClick={() => onPrimaryAction(primaryAction)}
@@ -103,7 +120,7 @@ export function ControlEditorHeader({
               {isPrimaryPending
                 ? "Working…"
                 : controlReviewActionLabel(primaryAction)}
-            </button>
+            </Button>
           </div>
         ) : null}
       </div>

@@ -5,16 +5,16 @@ export function EvidencePlaceholderCard() {
   return (
     <section
       aria-labelledby="control-evidence-heading"
-      className="rounded-md border border-dashed border-border px-4 py-4"
+      className="max-w-[var(--layout-content-max)] py-1"
     >
       <h3
         id="control-evidence-heading"
-        className="text-xs font-medium uppercase tracking-wide text-text-muted"
+        className="text-xs font-medium text-text-muted"
       >
         Evidence
       </h3>
-      <p className="mt-1.5 text-sm text-text-muted">
-        Evidence attachments will appear here in a future release.
+      <p className="mt-1 text-xs text-text-muted">
+        Evidence and supporting artifacts will appear here in a future release.
       </p>
     </section>
   );

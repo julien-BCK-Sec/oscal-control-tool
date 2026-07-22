@@ -10,6 +10,17 @@ import {
 } from "@/app/actions/projects";
 import { LegacyMigrationBanner } from "@/components/LegacyMigrationBanner";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Button } from "@/components/design-system/button/Button";
+import {
+  AppShell,
+  PageContent,
+  ProductHeader,
+} from "@/components/design-system/layout/AppShell";
+import { EmptyState } from "@/components/design-system/layout/primitives";
+import {
+  Card,
+  CardContent,
+} from "@/components/design-system/card/Card";
 import { FRAMEWORK } from "@/data/framework";
 import { formatCompletionCount, type CompletionProgress } from "@/domain";
 import { formatSnapshotTimestamp } from "@/components/projectHistory/presentation";
@@ -92,7 +103,8 @@ export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 overflow-y-auto bg-background px-4 py-8 text-foreground sm:px-8">
+    <AppShell header={<ProductHeader />}>
+      <PageContent narrow>
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -104,13 +116,13 @@ export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
           </p>
         </div>
         {!showCreate ? (
-          <button
+          <Button
             type="button"
-            className="btn btn-primary"
+            variant="primary"
             onClick={() => setShowCreate(true)}
           >
             New project
-          </button>
+          </Button>
         ) : null}
       </header>
 
@@ -123,7 +135,7 @@ export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
       {showCreate ? (
         <form
           onSubmit={(event) => void handleCreate(event)}
-          className="rounded-sm border border-border bg-surface p-4"
+          className="rounded-md border border-border bg-surface p-4"
         >
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-[16rem] flex-1">
@@ -140,23 +152,22 @@ export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
                 className="field mt-1.5"
               />
             </div>
-            <button
+            <Button
               type="submit"
+              variant="primary"
               disabled={pending || name.trim() === ""}
-              className="btn btn-primary"
             >
               Create project
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="btn"
               onClick={() => {
                 setShowCreate(false);
                 setName("");
               }}
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       ) : null}
@@ -175,24 +186,22 @@ export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
           Recent projects
         </h2>
         {projects.length === 0 ? (
-          <div className="mt-3 rounded-sm border border-dashed border-border-strong bg-surface px-4 py-8 text-center">
-            <p className="text-sm font-medium text-foreground">
-              No projects yet
-            </p>
-            <p className="mt-1 text-sm text-text-secondary">
-              Create a project to start documenting controls, or import a browser
-              project if one is available above.
-            </p>
-            {!showCreate ? (
-              <button
-                type="button"
-                className="btn btn-primary mt-4"
-                onClick={() => setShowCreate(true)}
-              >
-                Create project
-              </button>
-            ) : null}
-          </div>
+          <EmptyState
+            className="mt-3"
+            title="No projects yet"
+            description="Create a project to start documenting controls, or import a browser project if one is available above."
+            action={
+              !showCreate ? (
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => setShowCreate(true)}
+                >
+                  Create project
+                </Button>
+              ) : null
+            }
+          />
         ) : (
           <ul className="mt-3 flex flex-col gap-3">
             {projects.map((project) => (
@@ -207,7 +216,8 @@ export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
           </ul>
         )}
       </section>
-    </div>
+      </PageContent>
+    </AppShell>
   );
 }
 
@@ -221,7 +231,11 @@ function ProjectCard({
   onDelete: () => void;
 }) {
   return (
-    <article className="rounded-sm border border-border bg-surface p-4 shadow-[var(--shadow-subtle)]">
+    <Card
+      as="article"
+      variant="surface"
+    >
+      <CardContent>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold tracking-tight text-foreground">
@@ -238,18 +252,15 @@ function ProjectCard({
           <p className="mt-1 text-xs text-text-muted">{FRAMEWORK.title}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link
-            href={`/projects/${project.id}`}
-            className="btn btn-primary"
-          >
+          <Link href={`/projects/${project.id}`} className="btn btn-primary">
             Open
           </Link>
-          <button type="button" onClick={onRename} className="btn">
+          <Button type="button" onClick={onRename}>
             Rename
-          </button>
-          <button type="button" onClick={onDelete} className="btn btn-danger">
+          </Button>
+          <Button type="button" variant="danger" onClick={onDelete}>
             Delete
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -276,6 +287,7 @@ function ProjectCard({
         </span>
         Updated {formatSnapshotTimestamp(project.updatedAt)}
       </p>
-    </article>
+      </CardContent>
+    </Card>
   );
 }

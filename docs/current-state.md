@@ -154,6 +154,10 @@ Do not fetch standards files at runtime and do not use moving branches.
   control uses a two-column authoring layout (narrative main column +
   ownership / implementation / review / history operational sidebar) with a
   persistent control header and collapsible requirement reference
+- **Design system / brand:** tokens in `globals.css`; reusable primitives under
+  `src/components/design-system` (Brand, Card, StatusBadge, AppShell /
+  ProductHeader, form/layout helpers); brand assets in `public/brand/`; see
+  `docs/design-system.md`
 - Projects list: professional cards with derived completion, revision, updated time; compact New project action; empty state; restyled browser-import callout
 - Project cards load completion by reading each project document on the list page (local-first; fine for small project counts)
 

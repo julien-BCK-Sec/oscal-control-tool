@@ -6,6 +6,12 @@ import {
   type ControlRecordFields,
 } from "@/data/control-record";
 import { SidebarCard } from "@/components/controlBrowser/SidebarCard";
+import {
+  FormField,
+  FormHint,
+  FormLabel,
+} from "@/components/design-system/form/FormField";
+import { Stack } from "@/components/design-system/layout/primitives";
 
 export type OwnershipCardProps = {
   controlId: string;
@@ -25,11 +31,9 @@ export function OwnershipCard({
 
   return (
     <SidebarCard title="Ownership" titleId="control-ownership-heading">
-      <div className="space-y-3">
-        <div>
-          <label htmlFor={ownerFieldId} className="label">
-            Owner
-          </label>
+      <Stack gap="sm">
+        <FormField>
+          <FormLabel htmlFor={ownerFieldId}>Owner</FormLabel>
           <input
             id={ownerFieldId}
             type="text"
@@ -40,16 +44,14 @@ export function OwnershipCard({
             autoComplete="off"
           />
           {unassigned ? (
-            <p className="mt-1 text-xs text-warning" role="status">
+            <FormHint tone="muted" role="status">
               No owner assigned
-            </p>
+            </FormHint>
           ) : null}
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor={coOwnerFieldId} className="label">
-            Co-owner
-          </label>
+        <FormField>
+          <FormLabel htmlFor={coOwnerFieldId}>Co-owner</FormLabel>
           <input
             id={coOwnerFieldId}
             type="text"
@@ -58,12 +60,10 @@ export function OwnershipCard({
             className="field mt-1"
             autoComplete="off"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor={businessUnitFieldId} className="label">
-            Business Unit
-          </label>
+        <FormField>
+          <FormLabel htmlFor={businessUnitFieldId}>Business unit</FormLabel>
           <input
             id={businessUnitFieldId}
             type="text"
@@ -72,8 +72,8 @@ export function OwnershipCard({
             className="field mt-1"
             autoComplete="off"
           />
-        </div>
-      </div>
+        </FormField>
+      </Stack>
     </SidebarCard>
   );
 }

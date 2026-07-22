@@ -1,4 +1,10 @@
 import type { ReactNode } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/design-system/card/Card";
 
 export type SidebarCardProps = {
   title: string;
@@ -20,21 +26,15 @@ export function SidebarCard({
   className = "",
 }: SidebarCardProps) {
   return (
-    <section
+    <Card
+      prominent={prominent}
       aria-labelledby={titleId}
-      className={`rounded-md px-3.5 py-3.5 ${
-        prominent
-          ? "bg-accent-muted/50 ring-1 ring-accent/20"
-          : "bg-surface-secondary/80"
-      } ${className}`}
+      className={className}
     >
-      <h3
-        id={titleId}
-        className="text-[11px] font-semibold uppercase tracking-wider text-text-muted"
-      >
-        {title}
-      </h3>
-      <div className="mt-3">{children}</div>
-    </section>
+      <CardHeader>
+        <CardTitle id={titleId}>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }

@@ -9,7 +9,7 @@ import {
 
 /**
  * Badge labels must remain text-distinct (not color-only).
- * Mirrors ControlStatusBadge / ControlReviewStatusBadge display strings.
+ * Mirrors ImplementationStatusBadge / ReviewStatusBadge display strings.
  */
 describe("control list badge labels", () => {
   it("renders distinct implementation status labels", () => {

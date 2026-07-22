@@ -77,7 +77,7 @@ export function CollapsibleRequirement({
         >
           {expanded ? "▼" : "▶"}
         </span>
-        <span className="text-xs font-medium uppercase tracking-wide text-text-muted group-hover:text-text-secondary">
+        <span className="text-sm font-semibold tracking-tight text-text-secondary group-hover:text-foreground">
           Requirement
         </span>
         <span className="text-xs text-text-muted">

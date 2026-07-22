@@ -8,6 +8,7 @@ import {
   type ControlActivity,
 } from "@/data/control-activity";
 import { SidebarCard } from "@/components/controlBrowser/SidebarCard";
+import { ScrollArea } from "@/components/design-system/layout/primitives";
 
 export type ControlActivityHistoryProps = {
   projectId: string;
@@ -52,20 +53,22 @@ function ControlActivityHistoryBody({
       ) : activities.length === 0 ? (
         <p className="text-sm text-text-muted">No activity yet.</p>
       ) : (
-        <ol className="max-h-56 space-y-2.5 overflow-y-auto overscroll-contain pr-1">
-          {activities.map((activity) => (
-            <li key={activity.id} className="min-w-0">
-              <p className="text-[13px] leading-snug text-foreground">
-                {formatControlActivitySummary(activity)}
-              </p>
-              <p className="mt-0.5 text-[11px] text-text-muted">
-                <time dateTime={activity.createdAt}>
-                  {formatControlActivityTimestamp(activity.createdAt)}
-                </time>
-              </p>
-            </li>
-          ))}
-        </ol>
+        <ScrollArea>
+          <ol className="space-y-2.5 pr-1">
+            {activities.map((activity) => (
+              <li key={activity.id} className="min-w-0">
+                <p className="text-[13px] leading-snug text-foreground">
+                  {formatControlActivitySummary(activity)}
+                </p>
+                <p className="mt-0.5 text-[11px] text-text-muted">
+                  <time dateTime={activity.createdAt}>
+                    {formatControlActivityTimestamp(activity.createdAt)}
+                  </time>
+                </p>
+              </li>
+            ))}
+          </ol>
+        </ScrollArea>
       )}
     </SidebarCard>
   );

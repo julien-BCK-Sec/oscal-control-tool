@@ -12,6 +12,7 @@ import {
 import { ControlBrowser } from "@/components/ControlBrowser";
 import { ProjectMetadataSection } from "@/components/ProjectMetadataSection";
 import { ProjectOverview } from "@/components/ProjectOverview";
+import { ProductHeader } from "@/components/design-system/layout/AppShell";
 import {
   createNamedVersionAction,
   createAutomaticSnapshotAction,
@@ -620,6 +621,13 @@ export function ProjectWorkspace({
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
+      <ProductHeader
+        context={
+          <span className="hidden md:inline truncate">
+            {name.trim() || "Untitled project"}
+          </span>
+        }
+      />
       <WorkspaceHeader
         projectName={name}
         organizationName={metadata.organizationName}

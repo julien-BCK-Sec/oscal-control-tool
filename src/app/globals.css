@@ -6,6 +6,7 @@
   --surface: #ffffff;
   --surface-secondary: #f0f0ed;
   --surface-elevated: #ffffff;
+  --surface-accent: #e8eef3;
 
   /* Borders & focus */
   --border: #e2e2de;
@@ -22,24 +23,68 @@
   --accent-hover: #243d54;
   --accent-muted: #e8eef3;
 
-  /* Status */
+  /* Semantic status */
   --success: #1f6b3a;
   --success-muted: #e6f2ea;
   --warning: #8a5b12;
   --warning-muted: #f7efd9;
   --danger: #9b2c2c;
   --danger-muted: #f8e8e8;
-  /* Changes Requested / orange review badge */
+  --info: #2f4f6b;
+  --info-muted: #e8eef3;
   --orange: #9a4e16;
   --orange-muted: #f8ebe0;
-  /* Implemented / teal lifecycle badge */
   --teal: #0f6e6a;
   --teal-muted: #e4f3f2;
 
-  /* Spacing & chrome */
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Typography */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* Radii & elevation */
   --radius-sm: 0.25rem;
   --radius: 0.375rem;
+  --radius-md: 0.5rem;
   --shadow-subtle: 0 1px 2px rgb(28 28 26 / 0.04);
+
+  /* Motion */
+  --transition-fast: 120ms ease;
+  --transition-normal: 180ms ease;
+
+  /* Controls & layout */
+  --control-height-sm: 1.75rem;
+  --control-height: 2.25rem;
+  --control-height-lg: 2.5rem;
+  --card-padding: 0.75rem;
+  --card-padding-lg: 1rem;
+  --layout-sidebar: 20rem;
+  --layout-nav: 22rem;
+  --layout-content-max: 48rem;
+  --layout-page-max: 56rem;
+  --product-header-height: 3.5rem;
 
   color-scheme: light;
 }
@@ -49,6 +94,7 @@
   --color-surface: var(--surface);
   --color-surface-secondary: var(--surface-secondary);
   --color-surface-elevated: var(--surface-elevated);
+  --color-surface-accent: var(--surface-accent);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-focus-ring: var(--focus-ring);
@@ -64,6 +110,8 @@
   --color-warning-muted: var(--warning-muted);
   --color-danger: var(--danger);
   --color-danger-muted: var(--danger-muted);
+  --color-info: var(--info);
+  --color-info-muted: var(--info-muted);
   --color-orange: var(--orange);
   --color-orange-muted: var(--orange-muted);
   --color-teal: var(--teal);
@@ -72,7 +120,10 @@
   --font-mono: var(--font-geist-mono);
   --radius-sm: var(--radius-sm);
   --radius-DEFAULT: var(--radius);
+  --radius-md: var(--radius-md);
   --shadow-subtle: var(--shadow-subtle);
+  --spacing-card: var(--card-padding);
+  --spacing-sidebar: var(--layout-sidebar);
 }
 
 /*
@@ -90,6 +141,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Shared interactive primitives (use with Tailwind utilities as needed). */
 @layer components {
   .btn {
@@ -97,16 +158,17 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.375rem;
+    min-height: var(--control-height);
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-strong);
     background: var(--surface);
     padding: 0.375rem 0.75rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
     line-height: 1.25rem;
     color: var(--foreground);
-    transition: background-color 0.12s ease, border-color 0.12s ease,
-      opacity 0.12s ease;
+    transition: background-color var(--transition-fast),
+      border-color var(--transition-fast), opacity var(--transition-fast);
   }
 
   .btn:hover:not(:disabled) {
@@ -144,13 +206,20 @@ body {
     background: var(--danger-muted);
   }
 
+  .btn-sm {
+    min-height: var(--control-height-sm);
+    padding: 0.25rem 0.625rem;
+    font-size: var(--text-xs);
+  }
+
   .field {
     width: 100%;
+    min-height: var(--control-height);
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-strong);
     background: var(--surface);
     padding: 0.375rem 0.625rem;
-    font-size: 0.875rem;
+    font-size: var(--text-md);
     line-height: 1.375rem;
     color: var(--foreground);
   }
@@ -166,8 +235,8 @@ body {
 
   .label {
     display: block;
-    font-size: 0.8125rem;
-    font-weight: 500;
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--text-secondary);
   }
 
@@ -175,5 +244,16 @@ body {
     font-family: var(--font-mono), ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.01em;
+  }
+
+  .ds-card {
+    border-radius: var(--radius);
+    background: var(--surface-secondary);
+    padding: var(--card-padding);
+  }
+
+  .ds-card-prominent {
+    background: color-mix(in srgb, var(--accent-muted) 70%, var(--surface));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
   }
 }

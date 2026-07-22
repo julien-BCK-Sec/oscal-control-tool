@@ -4,6 +4,7 @@ import type { CompletionProgress } from "@/domain";
 import { formatCompletionCount } from "@/domain";
 import type { AutosaveStatus } from "@/editor/history";
 import { SaveStatus } from "@/components/ui/SaveStatus";
+import { Button } from "@/components/design-system/button/Button";
 import { formatProjectRevisionLabel } from "@/components/projectHistory/presentation";
 import {
   WORKSPACE_TABS,
@@ -106,30 +107,16 @@ export function WorkspaceHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={onUndo}
-            disabled={!canUndo}
-            className="btn"
-          >
+          <Button type="button" onClick={onUndo} disabled={!canUndo}>
             Undo
-          </button>
-          <button
-            type="button"
-            onClick={onRedo}
-            disabled={!canRedo}
-            className="btn"
-          >
+          </Button>
+          <Button type="button" onClick={onRedo} disabled={!canRedo}>
             Redo
-          </button>
+          </Button>
           {autosaveStatus === "conflict" && onReloadLatest ? (
-            <button
-              type="button"
-              onClick={onReloadLatest}
-              className="btn btn-danger"
-            >
+            <Button type="button" variant="danger" onClick={onReloadLatest}>
               Reload latest
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>

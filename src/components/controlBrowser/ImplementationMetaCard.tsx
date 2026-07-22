@@ -7,6 +7,11 @@ import {
   type ControlImplementationStatus,
 } from "@/data/control-record";
 import { SidebarCard } from "@/components/controlBrowser/SidebarCard";
+import {
+  FormField,
+  FormLabel,
+} from "@/components/design-system/form/FormField";
+import { Stack } from "@/components/design-system/layout/primitives";
 
 export type ImplementationMetaCardProps = {
   controlId: string;
@@ -23,12 +28,15 @@ export function ImplementationMetaCard({
   const reviewDueFieldId = `control-review-due-${controlId}`;
 
   return (
-    <SidebarCard title="Implementation" titleId="control-implementation-meta-heading">
-      <div className="space-y-3">
-        <div>
-          <label htmlFor={implementationStatusFieldId} className="label">
-            Implementation Status
-          </label>
+    <SidebarCard
+      title="Implementation"
+      titleId="control-implementation-meta-heading"
+    >
+      <Stack gap="sm">
+        <FormField>
+          <FormLabel htmlFor={implementationStatusFieldId}>
+            Implementation status
+          </FormLabel>
           <select
             id={implementationStatusFieldId}
             value={fields.implementationStatus}
@@ -46,12 +54,10 @@ export function ImplementationMetaCard({
               </option>
             ))}
           </select>
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor={reviewDueFieldId} className="label">
-            Review Due Date
-          </label>
+        <FormField>
+          <FormLabel htmlFor={reviewDueFieldId}>Review due date</FormLabel>
           <input
             id={reviewDueFieldId}
             type="date"
@@ -64,8 +70,8 @@ export function ImplementationMetaCard({
             }
             className="field mt-1"
           />
-        </div>
-      </div>
+        </FormField>
+      </Stack>
     </SidebarCard>
   );
 }

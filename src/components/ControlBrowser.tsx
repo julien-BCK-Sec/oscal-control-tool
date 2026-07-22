@@ -34,8 +34,10 @@ import {
   parentIdsWithEnhancements,
 } from "@/components/controlBrowser/presentation";
 import { ControlEditorWorkspace } from "@/components/controlBrowser/ControlEditorWorkspace";
-import { ControlStatusBadge } from "@/components/controlBrowser/ControlStatusBadge";
-import { ControlReviewStatusBadge } from "@/components/controlBrowser/ControlReviewStatusBadge";
+import {
+  ImplementationStatusBadge,
+  ReviewStatusBadge,
+} from "@/components/design-system/badge/statusMaps";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { ControlsFocusRequest } from "@/components/workspace/presentation";
 
@@ -260,14 +262,11 @@ export function ControlBrowser({
     const unassigned = isControlOwnerUnassigned(record.owner);
     return (
       <span className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
-        <ControlStatusBadge
-          implementationStatus={record.implementationStatus}
+        <ImplementationStatusBadge
+          status={record.implementationStatus}
           className="shrink-0"
         />
-        <ControlReviewStatusBadge
-          reviewStatus={reviewStatus}
-          className="shrink-0"
-        />
+        <ReviewStatusBadge status={reviewStatus} className="shrink-0" />
         {!unassigned ? (
           <span className="min-w-0 truncate text-[11px] text-text-muted">
             {displayControlOwner(record.owner)}

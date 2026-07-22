@@ -201,3 +201,21 @@ Reason:
 
 Date:
 2026-07-22
+
+## ADR-013
+
+Decision:
+Introduce a lightweight in-repo design system under
+`src/components/design-system` (tokens in `globals.css`, Brand, Card,
+StatusBadge, AppShell / ProductHeader) and standardize Control Freak brand
+assets under `public/brand/`. Product chrome uses ProductHeader; control
+editor composes SplitLayout + shared cards. Do not add a third-party UI kit.
+
+Reason:
+- Removes duplicated badge/card/button styling as the product grows beyond a
+  simple OSCAL editor.
+- Centralizes logo selection and responsive lockup/mark behavior.
+- Keeps presentation separate from persistence and review workflow logic.
+
+Date:
+2026-07-22
