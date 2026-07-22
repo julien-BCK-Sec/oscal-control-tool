@@ -35,19 +35,28 @@ See `docs/current-state.md` for the complete implementation status.
 
 - Node.js 20+ (or current LTS)
 - npm
-- PostgreSQL (local or hosted)
+- Docker (for local PostgreSQL via Compose)
 
 ### Installation
 
 ```bash
+git clone <repository-url>
+cd oscal-control-tool
+docker compose up -d
 npm install --legacy-peer-deps
 cp .env.example .env.local
-# Edit .env.local: DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL,
-# NEXT_PUBLIC_APP_URL, and BOOTSTRAP_* values. Standalone scripts load
-# .env.local (then .env) automatically — no manual export required.
+# Edit .env.local: BETTER_AUTH_SECRET, BETTER_AUTH_URL, NEXT_PUBLIC_APP_URL,
+# and BOOTSTRAP_* values. DATABASE_URL already matches compose.yaml.
+# Standalone scripts load .env.local (then .env) automatically.
 npm run db:migrate
 npm run bootstrap:admin
 npm run dev
+```
+
+Compose PostgreSQL defaults (no `compose.yaml` edits required):
+
+```
+postgres://postgres:postgres@localhost:5432/oscal_control_tool
 ```
 
 Open:
@@ -59,6 +68,13 @@ http://localhost:3000/sign-in
 Development verification and invitation links are written to `data/email-sink.json`
 (see `.env.example`).
 
+### Local database cleanup
+
+```bash
+docker compose down      # stop containers; keep data volume
+docker compose down -v   # stop containers and delete the volume
+```
+
 ---
 
 ## Useful Commands
@@ -68,6 +84,10 @@ npm run dev
 npm test
 npm run lint
 npm run build
+
+docker compose up -d
+docker compose down
+docker compose down -v
 
 npm run db:migrate
 npm run db:generate

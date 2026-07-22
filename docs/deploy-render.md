@@ -86,13 +86,16 @@ PostgreSQL-to-SQLite reverse sync is provided.
 
 ## Local Docker (application only)
 
-Requires a reachable PostgreSQL URL (Render, local Postgres, or similar):
+For the local PostgreSQL database used during development, prefer
+`docker compose up -d` from the repository root (`compose.yaml`). The snippet
+below runs only the application image and still needs a reachable
+`DATABASE_URL` (Compose, Render, or another Postgres):
 
 ```bash
 docker build -t oscal-control-tool .
 
 docker run --rm -p 3000:3000 \
-  -e DATABASE_URL='postgres://user:pass@host:5432/oscal' \
+  -e DATABASE_URL='postgres://postgres:postgres@host.docker.internal:5432/oscal_control_tool' \
   -e BETTER_AUTH_SECRET='replace-me' \
   -e BETTER_AUTH_URL='http://localhost:3000' \
   -e NEXT_PUBLIC_APP_URL='http://localhost:3000' \

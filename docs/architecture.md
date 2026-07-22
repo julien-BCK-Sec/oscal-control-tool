@@ -92,6 +92,9 @@ Examples:
 
 Repositories isolate the database from business logic.
 
+Local development uses `compose.yaml` (PostgreSQL 16). See the README Quick
+Start for `docker compose up -d` and cleanup commands.
+
 Authorization checks occur in server wrappers / actions **before** repository
 reads and mutations. A resource identifier alone is never sufficient.
 
