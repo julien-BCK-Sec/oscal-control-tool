@@ -44,6 +44,8 @@ function toStoredProject(
   return {
     id: row.id,
     name: document.project.name,
+    // Legacy SQLite rows predate organization ownership (ADR-016 cutover).
+    organizationId: null,
     frameworkId: document.project.frameworkId,
     schemaVersion: document.schemaVersion,
     revision: row.revision,
@@ -118,6 +120,8 @@ export function createSqliteProjectRepository(
       return {
         id,
         name,
+        // Legacy SQLite persistence predates organizations (no column).
+        organizationId: null,
         frameworkId,
         schemaVersion: document.schemaVersion,
         revision: 1,
@@ -128,6 +132,8 @@ export function createSqliteProjectRepository(
       };
     },
 
+    // Legacy SQLite persistence predates organizations; the `organizationId`
+    // filter is accepted for interface parity but not applied (no column).
     async list(): Promise<ProjectSummary[]> {
       const rows = await db
         .select()
@@ -137,6 +143,7 @@ export function createSqliteProjectRepository(
       return rows.map((row) => ({
         id: row.id,
         name: row.name,
+        organizationId: null,
         organizationName: row.organizationName,
         frameworkId: row.frameworkId,
         schemaVersion: row.schemaVersion,

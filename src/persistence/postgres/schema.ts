@@ -7,6 +7,13 @@ import {
 } from "drizzle-orm/pg-core";
 
 /**
+ * Better Auth identity + organization tables (ADR-015/017/018). Re-exported so
+ * drizzle-kit (`drizzle-pg.config.ts`) and `getDb`/`openTestDb` include them in
+ * the same PostgreSQL schema and migration set as the application tables.
+ */
+export * from "./auth-schema";
+
+/**
  * PostgreSQL port of the SQLite schema (`src/persistence/sqlite/schema.ts`).
  * Column names, defaults, and semantics are identical. Timestamps remain
  * text ISO-8601 strings (not native `timestamp`) and `project_json` remains a
@@ -22,13 +29,15 @@ export const projects = pgTable(
     name: text("name").notNull(),
     organizationName: text("organization_name").notNull().default(""),
     /**
-     * Owning organization (Milestone 1, ADR-016). Nullable until Work
-     * Package 3 introduces the Organization entity and requires it on every
-     * project. The SQLite-to-PostgreSQL migrator (ADR-016) sets this on
-     * every migrated project; new WP3 code paths will make it mandatory and
-     * wire real organization context.
+     * Owning organization (Milestone 1, ADR-016). Required on every project
+     * (Work Package 3): the tenant boundary for all organization-scoped reads
+     * and mutations. The SQLite-to-PostgreSQL migrator assigns it during the
+     * one-shot cutover; the application derives it from the authenticated
+     * organization context. Referential integrity to `organization` is
+     * enforced in application repositories/services, not a hard DB foreign key
+     * (projects and identity tables are migrated/bootstrapped independently).
      */
-    organizationId: text("organization_id"),
+    organizationId: text("organization_id").notNull(),
     frameworkId: text("framework_id").notNull(),
     schemaVersion: integer("schema_version").notNull(),
     revision: integer("revision").notNull().default(1),

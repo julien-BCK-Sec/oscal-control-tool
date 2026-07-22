@@ -44,6 +44,7 @@ function toStoredProject(
   return {
     id: row.id,
     name: document.project.name,
+    organizationId: row.organizationId,
     frameworkId: document.project.frameworkId,
     schemaVersion: document.schemaVersion,
     revision: row.revision,
@@ -86,6 +87,12 @@ export function createPostgresProjectRepository(
       if (!frameworkId) {
         throw new Error("frameworkId is required.");
       }
+      const organizationId = input.organizationId?.trim();
+      if (!organizationId) {
+        throw new Error(
+          "organizationId is required to create a project (tenant boundary).",
+        );
+      }
 
       const id = randomUUID();
       const createdAt = nowIso();
@@ -107,6 +114,7 @@ export function createPostgresProjectRepository(
         id,
         name,
         organizationName: metadata.organizationName,
+        organizationId,
         frameworkId,
         schemaVersion: document.schemaVersion,
         revision: 1,
@@ -118,6 +126,7 @@ export function createPostgresProjectRepository(
       return {
         id,
         name,
+        organizationId,
         frameworkId,
         schemaVersion: document.schemaVersion,
         revision: 1,
@@ -128,15 +137,20 @@ export function createPostgresProjectRepository(
       };
     },
 
-    async list(): Promise<ProjectSummary[]> {
-      const rows = await db
-        .select()
-        .from(projects)
-        .orderBy(desc(projects.updatedAt));
+    async list(organizationId?: string): Promise<ProjectSummary[]> {
+      const scope = organizationId?.trim();
+      const rows = await (scope
+        ? db
+            .select()
+            .from(projects)
+            .where(eq(projects.organizationId, scope))
+            .orderBy(desc(projects.updatedAt))
+        : db.select().from(projects).orderBy(desc(projects.updatedAt)));
 
       return rows.map((row) => ({
         id: row.id,
         name: row.name,
+        organizationId: row.organizationId,
         organizationName: row.organizationName,
         frameworkId: row.frameworkId,
         schemaVersion: row.schemaVersion,

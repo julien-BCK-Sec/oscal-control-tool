@@ -25,6 +25,12 @@ export type StoredProjectDocument = StoredProjectDocumentV1;
 export type StoredProject = {
   id: string;
   name: string;
+  /**
+   * Owning organization tenant boundary (ADR-016). Always set for PostgreSQL
+   * projects; `null` only for legacy SQLite rows read through the cutover
+   * tooling, which the authenticated application never serves.
+   */
+  organizationId: string | null;
   frameworkId: string;
   schemaVersion: number;
   revision: number;
@@ -37,6 +43,7 @@ export type StoredProject = {
 export type ProjectSummary = {
   id: string;
   name: string;
+  organizationId: string | null;
   organizationName: string;
   frameworkId: string;
   schemaVersion: number;
@@ -46,6 +53,12 @@ export type ProjectSummary = {
 
 export type CreateProjectInput = {
   name: string;
+  /**
+   * Owning organization. Required at runtime by the PostgreSQL repository
+   * (tenant boundary); optional in the type only so legacy SQLite tooling and
+   * repository unit-test helpers can operate without organization context.
+   */
+  organizationId?: string;
   organizationName?: string;
   frameworkId: string;
   metadata?: ProjectMetadata;

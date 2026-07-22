@@ -8,14 +8,14 @@ import { SYSTEM_ACTOR } from "@/persistence/actor";
 import { closeDb, openTestDb } from "@/persistence/postgres/client";
 import { createPostgresControlActivityRepository } from "@/persistence/postgres/control-activity-repository";
 import { createPostgresControlRecordService } from "@/persistence/postgres/control-record-service";
-import { createPostgresProjectRepository } from "@/persistence/postgres/project-repository";
+import { createTestProjectRepository } from "@/persistence/postgres/testing";
 import { controlActivities, controlRecords } from "@/persistence/postgres/schema";
 
 async function tempStack() {
   const db = await openTestDb();
   return {
     db,
-    projects: createPostgresProjectRepository(db),
+    projects: createTestProjectRepository(db),
     service: createPostgresControlRecordService(db),
     activities: createPostgresControlActivityRepository(db),
   };

@@ -3,12 +3,12 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, it } from "node:test";
 import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
 import { closeDb, openTestDb } from "@/persistence/postgres/client";
-import { createPostgresProjectRepository } from "@/persistence/postgres/project-repository";
+import { createTestProjectRepository } from "@/persistence/postgres/testing";
 import { projectSnapshots, projects } from "@/persistence/postgres/schema";
 
 async function tempRepo() {
   const db = await openTestDb();
-  return { repo: createPostgresProjectRepository(db), db };
+  return { repo: createTestProjectRepository(db), db };
 }
 
 afterEach(async () => {

@@ -27,6 +27,12 @@ export type SeedDemoOptions = {
    * against the pinned OSCAL 1.2.2 SSP schema.
    */
   validateOscal?: boolean;
+  /**
+   * Organization that owns the demo project (ADR-019, invite-only demo org).
+   * Required for PostgreSQL persistence — every project is organization-owned
+   * (WP3). The bootstrap/seed flow supplies the demo organization id.
+   */
+  organizationId?: string;
 };
 
 export type SeedDemoStatus = "already-exists" | "created" | "reset";
@@ -73,8 +79,9 @@ function namedSnapshotNames(snapshots: ProjectSnapshotSummary[]): string[] {
 
 export async function findDemoProject(
   repository: ProjectRepository,
+  organizationId?: string,
 ): Promise<ProjectSummary | null> {
-  const listed = await repository.list();
+  const listed = await repository.list(organizationId);
   return listed.find((project) => project.name === DEMO_PROJECT_NAME) ?? null;
 }
 
@@ -132,7 +139,7 @@ async function saveStage(
 
 async function createCanonicalDemo(
   repository: ProjectRepository,
-  options: { validateOscal: boolean },
+  options: { validateOscal: boolean; organizationId?: string },
 ): Promise<{
   project: StoredProject;
   snapshots: ProjectSnapshotSummary[];
@@ -153,6 +160,7 @@ async function createCanonicalDemo(
 
   let project = await repository.create({
     name: DEMO_PROJECT_NAME,
+    organizationId: options.organizationId,
     frameworkId: FRAMEWORK.id,
     metadata,
     implementations: stage0,
@@ -231,12 +239,13 @@ export async function seedDemoProject(
 ): Promise<SeedDemoResult> {
   const reset = options.reset === true;
   const validateOscal = options.validateOscal !== false;
+  const organizationId = options.organizationId;
   const databasePathHint =
     context.databasePathHint ?? "(configured DATABASE_URL)";
   const baselineControlCount = demoBaselineControlCount();
   const frameworkLabel = demoFrameworkLabel();
 
-  const existing = await findDemoProject(repository);
+  const existing = await findDemoProject(repository, organizationId);
 
   if (existing && !reset) {
     const loaded = await repository.load(existing.id);
@@ -261,7 +270,10 @@ export async function seedDemoProject(
     await repository.delete(existing.id);
   }
 
-  const created = await createCanonicalDemo(repository, { validateOscal });
+  const created = await createCanonicalDemo(repository, {
+    validateOscal,
+    organizationId,
+  });
 
   return {
     status: reset ? "reset" : "created",

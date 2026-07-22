@@ -7,13 +7,13 @@ import {
 } from "@/data/control-record";
 import { closeDb, openTestDb } from "@/persistence/postgres/client";
 import { createPostgresControlRecordRepository } from "@/persistence/postgres/control-record-repository";
-import { createPostgresProjectRepository } from "@/persistence/postgres/project-repository";
+import { createTestProjectRepository } from "@/persistence/postgres/testing";
 import { controlRecords } from "@/persistence/postgres/schema";
 
 async function tempRepos() {
   const db = await openTestDb();
   return {
-    projects: createPostgresProjectRepository(db),
+    projects: createTestProjectRepository(db),
     controlRecords: createPostgresControlRecordRepository(db),
     db,
   };

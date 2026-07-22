@@ -18,7 +18,13 @@ import type {
  */
 export interface ProjectRepository {
   create(input: CreateProjectInput): Promise<StoredProject>;
-  list(): Promise<ProjectSummary[]>;
+  /**
+   * List projects. When `organizationId` is provided, only projects owned by
+   * that organization are returned (tenant boundary). Omitting it lists every
+   * project and is reserved for system tooling (migration, seed, tests) — the
+   * authenticated application always scopes by organization.
+   */
+  list(organizationId?: string): Promise<ProjectSummary[]>;
   load(projectId: string): Promise<ProjectLoadResult>;
   save(input: SaveProjectInput): Promise<SaveProjectResult>;
   rename(projectId: string, name: string): Promise<StoredProject | null>;
