@@ -48,9 +48,11 @@ Contains:
 - Review workflow
 - Activity history
 - Ownership
-- Comments (future)
+- Comments / threaded discussions
+- Mentions
+- Assignments
+- In-app notifications
 - Evidence (future)
-- Assignments (future)
 
 Operational metadata is never stored inside OSCAL documents.
 
@@ -67,15 +69,21 @@ Milestone 1 capabilities:
 - Organization invitations (ADR-018)
 - Authenticated invite-only demo bootstrap (ADR-019)
 
+Milestone 02A capabilities:
+
+- Control-scoped collaboration (ADR-020)
+- Discussion / assignment / notification services over PostgreSQL repositories
+- Collaboration events on the shared ControlActivity stream
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 
 Later capabilities remain independent of UI and persistence:
 
-- Notifications
+- Email / external notifications
 - AI services
 - Evidence processing
-- Background jobs
+- Background jobs / workflow automation (Milestone 02B)
 
 ---
 
@@ -89,6 +97,9 @@ Examples:
 - OrganizationRepository (memberships / invitations)
 - ControlRecordRepository
 - ActivityRepository
+- CommentRepository
+- AssignmentRepository
+- NotificationRepository
 
 Repositories isolate the database from business logic.
 
@@ -114,6 +125,8 @@ Exporters adapt the domain model.
 
 They do not define it.
 
+Collaboration metadata is never included in OSCAL exports.
+
 ---
 
 ## Presentation Layer
@@ -125,6 +138,8 @@ Contains:
 - Design System
 - Workspace UI
 - Sign-in and organization team settings
+- Collaboration UI (discussion panel, assignments, notification center,
+  mention autocomplete)
 
 Presentation never performs persistence directly.
 
@@ -154,6 +169,9 @@ Repository / service (PostgreSQL)
         ▼
 Domain / OSCAL export as needed
 ```
+
+Collaboration mutations follow the same path through authorized wrappers in
+`src/server/` (discussions, assignments, notifications) before persistence.
 
 ---
 

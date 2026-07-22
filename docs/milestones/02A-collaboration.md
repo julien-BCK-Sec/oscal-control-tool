@@ -6,7 +6,7 @@
 
 ## Status
 
-Draft
+Implemented on `feat/collaboration-02a`
 
 ## Objective
 

@@ -7,6 +7,7 @@ import { AuthorizationError } from "@/authz/authorize";
 import { getSessionUser, resolveOrgContext, sessionActor } from "@/auth/context";
 import type { ProjectRepository } from "@/persistence/repository";
 import { getProjectRepository } from "@/persistence/server";
+import { SYSTEM_ACTOR } from "@/persistence/actor";
 import { getDb } from "@/persistence/postgres/client";
 import { createPostgresAssignmentService } from "@/persistence/postgres/assignment-service";
 import { createPostgresOrganizationRepository } from "@/persistence/postgres/organization-repository";
@@ -131,7 +132,7 @@ export async function createAssignmentAction(input: {
         assigneeUserId,
         assignmentRole: input.assignmentRole,
       },
-      resolved.actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
   } catch (error) {
     return mapAuth(error);
@@ -164,7 +165,7 @@ export async function reassignAssignmentAction(input: {
       resolved.ctx,
       assignmentId,
       assigneeUserId,
-      resolved.actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
   } catch (error) {
     return mapAuth(error);
@@ -190,7 +191,7 @@ export async function completeAssignmentAction(input: {
       notifications,
       resolved.ctx,
       assignmentId,
-      resolved.actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
   } catch (error) {
     return mapAuth(error);
@@ -216,7 +217,7 @@ export async function removeAssignmentAction(input: {
       notifications,
       resolved.ctx,
       assignmentId,
-      resolved.actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
   } catch (error) {
     return mapAuth(error);

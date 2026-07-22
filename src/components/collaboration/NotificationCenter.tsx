@@ -49,7 +49,6 @@ export function NotificationCenter({
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only bootstrap
   }, []);
 
   function onToggle() {

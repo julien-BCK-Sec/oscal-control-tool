@@ -9,10 +9,7 @@ import {
 } from "@/data/control-record";
 import type { ActorIdentity } from "../actor";
 import { nextActivityTimestamp } from "../activity-clock";
-import type {
-  DiscussionCommentResult,
-  DiscussionService,
-} from "../discussion-service";
+import type { DiscussionService } from "../discussion-service";
 import { createPostgresCommentRepository } from "./comment-repository";
 import { appendActivitiesInTransaction } from "./control-activity-repository";
 import {

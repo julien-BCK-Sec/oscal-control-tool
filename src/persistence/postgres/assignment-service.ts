@@ -9,10 +9,7 @@ import {
 } from "@/data/control-record";
 import type { ActorIdentity } from "../actor";
 import { nextActivityTimestamp } from "../activity-clock";
-import type {
-  AssignmentMutationResult,
-  AssignmentService,
-} from "../assignment-service";
+import type { AssignmentService } from "../assignment-service";
 import { createPostgresAssignmentRepository } from "./assignment-repository";
 import { appendActivitiesInTransaction } from "./control-activity-repository";
 import type { AppDatabase } from "./client";

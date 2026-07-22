@@ -6,6 +6,7 @@ import { AuthorizationError } from "@/authz/authorize";
 import { getSessionUser, resolveOrgContext, sessionActor } from "@/auth/context";
 import type { ProjectRepository } from "@/persistence/repository";
 import { getProjectRepository } from "@/persistence/server";
+import { SYSTEM_ACTOR } from "@/persistence/actor";
 import { createPostgresDiscussionService } from "@/persistence/postgres/discussion-service";
 import { createPostgresOrganizationRepository } from "@/persistence/postgres/organization-repository";
 import { createPostgresNotificationRepository } from "@/persistence/postgres/notification-repository";
@@ -127,7 +128,7 @@ export async function createDiscussionAction(input: {
         parentCommentId: input.parentCommentId,
         body,
       },
-      resolved.actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
   } catch (error) {
     return mapAuthError(error);
@@ -156,7 +157,7 @@ export async function editDiscussionAction(input: {
       resolved.ctx,
       commentId,
       body,
-      resolved.actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
   } catch (error) {
     return mapAuthError(error);
@@ -180,7 +181,7 @@ export async function deleteDiscussionAction(input: {
       await getDiscussionService(),
       resolved.ctx,
       commentId,
-      resolved.actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
   } catch (error) {
     return mapAuthError(error);
@@ -204,7 +205,7 @@ export async function restoreDiscussionAction(input: {
       await getDiscussionService(),
       resolved.ctx,
       commentId,
-      resolved.actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
   } catch (error) {
     return mapAuthError(error);
@@ -229,7 +230,7 @@ export async function resolveDiscussionAction(input: {
       await getNotificationService(),
       resolved.ctx,
       commentId,
-      resolved.actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
   } catch (error) {
     return mapAuthError(error);
@@ -253,7 +254,7 @@ export async function reopenDiscussionAction(input: {
       await getDiscussionService(),
       resolved.ctx,
       commentId,
-      resolved.actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
   } catch (error) {
     return mapAuthError(error);

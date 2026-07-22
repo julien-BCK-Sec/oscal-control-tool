@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -48,18 +47,16 @@ export function MentionTextarea({
       .slice(0, 8);
   }, [candidates, query]);
 
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [query]);
-
   function detectMention(nextValue: string, cursor: number) {
     const before = nextValue.slice(0, cursor);
     const match = before.match(/@([A-Za-z0-9._+-]*)$/);
     if (!match) {
       setQuery(null);
+      setActiveIndex(0);
       return;
     }
     setQuery(match[1] ?? "");
+    setActiveIndex(0);
   }
 
   function insertCandidate(candidate: MentionCandidate) {

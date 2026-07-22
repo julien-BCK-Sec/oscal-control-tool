@@ -92,12 +92,12 @@ export function createSqliteControlActivityRepository(
       controlRecordId: string,
       options?: ListControlActivitiesOptions,
     ): Promise<ControlActivity[]> {
-      let query = db
+      const rows = db
         .select()
         .from(controlActivities)
         .where(eq(controlActivities.controlRecordId, controlRecordId))
-        .orderBy(desc(controlActivities.createdAt), desc(sql`rowid`));
-      const rows = query.all();
+        .orderBy(desc(controlActivities.createdAt), desc(sql`rowid`))
+        .all();
       let mapped = rows.map(toControlActivity);
       if (options?.beforeCreatedAt) {
         mapped = mapped.filter((row) => row.createdAt < options.beforeCreatedAt!);
