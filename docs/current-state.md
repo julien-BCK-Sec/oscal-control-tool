@@ -147,7 +147,22 @@ Do not fetch standards files at runtime and do not use moving branches.
 - ControlActivity: append-only `control_activities` stream keyed by
   `control_record_id`; written in the same transaction as metadata upserts and
   review transitions; independent lifecycle from named `project_json` versions
-- Auth: not implemented — assumes trusted local / single-user deployment with a durable filesystem and one Node instance
+- Auth: not implemented for the SQLite path — assumes trusted local / single-user deployment with a durable filesystem and one Node instance
+
+## Platform foundation (Milestone 1, PostgreSQL path)
+
+Applies to the PostgreSQL persistence path (`src/persistence/postgres/`, `DATABASE_URL`). See ADR-014–019.
+
+- Authentication: Better Auth (`src/auth/server.ts`, lazy `getAuth()`), email/password with **mandatory email verification** and **public self-registration disabled** (invite-only). Opaque database-backed sessions in HTTP-only cookies (`Secure` in production, `SameSite=Lax`). API handler at `src/app/api/auth/[...all]/route.ts`; client helpers in `src/auth/client.ts`.
+- Identity/organization schema: Better Auth Drizzle tables (`user`, `session`, `account`, `verification`, `organization`, `member`, `invitation`) in `src/persistence/postgres/auth-schema.ts`; migration `drizzle-pg/0002_*.sql`. `projects.organization_id` is now `NOT NULL`.
+- Tenancy: every project is organization-owned. `ProjectRepository.create` requires `organizationId`; `list(organizationId)` filters by tenant. Authorization + tenant scoping live server-side in `src/server/authorized-projects.ts` and `src/server/authorized-controls.ts`; Server Actions delegate to them and never trust client-supplied organization ids. Cross-tenant access to a known id resolves to not-found (no existence leak).
+- RBAC: single permission matrix in `src/authz/permissions.ts` (roles `organization_admin`, `project_manager`, `author`, `reviewer`, `viewer`); fail-closed checks in `src/authz/authorize.ts` (`requirePermission`/`can`). UI hides unavailable actions but hiding is never the enforcement boundary.
+- Invitations & team management: `src/persistence/postgres/organization-repository.ts` + `src/server/authorized-organizations.ts`; UI at `/organizations/[orgId]/settings` and accept page at `/invitations/[id]`. 7-day TTL, unpredictable ids (never logged), resend supersedes pending, admin-only revoke, accept requires an authenticated verified email matching the invitation, idempotent, and cannot escalate privilege.
+- Session actor: `src/auth/context.ts` resolves the authenticated user/org context; `SYSTEM_ACTOR` is preserved for automated operations.
+- Bootstrap: `scripts/bootstrap-admin.ts` (`npm run bootstrap:admin`) creates the first verified admin + organization + `organization_admin` membership (env `BOOTSTRAP_ADMIN_*`, `BOOTSTRAP_ORG_*`). Demo seed requires `SEED_DEMO_ORG_SLUG` and attaches the demo project to that organization.
+- Dev email: verification/invitation URLs are written to a local JSON-lines sink (`data/email-sink.json`, override with `TEST_EMAIL_SINK`); tokens/links are never logged in production.
+- Secrets: `BETTER_AUTH_SECRET` (required at production runtime, fails closed), `BETTER_AUTH_URL` / `NEXT_PUBLIC_APP_URL` for the public URL only. No secrets in `NEXT_PUBLIC_`.
+- Route protection: `src/proxy.ts` (Next.js 16 `proxy` convention, formerly `middleware`) optimistically redirects cookie-less requests for `/projects/**` and `/organizations/**` to `/sign-in`.
 
 ## Render / Docker deployment
 
