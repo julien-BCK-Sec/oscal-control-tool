@@ -6,6 +6,7 @@ import {
   isControlActivityType,
   type AppendControlActivityInput,
   type ControlActivity,
+  type ListControlActivitiesOptions,
 } from "@/data/control-activity";
 import type { ControlActivityRepository } from "../control-activity-repository";
 import type { AppDatabase } from "./client";
@@ -89,14 +90,22 @@ export function createSqliteControlActivityRepository(
 
     async listByControlRecordId(
       controlRecordId: string,
+      options?: ListControlActivitiesOptions,
     ): Promise<ControlActivity[]> {
-      const rows = db
+      let query = db
         .select()
         .from(controlActivities)
         .where(eq(controlActivities.controlRecordId, controlRecordId))
-        .orderBy(desc(controlActivities.createdAt), desc(sql`rowid`))
-        .all();
-      return rows.map(toControlActivity);
+        .orderBy(desc(controlActivities.createdAt), desc(sql`rowid`));
+      const rows = query.all();
+      let mapped = rows.map(toControlActivity);
+      if (options?.beforeCreatedAt) {
+        mapped = mapped.filter((row) => row.createdAt < options.beforeCreatedAt!);
+      }
+      if (options?.limit !== undefined) {
+        mapped = mapped.slice(0, options.limit);
+      }
+      return mapped;
     },
   };
 }

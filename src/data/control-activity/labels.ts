@@ -17,6 +17,15 @@ export const CONTROL_ACTIVITY_TYPES_SUPPORTED: readonly ControlActivityTypeSuppo
     "changes_requested",
     "review_resubmitted",
     "review_reopened",
+    "comment_added",
+    "comment_edited",
+    "comment_deleted",
+    "comment_restored",
+    "comment_resolved",
+    "discussion_reopened",
+    "assignment_changed",
+    "assignment_completed",
+    "assignment_removed",
   ] as const;
 
 export const CONTROL_ACTIVITY_TYPE_LABELS: Record<ControlActivityType, string> =
@@ -36,10 +45,16 @@ export const CONTROL_ACTIVITY_TYPE_LABELS: Record<ControlActivityType, string> =
     implementation_updated: "Updated implementation",
     parameter_changed: "Changed parameter",
     comment_added: "Added a comment",
-    comment_resolved: "Resolved a comment",
+    comment_edited: "Edited a comment",
+    comment_deleted: "Deleted a comment",
+    comment_restored: "Restored a comment",
+    comment_resolved: "Resolved a discussion",
+    discussion_reopened: "Reopened a discussion",
     evidence_added: "Added evidence",
     evidence_removed: "Removed evidence",
     assignment_changed: "Changed assignment",
+    assignment_completed: "Completed an assignment",
+    assignment_removed: "Removed an assignment",
   };
 
 export function isControlActivityType(

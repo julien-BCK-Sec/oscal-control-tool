@@ -5,6 +5,7 @@ import type { CommentRepository } from "./comment-repository";
 import type { ControlActivityRepository } from "./control-activity-repository";
 import type { ControlRecordRepository } from "./control-record-repository";
 import type { ControlRecordService } from "./control-record-service";
+import type { DiscussionService } from "./discussion-service";
 import type { NotificationRepository } from "./notification-repository";
 import type { ProjectRepository } from "./repository";
 import { getDb } from "./postgres/client";
@@ -13,6 +14,7 @@ import { createPostgresCommentRepository } from "./postgres/comment-repository";
 import { createPostgresControlActivityRepository } from "./postgres/control-activity-repository";
 import { createPostgresControlRecordRepository } from "./postgres/control-record-repository";
 import { createPostgresControlRecordService } from "./postgres/control-record-service";
+import { createPostgresDiscussionService } from "./postgres/discussion-service";
 import { createPostgresNotificationRepository } from "./postgres/notification-repository";
 import { createPostgresProjectRepository } from "./postgres/project-repository";
 
@@ -52,4 +54,9 @@ export async function getAssignmentRepository(): Promise<AssignmentRepository> {
 /** In-app notifications (Milestone 02A). */
 export async function getNotificationRepository(): Promise<NotificationRepository> {
   return createPostgresNotificationRepository(await getDb());
+}
+
+/** Discussion service coordinating comments + activity (Milestone 02A). */
+export async function getDiscussionService(): Promise<DiscussionService> {
+  return createPostgresDiscussionService(await getDb());
 }

@@ -1,11 +1,12 @@
 import "server-only";
 
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, lt } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
   isControlActivityType,
   type AppendControlActivityInput,
   type ControlActivity,
+  type ListControlActivitiesOptions,
 } from "@/data/control-activity";
 import type { ControlActivityRepository } from "../control-activity-repository";
 import type { AppDatabase } from "./client";
@@ -96,12 +97,22 @@ export function createPostgresControlActivityRepository(
 
     async listByControlRecordId(
       controlRecordId: string,
+      options?: ListControlActivitiesOptions,
     ): Promise<ControlActivity[]> {
+      const conditions = [
+        eq(controlActivities.controlRecordId, controlRecordId),
+      ];
+      if (options?.beforeCreatedAt) {
+        conditions.push(
+          lt(controlActivities.createdAt, options.beforeCreatedAt),
+        );
+      }
       const rows = await db
         .select()
         .from(controlActivities)
-        .where(eq(controlActivities.controlRecordId, controlRecordId))
-        .orderBy(desc(controlActivities.createdAt));
+        .where(and(...conditions))
+        .orderBy(desc(controlActivities.createdAt))
+        .limit(options?.limit ?? 200);
       return rows.map(toControlActivity);
     },
   };

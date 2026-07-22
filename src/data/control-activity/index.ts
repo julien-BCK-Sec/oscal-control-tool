@@ -4,6 +4,7 @@ export type {
   ControlActivityType,
   ControlActivityTypeFuture,
   ControlActivityTypeSupported,
+  ListControlActivitiesOptions,
 } from "./types";
 export {
   CONTROL_ACTIVITY_TYPES_SUPPORTED,
