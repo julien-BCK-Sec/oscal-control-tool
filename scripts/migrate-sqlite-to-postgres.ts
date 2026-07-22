@@ -28,6 +28,7 @@ import {
   formatMigrationReport,
   migrateSqliteToPostgres,
 } from "../src/persistence/migrate/sqlite-to-postgres";
+import { loadLocalEnv } from "./load-env";
 
 type CliArgs = {
   sqlitePath?: string;
@@ -80,6 +81,7 @@ function redactConnectionString(url: string): string {
 }
 
 async function main(): Promise<void> {
+  loadLocalEnv();
   const args = parseArgs(process.argv.slice(2));
 
   const sqlitePath = args.sqlitePath?.trim() || process.env.DATABASE_PATH?.trim();

@@ -3,6 +3,7 @@ import {
   getDb,
   resolveDatabaseUrl,
 } from "../src/persistence/postgres/client";
+import { loadLocalEnv } from "./load-env";
 
 /**
  * Apply Drizzle PostgreSQL migrations to DATABASE_URL.
@@ -12,6 +13,7 @@ import {
  * for the one-shot cutover path (ADR-016).
  */
 async function main(): Promise<void> {
+  loadLocalEnv();
   const databaseUrl = resolveDatabaseUrl();
   if (!databaseUrl) {
     throw new Error(

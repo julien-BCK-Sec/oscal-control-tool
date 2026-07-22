@@ -42,12 +42,10 @@ See `docs/current-state.md` for the complete implementation status.
 ```bash
 npm install --legacy-peer-deps
 cp .env.example .env.local
-# Set DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL, NEXT_PUBLIC_APP_URL
+# Edit .env.local: DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL,
+# NEXT_PUBLIC_APP_URL, and BOOTSTRAP_* values. Standalone scripts load
+# .env.local (then .env) automatically — no manual export required.
 npm run db:migrate
-BOOTSTRAP_ADMIN_EMAIL=you@example.com \
-BOOTSTRAP_ADMIN_PASSWORD='choose-a-long-password' \
-BOOTSTRAP_ORG_NAME='Demo Organization' \
-BOOTSTRAP_ORG_SLUG=demo-organization \
 npm run bootstrap:admin
 npm run dev
 ```

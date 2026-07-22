@@ -13,8 +13,10 @@ import {
   resolveDatabaseUrl,
 } from "../src/persistence/postgres/client";
 import { createPostgresProjectRepository } from "../src/persistence/postgres/project-repository";
+import { loadLocalEnv } from "./load-env";
 
 async function main(): Promise<void> {
+  loadLocalEnv();
   const databaseUrl = resolveDatabaseUrl();
   if (!databaseUrl) {
     throw new Error(

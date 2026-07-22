@@ -16,6 +16,7 @@ import {
   formatSeedDemoSummary,
   seedDemoProject,
 } from "../src/seed/demo";
+import { loadLocalEnv } from "./load-env";
 
 function parseArgs(argv: string[]): { reset: boolean } {
   return {
@@ -24,6 +25,7 @@ function parseArgs(argv: string[]): { reset: boolean } {
 }
 
 async function main(): Promise<void> {
+  loadLocalEnv();
   const { reset } = parseArgs(process.argv.slice(2));
   const databaseUrl = resolveDatabaseUrl();
   if (!databaseUrl) {

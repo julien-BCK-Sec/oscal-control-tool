@@ -101,7 +101,8 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Server entry: `src/persistence/server.ts` (`server-only`) + authorized
   wrappers in `src/server/`
 - Database: `DATABASE_URL` (required in production)
-- Migrations: `drizzle-pg/` via `npm run db:migrate`
+- Migrations: `drizzle-pg/` via `npm run db:migrate` (standalone scripts load
+  `.env`, then `.env.local`; existing process env wins)
 - Routes: `/sign-in`, `/projects`, `/projects/[id]`,
   `/organizations/[orgId]/settings`, `/invitations/[id]`
 - ControlRecords / ControlActivity remain operational metadata outside OSCAL

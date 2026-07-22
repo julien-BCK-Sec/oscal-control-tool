@@ -22,6 +22,7 @@ import {
   formatSeedDemoSummary,
   seedDemoProject,
 } from "../src/seed/demo";
+import { loadLocalEnv } from "./load-env";
 
 function shouldSeedDemo(env: NodeJS.ProcessEnv): boolean {
   const raw = env.SEED_DEMO_PROJECT?.trim().toLowerCase();
@@ -34,6 +35,7 @@ function resolveListenPort(env: NodeJS.ProcessEnv): string {
 }
 
 async function migrate(): Promise<string> {
+  loadLocalEnv();
   const databaseUrl = resolveDatabaseUrl();
   if (!databaseUrl) {
     throw new Error(

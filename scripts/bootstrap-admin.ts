@@ -8,12 +8,12 @@
  * password.
  *
  * Usage:
+ *   # Prefer values in .env.local (loaded automatically), or export:
  *   BOOTSTRAP_ADMIN_EMAIL=admin@example.com \
  *   BOOTSTRAP_ADMIN_PASSWORD='...' \
  *   BOOTSTRAP_ADMIN_NAME='Admin' \
  *   BOOTSTRAP_ORG_NAME='Demo Org' \
  *   BOOTSTRAP_ORG_SLUG='demo-org' \
- *   DATABASE_URL=postgres://... \
  *   npm run bootstrap:admin
  */
 import { randomUUID } from "node:crypto";
@@ -26,6 +26,7 @@ import {
 } from "../src/persistence/postgres/client";
 import { account, user } from "../src/persistence/postgres/auth-schema";
 import { createPostgresOrganizationRepository } from "../src/persistence/postgres/organization-repository";
+import { loadLocalEnv } from "./load-env";
 
 function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -36,6 +37,7 @@ function requireEnv(name: string): string {
 }
 
 async function main(): Promise<void> {
+  loadLocalEnv();
   const databaseUrl = resolveDatabaseUrl();
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is required to bootstrap the admin.");
