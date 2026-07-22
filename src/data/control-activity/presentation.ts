@@ -48,6 +48,24 @@ export function formatControlActivitySummary(activity: ControlActivity): string 
       return `${actor} resubmitted the control for review`;
     case "review_reopened":
       return `${actor} reopened the review`;
+    case "comment_added":
+      return `${actor} added a comment`;
+    case "comment_edited":
+      return `${actor} edited a comment`;
+    case "comment_deleted":
+      return `${actor} deleted a comment`;
+    case "comment_restored":
+      return `${actor} restored a comment`;
+    case "comment_resolved":
+      return `${actor} resolved a discussion`;
+    case "discussion_reopened":
+      return `${actor} reopened a discussion`;
+    case "assignment_changed":
+      return `${actor} changed assignment${activity.fieldName ? ` (${activity.fieldName})` : ""}`;
+    case "assignment_completed":
+      return `${actor} completed an assignment`;
+    case "assignment_removed":
+      return `${actor} removed an assignment`;
     default:
       return `${actor} ${controlActivityTypeLabel(activity.activityType).toLowerCase()}`;
   }

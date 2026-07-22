@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { listControlActivitiesAction } from "@/app/actions/control-records";
 import {
   formatControlActivitySummary,
@@ -8,7 +8,10 @@ import {
   type ControlActivity,
 } from "@/data/control-activity";
 import { SidebarCard } from "@/components/controlBrowser/SidebarCard";
+import { Button } from "@/components/design-system/button/Button";
 import { ScrollArea } from "@/components/design-system/layout/primitives";
+
+const PAGE_SIZE = 50;
 
 export type ControlActivityHistoryProps = {
   projectId: string;
@@ -25,24 +28,43 @@ function ControlActivityHistoryBody({
   controlId: string;
 }) {
   const [activities, setActivities] = useState<ControlActivity[] | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     let cancelled = false;
-    void listControlActivitiesAction(projectId, controlId)
+    void listControlActivitiesAction(projectId, controlId, { limit: PAGE_SIZE })
       .then((rows) => {
         if (!cancelled) {
           setActivities(rows);
+          setHasMore(rows.length === PAGE_SIZE);
         }
       })
       .catch(() => {
         if (!cancelled) {
           setActivities([]);
+          setHasMore(false);
         }
       });
     return () => {
       cancelled = true;
     };
   }, [projectId, controlId]);
+
+  function loadMore() {
+    if (!activities || activities.length === 0) {
+      return;
+    }
+    const beforeCreatedAt = activities[activities.length - 1]?.createdAt;
+    startTransition(async () => {
+      const rows = await listControlActivitiesAction(projectId, controlId, {
+        limit: PAGE_SIZE,
+        beforeCreatedAt,
+      });
+      setActivities((current) => [...(current ?? []), ...rows]);
+      setHasMore(rows.length === PAGE_SIZE);
+    });
+  }
 
   return (
     <SidebarCard title="History" titleId="control-history-heading">
@@ -68,6 +90,19 @@ function ControlActivityHistoryBody({
               </li>
             ))}
           </ol>
+          {hasMore ? (
+            <div className="pt-2">
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                disabled={pending}
+                onClick={loadMore}
+              >
+                {pending ? "Loading…" : "Load older activity"}
+              </Button>
+            </div>
+          ) : null}
         </ScrollArea>
       )}
     </SidebarCard>

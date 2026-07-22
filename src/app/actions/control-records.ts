@@ -214,10 +214,12 @@ export async function transitionReviewStatusAction(input: {
 /**
  * Activity stream for one control in a project (newest first).
  * Returns [] when no ControlRecord exists yet or access is denied.
+ * Supports cursor pagination via beforeCreatedAt + limit.
  */
 export async function listControlActivitiesAction(
   projectId: string,
   controlId: string,
+  options?: { limit?: number; beforeCreatedAt?: string },
 ): Promise<ControlActivity[]> {
   const pid = requireNonEmptyString(projectId, "projectId");
   const cid = requireNonEmptyString(controlId, "controlId");
@@ -233,5 +235,9 @@ export async function listControlActivitiesAction(
     resolved.ctx,
     pid,
     cid,
+    {
+      limit: options?.limit ?? 50,
+      beforeCreatedAt: options?.beforeCreatedAt,
+    },
   );
 }
