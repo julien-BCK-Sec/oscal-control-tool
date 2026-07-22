@@ -44,6 +44,11 @@ Stop when any destructive transformation lacks explicit approval.
 
 ## SQLite-to-PostgreSQL requirements
 
+For the step-by-step Milestone 1 cutover procedure (stop writes, backup,
+apply migrations, run the migrator, verify, switch, rollback), see
+`docs/playbooks/sqlite-to-postgres-cutover.md`. This section states the
+general requirements only.
+
 Migrate at minimum:
 
 - projects;

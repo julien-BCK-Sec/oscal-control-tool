@@ -15,6 +15,7 @@
     "db:generate": "drizzle-kit generate --config=drizzle-pg.config.ts",
     "db:generate:sqlite": "drizzle-kit generate",
     "db:migrate": "tsx --require ./scripts/mock-server-only.cjs scripts/db-migrate.ts",
+    "db:migrate:sqlite-to-pg": "tsx --require ./scripts/mock-server-only.cjs scripts/migrate-sqlite-to-postgres.ts",
     "db:seed:demo": "tsx --require ./scripts/mock-server-only.cjs scripts/seed-demo.ts",
     "db:studio": "drizzle-kit studio --config=drizzle-pg.config.ts",
     "smoke:persistence": "tsx --require ./scripts/mock-server-only.cjs scripts/smoke-persistence.ts",

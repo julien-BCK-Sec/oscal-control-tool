@@ -21,6 +21,14 @@ export const projects = pgTable(
     id: text("id").primaryKey().notNull(),
     name: text("name").notNull(),
     organizationName: text("organization_name").notNull().default(""),
+    /**
+     * Owning organization (Milestone 1, ADR-016). Nullable until Work
+     * Package 3 introduces the Organization entity and requires it on every
+     * project. The SQLite-to-PostgreSQL migrator (ADR-016) sets this on
+     * every migrated project; new WP3 code paths will make it mandatory and
+     * wire real organization context.
+     */
+    organizationId: text("organization_id"),
     frameworkId: text("framework_id").notNull(),
     schemaVersion: integer("schema_version").notNull(),
     revision: integer("revision").notNull().default(1),
@@ -28,7 +36,10 @@ export const projects = pgTable(
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },
-  (table) => [index("projects_updated_at_idx").on(table.updatedAt)],
+  (table) => [
+    index("projects_updated_at_idx").on(table.updatedAt),
+    index("projects_organization_id_idx").on(table.organizationId),
+  ],
 );
 
 /**
