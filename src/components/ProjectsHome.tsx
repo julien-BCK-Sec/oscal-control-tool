@@ -9,6 +9,7 @@ import {
   renameProjectAction,
 } from "@/app/actions/projects";
 import { LegacyMigrationBanner } from "@/components/LegacyMigrationBanner";
+import { signOut } from "@/auth/client";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Button } from "@/components/design-system/button/Button";
 import {
@@ -30,11 +31,26 @@ export type ProjectListItem = ProjectSummary & {
   completion: CompletionProgress;
 };
 
-export type ProjectsHomeProps = {
-  projects: ProjectListItem[];
+export type ProjectsHomeAccount = {
+  name: string;
+  email: string;
+  organizationName: string;
+  organizationId: string;
+  canManageMembers: boolean;
 };
 
-export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
+export type ProjectsHomeProps = {
+  projects: ProjectListItem[];
+  /** When false, project creation controls are hidden (server still enforces). */
+  canCreate?: boolean;
+  account?: ProjectsHomeAccount;
+};
+
+export function ProjectsHome({
+  projects: initialProjects,
+  canCreate = true,
+  account,
+}: ProjectsHomeProps) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [name, setName] = useState("");
@@ -115,15 +131,20 @@ export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
             SQLite on this machine.
           </p>
         </div>
-        {!showCreate ? (
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => setShowCreate(true)}
-          >
-            New project
-          </Button>
-        ) : null}
+        <div className="flex flex-col items-end gap-2">
+          {account ? (
+            <AccountBar account={account} />
+          ) : null}
+          {canCreate && !showCreate ? (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => setShowCreate(true)}
+            >
+              New project
+            </Button>
+          ) : null}
+        </div>
       </header>
 
       <LegacyMigrationBanner
@@ -191,7 +212,7 @@ export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
             title="No projects yet"
             description="Create a project to start documenting controls, or import a browser project if one is available above."
             action={
-              !showCreate ? (
+              canCreate && !showCreate ? (
                 <Button
                   type="button"
                   variant="primary"
@@ -218,6 +239,36 @@ export function ProjectsHome({ projects: initialProjects }: ProjectsHomeProps) {
       </section>
       </PageContent>
     </AppShell>
+  );
+}
+
+function AccountBar({ account }: { account: ProjectsHomeAccount }) {
+  const router = useRouter();
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-3 text-sm text-text-secondary">
+      <span className="min-w-0 truncate">
+        <span className="font-medium text-foreground">{account.name}</span>
+        {" · "}
+        {account.organizationName}
+      </span>
+      {account.canManageMembers ? (
+        <Link
+          href={`/organizations/${account.organizationId}/settings`}
+          className="underline underline-offset-2 hover:text-foreground"
+        >
+          Team
+        </Link>
+      ) : null}
+      <Button
+        type="button"
+        variant="default"
+        onClick={() => {
+          void signOut().then(() => router.push("/sign-in"));
+        }}
+      >
+        Sign out
+      </Button>
+    </div>
   );
 }
 

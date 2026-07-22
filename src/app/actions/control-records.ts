@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import {
   isControlReviewStatus,
   parseUpsertControlRecordInput,
@@ -13,13 +12,23 @@ import {
   isControlReviewAction,
   type ControlReviewAction,
 } from "@/data/control-review";
-import { resolveActor } from "@/persistence/actor";
+import { SYSTEM_ACTOR } from "@/persistence/actor";
 import {
   getControlActivityRepository,
   getControlRecordRepository,
   getControlRecordService,
 } from "@/persistence/server";
+import { getProjectRepository } from "@/persistence/server";
 import type { TransitionReviewStatusResult } from "@/persistence/control-record-service";
+import type { ProjectRepository } from "@/persistence/repository";
+import type { OrgContext } from "@/authz/authorize";
+import { getSessionUser, resolveOrgContext, sessionActor } from "@/auth/context";
+import {
+  listControlActivitiesForOrg,
+  listControlRecordsForOrg,
+  transitionReviewForOrg,
+  upsertControlRecordsForOrg,
+} from "@/server/authorized-controls";
 
 function requireNonEmptyString(value: unknown, field: string): string {
   if (typeof value !== "string" || value.trim() === "") {
@@ -35,14 +44,44 @@ export type UpsertControlRecordsResult =
 export type TransitionReviewStatusActionResult = TransitionReviewStatusResult;
 
 /**
- * List persisted ControlRecords for a project.
- * Missing controls are not invented here — callers apply defaults.
+ * Resolve the org context for the organization owning `projectId`, plus the
+ * session actor identity. Returns null (fail closed) when unauthenticated, the
+ * project is missing/cross-tenant, or the user is not a member.
  */
+async function resolveProjectContext(
+  projectRepo: ProjectRepository,
+  projectId: string,
+): Promise<{ ctx: OrgContext; actor: ReturnType<typeof sessionActor> } | null> {
+  const user = await getSessionUser();
+  if (!user) {
+    return null;
+  }
+  const loaded = await projectRepo.load(projectId);
+  if (!loaded.ok || !loaded.project.organizationId) {
+    return null;
+  }
+  const ctx = await resolveOrgContext(user.id, loaded.project.organizationId);
+  if (!ctx) {
+    return null;
+  }
+  return { ctx, actor: sessionActor(user) };
+}
+
 export async function listControlRecordsAction(
   projectId: string,
 ): Promise<ControlRecord[]> {
   const id = requireNonEmptyString(projectId, "projectId");
-  return (await getControlRecordRepository()).listByProject(id);
+  const projectRepo = await getProjectRepository();
+  const resolved = await resolveProjectContext(projectRepo, id);
+  if (!resolved) {
+    return [];
+  }
+  return listControlRecordsForOrg(
+    projectRepo,
+    await getControlRecordRepository(),
+    resolved.ctx,
+    id,
+  );
 }
 
 /**
@@ -85,15 +124,21 @@ export async function upsertControlRecordsAction(input: {
     parsed.push(record);
   }
 
+  const projectRepo = await getProjectRepository();
+  const resolved = await resolveProjectContext(projectRepo, projectId);
+  if (!resolved) {
+    return { ok: false, reason: "not-found", message: "Project not found." };
+  }
+
   try {
-    const headerList = await headers();
-    const actor = resolveActor(headerList);
-    const results = await (await getControlRecordService()).upsertManyWithActivity(
+    return await upsertControlRecordsForOrg(
+      projectRepo,
+      await getControlRecordService(),
+      resolved.ctx,
       projectId,
       parsed,
-      actor,
+      resolved.actor ?? SYSTEM_ACTOR,
     );
-    return { ok: true, records: results.map((result) => result.record) };
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to save control records.";
@@ -106,7 +151,7 @@ export async function upsertControlRecordsAction(input: {
 
 /**
  * Apply a legal review workflow transition. Rejects arbitrary status writes and
- * stale expectedCurrentStatus conflicts.
+ * stale expectedCurrentStatus conflicts. Authorization is gated per action.
  */
 export async function transitionReviewStatusAction(input: {
   projectId: string;
@@ -151,22 +196,24 @@ export async function transitionReviewStatusAction(input: {
   const expectedCurrentStatus =
     input.expectedCurrentStatus as ControlReviewStatus;
 
-  const headerList = await headers();
-  const actor = resolveActor(headerList);
-  return (await getControlRecordService()).transitionReviewStatus(
-    {
-      projectId,
-      controlId,
-      action,
-      expectedCurrentStatus,
-    },
-    actor,
+  const projectRepo = await getProjectRepository();
+  const resolved = await resolveProjectContext(projectRepo, projectId);
+  if (!resolved) {
+    return { ok: false, reason: "not-found", message: "Project not found." };
+  }
+
+  return transitionReviewForOrg(
+    projectRepo,
+    await getControlRecordService(),
+    resolved.ctx,
+    { projectId, controlId, action, expectedCurrentStatus },
+    resolved.actor ?? SYSTEM_ACTOR,
   );
 }
 
 /**
  * Activity stream for one control in a project (newest first).
- * Returns [] when no ControlRecord exists yet.
+ * Returns [] when no ControlRecord exists yet or access is denied.
  */
 export async function listControlActivitiesAction(
   projectId: string,
@@ -174,12 +221,17 @@ export async function listControlActivitiesAction(
 ): Promise<ControlActivity[]> {
   const pid = requireNonEmptyString(projectId, "projectId");
   const cid = requireNonEmptyString(controlId, "controlId");
-  const record = await (await getControlRecordRepository()).getByProjectAndControl(
+  const projectRepo = await getProjectRepository();
+  const resolved = await resolveProjectContext(projectRepo, pid);
+  if (!resolved) {
+    return [];
+  }
+  return listControlActivitiesForOrg(
+    projectRepo,
+    await getControlRecordRepository(),
+    await getControlActivityRepository(),
+    resolved.ctx,
     pid,
     cid,
   );
-  if (!record) {
-    return [];
-  }
-  return (await getControlActivityRepository()).listByControlRecordId(record.id);
 }
