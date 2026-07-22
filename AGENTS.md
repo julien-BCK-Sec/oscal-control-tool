@@ -1,204 +1,279 @@
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This version may contain breaking changes to APIs, conventions, and file structure. Before writing Next.js code, read the relevant guide under `node_modules/next/dist/docs/` and heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+# Control Freak Agent Instructions
 
-# Project Instructions
+## Purpose
 
-## Project Goal
+These instructions define how autonomous coding agents work in this repository.
 
-Build a small, local-first web application that allows a user to document
-NIST SP 800-53 Rev. 5 Moderate controls and export the information as valid
-OSCAL JSON.
+They are intentionally milestone-independent. Product scope belongs in `docs/vision.md`, priorities belong in `docs/roadmap.md`, the implemented system belongs in `docs/current-state.md`, and milestone-specific requirements belong in `docs/milestones/`.
 
-The application uses the full pinned NIST SP 800-53 Rev. 5 Moderate baseline
-through a `FrameworkProvider`, derived at build time from the pinned OSCAL
-profile and catalog. The product remains intentionally narrow: do not expand
-it into a general GRC platform. Do not claim FedRAMP baseline support until an
-official FedRAMP OSCAL profile is located, approved, and integrated. FedRAMP
-rules remain a future separate policy layer.
+## Required reading
 
-## Current MVP Scope
+Before substantial work, read:
 
-The application should:
+1. `AGENTS.md`
+2. `docs/vision.md`
+3. `docs/current-state.md`
+4. `docs/architecture.md`
+5. `docs/decisions.md`
+6. `docs/design-system.md` when changing UI
+7. `docs/oscal-standards-alignment.md` when changing framework, OSCAL, validation, or export behavior
+8. The milestone specification named in the task
+9. Any relevant playbook under `docs/playbooks/`
 
-1. Load the NIST SP 800-53 Rev. 5 Moderate baseline via `FrameworkProvider`
-   (derived from the pinned OSCAL profile and catalog).
-2. Display the controls in a simple interface.
-3. Allow the user to enter implementation information.
-4. Persist projects in a local SQLite database via `ProjectRepository`
-   (legacy browser localStorage may be imported once; it is not the primary store).
-5. Export a valid OSCAL System Security Plan JSON document.
-6. Validate the generated OSCAL document.
+Do not rely on chat history as the source of truth when repository documentation exists.
 
-Do not add features outside the current requested task.
+## Scope control
 
-## Development Approach
+- Implement only the requested milestone or work package.
+- Do not silently add adjacent features.
+- Prefer the narrowest implementation that satisfies the acceptance criteria.
+- Do not introduce infrastructure, dependencies, abstractions, or architectural patterns for hypothetical future work.
+- Do not rewrite unrelated code.
+- When requirements conflict, stop and report the conflict rather than choosing silently.
+
+## Architecture rules
+
+- Keep OSCAL serialization, parsing, schema validation, and profile/catalog handling outside React components.
+- The application domain model is independent of OSCAL interchange models.
+- Framework content is read-only reference data and is never stored as project-owned database content.
+- User-authored implementation content remains separate from framework content.
+- Operational governance metadata remains separate from OSCAL and project document snapshots.
+- Database access goes through application-facing repositories or services and server-side mutation boundaries.
+- Authorization must be enforced server-side before data access or mutation.
+- UI components must not depend on ORM-specific types.
+- Exporters adapt domain data into interchange formats; exporters do not define the domain model.
+- Existing ADRs remain authoritative unless the current task explicitly requires a new decision.
+
+## Multi-tenant and authorization rules
+
+When the current milestone introduces organizations, users, memberships, or permissions:
+
+- Every organization-owned record must have an explicit tenant boundary.
+- A resource identifier alone is never sufficient authorization.
+- Repository and service methods must receive or derive organization context.
+- Cross-tenant access must fail closed.
+- Authorization checks must occur on the server, even when the UI hides actions.
+- Tests must prove tenant isolation and role restrictions.
+- Never trust client-provided organization, role, owner, or membership claims without server-side verification.
+
+## Development approach
 
 - Make small, understandable changes.
-- Prefer the simplest implementation that meets the requirement.
-- Do not introduce abstractions for hypothetical future requirements.
-- Preserve a clean separation between:
-  - authoritative framework/control data;
-  - user-entered implementation data;
-  - OSCAL import, export, and validation logic.
-- Keep OSCAL transformation code outside React UI components.
-- Do not rewrite unrelated code.
-- Do not change project architecture without explaining why it is necessary.
-- When requirements are unclear, use the narrowest reasonable interpretation.
-- Do not silently add features.
+- Prefer clear names and small functions.
+- Avoid duplicated business logic.
+- Use strict TypeScript types.
+- Avoid `any`; when unavoidable, explain why in code or the completion report.
+- Add comments only for non-obvious decisions.
+- Include meaningful error handling.
+- Do not leave dead code, commented-out implementations, debug statements, or temporary dependencies.
+- Preserve accessibility: semantic HTML, associated labels, keyboard support, visible focus indicators, and text labels in addition to color.
 
-## Technology
-
-- Use the existing Next.js App Router project.
-- Use TypeScript.
-- Use React and Tailwind CSS.
-- Use npm and retain `package-lock.json`.
-- Do not introduce another package manager.
-- Local project persistence uses SQLite + Drizzle behind `ProjectRepository`
-  (Milestone 4). Do not add authentication, cloud hosting, PostgreSQL, a
-  state-management framework, or a third-party UI library unless specifically
-  requested.
-- Prefer built-in browser, React, Next.js, TypeScript, and Node.js capabilities
-  before adding dependencies.
-
-  ## Session continuity
-
-Before starting substantial work, read:
-
-- `docs/current-state.md`
-- `docs/architecture.md`
-- `docs/roadmap.md`
-- `docs/decisions.md`
-
-After completing a milestone, update `docs/current-state.md` so another session can continue without relying on chat history.
-
-
-## Architecture Principles
-
-- Keep OSCAL out of the UI.
-- The domain model is the source of truth.
-- Standards are pinned, never fetched at runtime.
-- Frameworks are read-only reference data and are not stored in the database.
-- User implementations are stored separately from framework content.
-- Exporters adapt the domain model; they do not define it.
-- Database access goes through `ProjectRepository` and Server Actions only.
-- Local SQLite assumes a durable filesystem and a single Node.js instance;
-  it is not safe to expose publicly without authentication.
-
-## Packages and Current Documentation
+## Dependencies and documentation
 
 Before adding or upgrading a dependency:
 
-1. Determine whether the dependency is actually necessary.
-2. Check its current stable version and official documentation.
-3. Confirm that it is compatible with the existing Node.js, React, Next.js,
-   and TypeScript versions.
-4. Use the current supported API rather than relying only on model memory.
-5. Avoid deprecated, abandoned, prerelease, release-candidate, or beta packages
-   unless explicitly requested.
-6. Do not downgrade an existing dependency merely because an older API is more
-   familiar.
-7. Do not upgrade unrelated dependencies as part of a feature change.
-8. Update and commit both `package.json` and `package-lock.json` when dependency
-   changes are required.
+1. Confirm it is required by the approved milestone.
+2. Check the current official documentation and stable version.
+3. Confirm compatibility with the repository's Node.js, React, Next.js, and TypeScript versions.
+4. Prefer supported APIs over remembered or deprecated APIs.
+5. Do not upgrade unrelated dependencies.
+6. Update both `package.json` and `package-lock.json`.
+7. Run `npm audit` and review the result.
+8. Never run `npm audit fix --force` automatically.
 
-If an error may be caused by a recent library or framework change, consult the
-official current documentation and release information before attempting
-workarounds.
+Do not copy implementation guidance from untrusted sources without checking official documentation.
 
-Do not copy commands or code from untrusted blogs, forums, or generated search
-summaries without verifying them against official documentation.
+## Security requirements
 
-## Standards
+Treat all user-controlled, imported, and uploaded data as untrusted.
 
-Always use the latest stable NIST OSCAL release unless a specific compatibility version is explicitly required.
-
-Pin all external schemas into the repository.
-
-Never depend on floating branches or live internet resources for validation.
-
-## Security Requirements
-
-Treat all user-controlled and imported data as untrusted.
-
-- Never add hard-coded passwords, API keys, access tokens, private keys, or
-  credentials.
-- Never commit `.env` files or secrets.
-- Do not use `eval`, `new Function`, unsafe dynamic execution, or shell command
-  construction from user input.
+- Never add or commit passwords, API keys, access tokens, private keys, credentials, or `.env` files.
+- Never use `NEXT_PUBLIC_` for secrets or server-only configuration.
+- Do not use `eval`, `new Function`, unsafe dynamic execution, or shell commands assembled from user input.
 - Do not render user-provided HTML.
-- Do not use `dangerouslySetInnerHTML`.
-- Validate imported JSON before processing it.
-- Validate OSCAL output before presenting it as valid.
-- Avoid unnecessary network requests and external services.
-- Do not send compliance or system data to third parties.
-- Do not disable TLS verification, security checks, lint rules, or TypeScript
-  checks to make an error disappear.
-- Do not suppress errors without documenting and fixing their cause.
-- Do not expose stack traces or sensitive implementation details to users.
-- Use secure defaults.
-- Minimize dependencies.
-- Review new dependencies for maintenance status and known vulnerabilities.
-- Run `npm audit` after dependency changes and review the results.
-- Do not automatically run `npm audit fix --force`.
-- Never perform destructive filesystem or Git operations without explicit
-  instruction.
+- Do not use `dangerouslySetInnerHTML` for user content.
+- Validate imported data before processing it.
+- Validate generated OSCAL before presenting it as valid.
+- Do not send compliance or system data to third parties unless the milestone explicitly approves the integration.
+- Do not disable TLS verification, security checks, lint rules, TypeScript checks, or tests to make failures disappear.
+- Do not suppress errors without addressing and documenting the cause.
+- Do not expose stack traces, secrets, database connection details, or internal paths to users.
+- Use secure defaults and minimize dependencies.
 
-## Data and OSCAL
+## Database and migration safety
 
-- Framework control text is authoritative source data and should be read-only.
-- User implementation content must be stored separately from framework data.
-- Do not invent authoritative FedRAMP, NIST, DISA, or OSCAL content.
-- Preserve control identifiers and source/version information.
-- Generate stable UUIDs when records are created; do not regenerate them on
-  every export.
-- OSCAL exports must be deterministic where practical.
-- OSCAL exports must be validated against the selected official schema version.
-- Keep OSCAL-specific structures inside dedicated adapter/export modules.
-- Do not expose the full OSCAL schema directly through the user interface.
+- Never edit an already-applied production migration.
+- Never delete or reorder committed migrations to make a new schema work.
+- Add a new forward migration for every schema change.
+- Prefer additive migrations before destructive migrations.
+- Destructive or irreversible migrations require explicit approval and a documented rollback or recovery plan.
+- Migration tests must cover a clean database and representative existing data when data migration is involved.
+- Do not assume production is empty.
+- Never run destructive seed, reset, truncate, or drop operations against production data.
+- Keep migration execution and application startup behavior documented.
 
-## Code Quality
+## OSCAL and standards safety
 
-- Use strict TypeScript types.
-- Avoid `any`; when unavoidable, explain why.
-- Prefer clear names and small functions.
-- Avoid duplicated business logic.
-- Add comments only when they explain non-obvious decisions.
-- Include meaningful error handling.
-- Keep accessibility in mind:
-  - use semantic HTML;
-  - associate labels with form controls;
-  - support keyboard navigation;
-  - maintain visible focus indicators.
-- Do not leave dead code, commented-out implementations, debug statements, or
-  placeholder dependencies.
+- Use pinned standards artifacts. Do not fetch moving standards files at runtime.
+- Do not invent authoritative NIST, FedRAMP, DISA, or OSCAL content.
+- Preserve control identifiers, provenance, and source versions.
+- Keep OSCAL-specific structures inside dedicated adapter, validation, import, or export modules.
+- Do not claim support for a standard, framework, baseline, or policy layer that is not actually implemented and verified.
+- OSCAL schema validation proves structure only; do not present it as semantic or policy compliance.
 
-## Testing and Completion
+## Design system rules
 
-Before declaring a task complete:
+When changing UI:
+
+- Reuse components and tokens from `src/components/design-system` and `src/app/globals.css`.
+- Do not add a third-party UI kit unless explicitly approved.
+- Do not recreate brand assets or duplicate badge, button, card, form, or layout styling.
+- Keep workflow, persistence, authorization, and OSCAL logic out of design-system components.
+- Preserve sentence case and established status terminology.
+- Never communicate status by color alone.
+
+## Tests
+
+- Every bug fix requires a regression test when reasonably possible.
+- Every new business rule requires focused tests.
+- Every authorization rule requires positive and negative tests.
+- Every tenant boundary requires cross-tenant denial tests.
+- Do not delete, skip, weaken, or rewrite valid tests merely to make the suite pass.
+- Do not claim a command passed unless it was actually run successfully.
+
+## Autonomous workflow
+
+### Before coding
+
+1. Confirm the working tree is understood and do not overwrite user changes.
+2. Read the required repository documentation.
+3. Read the milestone specification and identify its ordered work packages.
+4. Identify existing ADRs that constrain the implementation.
+5. Confirm the current branch and task scope.
+6. Record any ambiguity, security concern, or architectural conflict before coding.
+
+### During work
+
+- Complete work packages in the documented order unless the specification permits otherwise.
+- Keep changes within the current work package.
+- Run focused tests as each package is completed.
+- Review the diff before committing.
+- Commit only when the task explicitly authorizes commits.
+- Use small, logical commits with descriptive messages.
+- Continue to the next package only when the current package is coherent and tests pass, unless the completion report clearly documents a blocker.
+
+### After implementation
 
 1. Review the full diff.
-2. Run the relevant tests.
-3. Run `npm run lint`.
-4. Run `npm run build`.
-5. If dependencies changed, run `npm audit`.
-6. Confirm that no unrelated files were changed.
-7. Briefly report:
-   - what changed;
-   - which files changed;
-   - what commands were run;
-   - whether any warnings or unresolved issues remain.
+2. Run relevant focused tests.
+3. Run `npm test`.
+4. Run `npm run lint`.
+5. Run `npm run build`.
+6. Run migration verification required by the milestone.
+7. Run `npm audit` when dependencies changed.
+8. Confirm no unrelated files changed.
+9. Update documentation required by the milestone.
+10. Produce a completion report containing:
+   - work packages completed;
+   - files changed;
+   - migrations created;
+   - tests added or changed;
+   - commands run and their results;
+   - commits created;
+   - manual verification still required;
+   - warnings, risks, assumptions, or unresolved issues.
 
-Do not claim that a command succeeded unless it was actually run successfully.
+## Escalation and stop conditions
 
-## Git Safety
+Stop and ask for direction before proceeding when:
 
-- Do not commit or push unless explicitly requested.
+- the milestone conflicts with an existing ADR;
+- an architectural decision must be reversed or materially changed;
+- requirements permit multiple materially different product behaviors and the milestone does not choose one;
+- authentication or authorization behavior is ambiguous;
+- a migration would destroy, rewrite, or risk existing data;
+- production secrets, external accounts, or vendor selection are required but not approved;
+- a task requires merging, deploying, modifying production data, or changing production infrastructure without explicit authorization;
+- tests reveal a pre-existing failure that prevents trustworthy completion;
+- user changes would need to be discarded or overwritten;
+- the requested work cannot be completed without expanding scope.
+
+When stopping, preserve the working tree and provide a concise blocker report with options.
+
+## Git safety
+
+- Never push directly to `main`.
+- Never merge into `main` unless explicitly requested.
+- Never deploy unless explicitly requested.
+- Do not commit or push unless the task explicitly authorizes it.
 - Do not rewrite Git history.
-- Do not use `git reset --hard`, force push, delete branches, or discard user
-  changes.
+- Do not force push.
+- Do not use `git reset --hard`.
+- Do not delete branches or discard user changes.
 - Do not modify `.gitignore` to allow secrets or generated build artifacts.
-- Keep commits small and focused when commits are requested.
+- When commits are authorized, keep them small, focused, and aligned to work packages.
+- Do not include unrelated formatting or cleanup in feature commits.
+
+## Documentation updates
+
+Update documentation when implementation changes its subject:
+
+- `docs/current-state.md`: what is implemented now, known gaps, deployment assumptions, next approved milestone.
+- `docs/architecture.md`: responsibilities, boundaries, runtime flow, and structural changes.
+- `docs/decisions.md`: new or changed architectural decisions.
+- `docs/roadmap.md`: milestone status or ordering changes.
+- `docs/design-system.md`: new reusable UI primitives or changed design rules.
+- `docs/oscal-standards-alignment.md`: standards source, version, derivation, validation, or support changes.
+- relevant playbooks: repeatable operational or engineering procedures.
+
+Do not duplicate large sections across documents. Link to the authoritative document instead.
+
+## Definition of done
+
+A task is complete only when:
+
+- acceptance criteria are satisfied;
+- required tests exist and pass;
+- `npm test`, `npm run lint`, and `npm run build` pass;
+- migrations are verified as required;
+- no unrelated changes are included;
+- documentation is current;
+- security and authorization requirements are tested;
+- the completion report is accurate;
+- no unresolved blocker is hidden.
+
+Operate autonomously inside the repository sandbox.
+
+You may read and edit repository files, create the feature branch, make local
+commits, and run ordinary local development commands without asking for each
+one.
+
+You may automatically run:
+
+- git status, diff, log, and branch commands;
+- repository searches and file inspection;
+- npm test, npm run lint, npm run build, and focused test commands;
+- local database setup and migrations against disposable development or test
+  databases;
+- approved code-generation commands.
+
+Ask before:
+
+- enabling live network access;
+- installing or upgrading dependencies not already approved;
+- accessing files outside the repository;
+- reading credentials or environment secrets;
+- pushing, opening a pull request, merging, or deploying;
+- connecting to any remote or production database;
+- destructive Git or filesystem commands;
+- destructive database operations;
+- running unsandboxed commands.
+
+Never access production credentials or production data.
+Use official documentation only when online research is required.

@@ -2,9 +2,26 @@
 
 Date: 2026-07-22
 
-## Product direction
+## Product Position
 
-This is a local-first OSCAL authoring application, not a GRC platform.
+Control Freak is currently a local-first collaborative compliance authoring application built around OSCAL.
+
+The current implementation supports a single-user SQLite deployment and is evolving toward a multi-user collaborative platform.
+
+The application currently provides:
+
+- Project management
+- Control authoring
+- Review workflow
+- Operational metadata
+- Activity history
+- Version history
+- OSCAL export
+- Standards validation
+
+Future milestones introduce PostgreSQL, organizations, authentication, RBAC, collaboration, evidence management, and multiple compliance frameworks.
+
+This document describes what exists today, not future intentions.
 
 Current stack:
 
@@ -224,7 +241,11 @@ versions.
 
 ## Next approved milestone
 
-Milestone 5 — Word/PDF export (see `docs/roadmap.md`).
+Milestone 1 — Platform Foundation (PostgreSQL, organizations, Better Auth,
+RBAC, invitations). See `docs/milestones/01-platform-foundation.md` and
+ADR-014 through ADR-019.
+
+Word/PDF export remains planned later; it is not the next approved milestone.
 
 ## Required verification for each milestone
 

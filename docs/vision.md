@@ -1,11 +1,13 @@
 # Vision
 
-Build a lightweight, local-first compliance authoring tool.
+Control Freak is a collaborative compliance authoring and control governance platform built around OSCAL.
 
-The application allows users to document security control implementations and export valid OSCAL artifacts.
+Its primary purpose is to help organizations author, review, manage, and maintain high-quality security control implementations while remaining aligned with official compliance frameworks.
 
-The first supported baseline is the full pinned NIST SP 800-53 Rev. 5 Moderate baseline, supplied through a `FrameworkProvider` and derived at build time from the pinned OSCAL profile and catalog.
+OSCAL is the interchange and export format, not the application's internal domain model.
 
-Future work may add FedRAMP-specific policy evaluation (Consolidated Rules) and, if an official FedRAMP OSCAL profile is located and approved, FedRAMP baseline support. The application does not currently implement an official FedRAMP baseline. FedRAMP rules remain a future separate policy layer.
+The product focuses on making compliance documentation easier to produce, review, and maintain through collaboration, reusable implementation knowledge, operational workflows, and standards-based exports.
 
-The application is not intended to become a full GRC platform.
+The application is intended to support multiple compliance frameworks over time through a common framework abstraction while preserving framework-specific guidance and exports.
+
+Control Freak is not intended to become a broad enterprise GRC suite. Capabilities such as enterprise risk management, asset inventories, vendor risk management, ticketing, procurement, and unrelated governance functions are outside the product vision unless they directly support compliance authoring and governance.

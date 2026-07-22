@@ -1,30 +1,36 @@
 # Roadmap
 
-## Milestone 1
-- Static controls
-- Control editor
-- Local storage
+## Next approved milestone
 
-## Milestone 2
-- OSCAL export
-- OSCAL validation
+**Milestone 1 – Platform Foundation** (in progress on `feat/platform-foundation`)
 
-## Milestone 3
-- Official framework import (`FrameworkProvider` from pinned NIST Moderate profile + catalog)
+Introduce multi-user capabilities while preserving repository, Server Action,
+and OSCAL boundaries. See `docs/milestones/01-platform-foundation.md` and
+ADR-014 through ADR-019.
 
-## Milestone 4
-- Database-backed projects (SQLite + Drizzle)
-- Debounced autosave with optimistic concurrency
-- In-session undo/redo
-- Automatic recovery snapshots and immutable named versions
-- One-time localStorage → database migration
+### Deliverables
 
-## Milestone 5
-- Word/PDF export
+- PostgreSQL support
+- Organizations
+- Memberships
+- Better Auth (email/password + verification)
+- RBAC
+- Invitations
+- Authenticated invite-only demo
 
-## Future
-- Multiple frameworks
-- Reusable components
-- AI-assisted implementation writing
-- Authentication / multi-user (if required)
-- Portable OSCAL package export
+### Success criteria
+
+- Existing demo project still functions under organization ownership.
+- Tenant isolation enforced and tested.
+- Users belong to organizations.
+- Authentication is operational.
+- Existing authoring / review / OSCAL regression tests pass.
+- Documentation updated.
+
+## Later (not next)
+
+- Word/PDF export (formerly sequenced as Milestone 5)
+- Comments, mentions, notifications
+- Evidence management
+- Additional compliance frameworks
+- AI-assisted authoring

@@ -1,77 +1,130 @@
 # Architecture
 
-The application separates these concerns:
+The application separates product concerns into independent layers.
 
-1. Framework data (application-facing)
-   - Read-only `Framework` / `FrameworkControl` types
-   - Supplied by a `FrameworkProvider` (currently NIST Moderate)
-   - Not raw OSCAL catalog or profile objects
-   - Never persisted in the application database
+Each layer has a single responsibility.
 
-2. Framework derivation (build-time)
-   - Reads pinned NIST Moderate profile + SP 800-53 Rev. 5 catalog
-   - Emits generated JSON under `src/data/framework/generated/`
-   - Logic lives in `src/framework/nist-moderate/` (outside React)
+---
 
-3. Pinned NIST OSCAL content (vendor)
-   - SP 800-53 Rev. 5 catalog
-   - SP 800-53 Rev. 5 Moderate profile
-   - OSCAL 1.2.2 JSON schemas
+## Framework Layer
 
-4. User project persistence
-   - Application-facing `ProjectRepository`
-   - SQLite via Drizzle (`better-sqlite3`), Node.js runtime
-   - Hybrid schema: listable columns + validated `project_json`
-   - Automatic snapshots and immutable named versions
-   - UI mutates through Next.js Server Actions only
+Provides read-only compliance framework information.
 
-5. Control management metadata (`ControlRecord`)
-   - Application-facing `ControlRecordRepository` / `ControlRecordService`
-   - Separate `control_records` table scoped by `projectId` + `controlId`
-   - Ownership / **implementationStatus** / **reviewStatus** fields — never
-     written into OSCAL or `project_json` implementations
-   - `implementationStatus` = implementation maturity (editable via metadata
-     autosave); `reviewStatus` = review workflow only (changed via controlled
-     transitions in `src/data/control-review` + `transitionReviewStatus`)
-   - Lazy: missing rows resolve to draft / not_reviewed / unassigned defaults
-     in the UI; first review action may create the row with those defaults
-   - Append-only `control_activities` stream (`ControlActivityRepository`);
-     metadata upserts and review transitions share one SQLite transaction with
-     their activity inserts
-   - Named version restore affects `project_json` only — ControlRecord review
-     state and ControlActivity history remain live operational metadata
+Responsibilities:
 
-6. In-session editor state
-   - Working copy with debounced database autosave
-   - Bounded undo/redo (not database revisions)
-   - Optimistic concurrency via `revision` (project document)
-   - ControlRecord metadata drafts participate in the same autosave / undo path
-   - Review workflow status is outside undo/autosave; updated via Server Action
+- FrameworkProvider
+- FrameworkControl
+- Framework metadata
+- Framework derivation
 
-7. Presentation / design system
-   - Tokens and shared CSS primitives in `src/app/globals.css`
-   - Reusable UI under `src/components/design-system` (Brand, Card, StatusBadge,
-     AppShell / ProductHeader, form and layout helpers)
-   - Domain screens compose these primitives; see `docs/design-system.md`
+Framework data is never persisted in application storage.
 
-8. OSCAL
-   - Export (current)
-   - Import / schema validation (partial — SSP schema validation current)
+---
 
-9. FedRAMP policy evaluation (future, separate)
-   - Consolidated Rules — not a catalog/profile substitute
+## Domain Layer
 
-React components never contain OSCAL serialization, profile/catalog parsing, or Drizzle/SQLite types.
+Represents the application's business model.
 
-## Persistence flow
+Contains:
 
-```text
-UI (ProjectWorkspace)
-  → Server Actions (src/app/actions/projects.ts, control-records.ts)
-    → ProjectRepository / ControlRecordService / ControlActivityRepository
-      → SQLite (projects + project_snapshots + control_records + control_activities)
-```
+- Project
+- Control implementation
+- Project metadata
+- Domain services
 
-Runtime domain `Project` is assembled with `FrameworkProvider` controls at export time.
-ControlRecord metadata (including reviewStatus) and ControlActivity are not
-included in OSCAL SSP export and are not rolled back by named project version restore.
+The domain model is the source of truth.
+
+The domain model is independent of OSCAL.
+
+---
+
+## Operational Layer
+
+Stores application-specific operational information.
+
+Contains:
+
+- ControlRecord
+- Review workflow
+- Activity history
+- Ownership
+- Comments
+- Evidence
+- Assignments
+
+Operational metadata is never stored inside OSCAL documents.
+
+---
+
+## Persistence Layer
+
+Provides repositories for application storage.
+
+Examples:
+
+- ProjectRepository
+- ControlRecordRepository
+- ActivityRepository
+
+Repositories isolate the database from business logic.
+
+---
+
+## Export Layer
+
+Transforms the domain model into standards-based exports.
+
+Examples:
+
+- OSCAL SSP
+- Word
+- PDF
+
+Exporters adapt the domain model.
+
+They do not define it.
+
+---
+
+## Presentation Layer
+
+Contains:
+
+- Next.js
+- React
+- Design System
+- Workspace UI
+
+Presentation never performs persistence directly.
+
+Presentation never contains OSCAL serialization.
+
+---
+
+## Platform Services Layer
+
+Milestone 1 introduces:
+
+- PostgreSQL persistence (ADR-014)
+- Better Auth email/password sessions and organization plugin (ADR-015)
+- Centralized Control Freak RBAC over organization roles (ADR-017)
+- Organization invitations (ADR-018)
+
+Later capabilities remain independent of UI and persistence:
+
+- Notifications
+- AI services
+- Evidence processing
+- Background jobs
+
+---
+
+## Architectural Principles
+
+- Keep standards separate from operational metadata.
+- Keep framework data read-only.
+- Keep the domain model independent of export formats.
+- Keep repositories database-specific.
+- Keep UI independent of persistence.
+- Keep exports deterministic.
+- Keep application metadata separate from compliance content.

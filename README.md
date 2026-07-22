@@ -1,16 +1,40 @@
-# OSCAL Control Tool
+# Control Freak
 
-Local-first web app for documenting NIST SP 800-53 Rev. 5 Moderate controls and
-exporting a validated OSCAL System Security Plan (JSON).
+Control Freak is a collaborative compliance authoring and control governance platform built around OSCAL.
 
-This is **not** a GRC platform and does **not** claim FedRAMP support.
+Its goal is to help organizations create, review, maintain, and export high-quality security control implementations while remaining aligned with official compliance frameworks.
 
-## Requirements
+Control Freak treats OSCAL as an interchange and export format rather than the application's internal editing model.
+
+---
+
+## Current Status
+
+Control Freak is currently under active development.
+
+The current implementation includes:
+
+- Collaborative compliance authoring
+- NIST SP 800-53 Rev. 5 Moderate support
+- OSCAL System Security Plan (SSP) export
+- Review workflow
+- Operational metadata
+- Version history
+- SQLite persistence
+- Local-first deployment
+
+See `docs/current-state.md` for the complete implementation status.
+
+---
+
+## Quick Start
+
+### Requirements
 
 - Node.js 20+ (or current LTS)
 - npm
 
-## Setup
+### Installation
 
 ```bash
 npm install
@@ -19,62 +43,73 @@ npm run db:migrate
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The app redirects to `/projects`.
+Open:
 
-`npm run dev` also runs `db:migrate` via `predev`.
-
-### Database
-
-| Item | Detail |
-| --- | --- |
-| Engine | SQLite via Drizzle ORM and `better-sqlite3` |
-| Default path (dev) | `./data/oscal-control-tool.sqlite` |
-| Override | Set `DATABASE_PATH` in `.env.local` (server-only; never `NEXT_PUBLIC_`) |
-| Production | `DATABASE_PATH` is **required** (Render: `/var/data/oscal-author.db`) |
-| Migrations | `npm run db:migrate` (SQL under `drizzle/`); also on `npm start` |
-| Studio | `npm run db:studio` |
-
-Framework control text is **not** stored in the database. It comes from
-`FrameworkProvider` (build-time derivation from pinned NIST artifacts).
-
-### Deployment assumptions
-
-- Durable local filesystem (or a mounted volume)
-- **Single** Node.js application instance (`npm start` / production startup)
-- Trusted local / single-user deployment — **no authentication yet**
-- **Not supported** on ephemeral serverless hosts (for example typical Vercel
-  serverless) because the SQLite file is not durable across instances
-
-### Render (Docker)
-
-See **`docs/deploy-render.md`** for the full guide.
-
-- Persistent disk at `/var/data`
-- `DATABASE_PATH=/var/data/oscal-author.db` (required in production)
-- Health check: `/api/health`
-- Optional `SEED_DEMO_PROJECT=true` for idempotent CGDS demo seed on startup
-- Blueprint: `render.yaml`
-
-Do not expose this app on a public network without adding authentication.
-
-## Useful scripts
-
-```bash
-npm test                 # unit tests
-npm run lint
-npm run build
-npm start                # production: migrate → optional seed → next start
-npm run derive:framework # regenerate NIST Moderate app framework JSON
-npm run db:generate      # generate Drizzle migrations after schema edits
-npx tsx --require ./scripts/mock-server-only.cjs scripts/smoke-persistence.ts
+```
+http://localhost:3000
 ```
 
-## Docs
+---
 
-- `docs/current-state.md` — what works now
-- `docs/architecture.md` — layering
-- `docs/roadmap.md` — milestones
-- `docs/decisions.md` — ADRs
-- `docs/deploy-render.md` — Render / Docker deployment
-- `docs/oscal-standards-alignment.md` — OSCAL / FedRAMP boundaries
-- `AGENTS.md` — contributor / agent instructions
+## Useful Commands
+
+```bash
+npm run dev
+npm test
+npm run lint
+npm run build
+
+npm run db:migrate
+npm run db:generate
+npm run db:studio
+
+npm run derive:framework
+```
+
+---
+
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| `docs/vision.md` | Product vision |
+| `docs/roadmap.md` | Planned milestones |
+| `docs/current-state.md` | Current implementation |
+| `docs/architecture.md` | System architecture |
+| `docs/decisions.md` | Architectural decisions (ADRs) |
+| `docs/design-system.md` | UI design system |
+| `docs/oscal-standards-alignment.md` | OSCAL and standards guidance |
+| `docs/deploy-render.md` | Deployment guide |
+| `docs/milestones/` | Milestone specifications |
+| `docs/playbooks/` | Engineering playbooks |
+| `AGENTS.md` | Instructions for AI and human contributors |
+
+---
+
+## Design Principles
+
+- OSCAL is an export format, not the domain model.
+- Framework content is read-only reference data.
+- Operational metadata is separate from compliance content.
+- The application domain model is independent of OSCAL.
+- Standards alignment is preferred over proprietary formats.
+
+---
+
+## Contributing
+
+Before making significant changes, read:
+
+1. `AGENTS.md`
+2. `docs/vision.md`
+3. `docs/current-state.md`
+4. `docs/architecture.md`
+5. `docs/decisions.md`
+
+Follow the appropriate milestone specification and playbooks when implementing new features.
+
+---
+
+## License
+
+TBD
