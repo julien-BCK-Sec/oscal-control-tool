@@ -8,6 +8,8 @@ import { createPostgresDiscussionService } from "@/persistence/postgres/discussi
 import { createPostgresOrganizationRepository } from "@/persistence/postgres/organization-repository";
 import { createPostgresProjectRepository } from "@/persistence/postgres/project-repository";
 import { listMentionsForComment } from "@/persistence/postgres/comment-mentions";
+import { createPostgresNotificationRepository } from "@/persistence/postgres/notification-repository";
+import { createNotificationService } from "@/persistence/notification-service";
 import { user as userTable } from "@/persistence/postgres/auth-schema";
 import { resetActivityTimestampClock } from "@/persistence/activity-clock";
 import { AuthorizationError, type OrgContext } from "@/authz/authorize";
@@ -46,6 +48,9 @@ async function setup() {
   });
   const discussions = createPostgresDiscussionService(db);
   const activities = createPostgresControlActivityRepository(db);
+  const notifications = createNotificationService(
+    createPostgresNotificationRepository(db),
+  );
 
   async function makeMember(
     organizationId: string,
@@ -76,6 +81,7 @@ async function setup() {
     projectA,
     discussions,
     activities,
+    notifications,
     makeMember,
   };
 }
@@ -87,7 +93,7 @@ const actor = (userId: string, name: string) => ({
 
 describe("threaded discussions (WP2)", () => {
   it("creates nested replies and records comment_added activity", async () => {
-    const { orgA, orgs, projects, projectA, discussions, activities } =
+    const { orgA, orgs, projects, projectA, discussions, activities, notifications } =
       await setup();
     const author = ctx(orgA.id, "author", "author-1");
 
@@ -95,6 +101,7 @@ describe("threaded discussions (WP2)", () => {
       projects,
       discussions,
       orgs,
+      notifications,
       author,
       { projectId: projectA.id, controlId: "ac-2", body: "Root question" },
       actor("author-1", "Author One"),
@@ -106,6 +113,7 @@ describe("threaded discussions (WP2)", () => {
       projects,
       discussions,
       orgs,
+      notifications,
       author,
       {
         projectId: projectA.id,
@@ -135,13 +143,14 @@ describe("threaded discussions (WP2)", () => {
   });
 
   it("edits and soft-deletes own comments with audit events", async () => {
-    const { orgA, orgs, projects, projectA, discussions, activities } =
+    const { orgA, orgs, projects, projectA, discussions, activities, notifications } =
       await setup();
     const author = ctx(orgA.id, "author", "author-1");
     const created = await createDiscussionForOrg(
       projects,
       discussions,
       orgs,
+      notifications,
       author,
       { projectId: projectA.id, controlId: "ac-1", body: "Draft" },
       actor("author-1", "Author"),
@@ -153,6 +162,7 @@ describe("threaded discussions (WP2)", () => {
       projects,
       discussions,
       orgs,
+      notifications,
       author,
       created.comment.id,
       "Edited body",
@@ -192,7 +202,7 @@ describe("threaded discussions (WP2)", () => {
   });
 
   it("resolves owned discussions and denies other authors", async () => {
-    const { orgA, orgs, projects, projectA, discussions } = await setup();
+    const { orgA, orgs, projects, projectA, discussions, notifications } = await setup();
     const author = ctx(orgA.id, "author", "author-1");
     const other = ctx(orgA.id, "author", "author-2");
 
@@ -200,6 +210,7 @@ describe("threaded discussions (WP2)", () => {
       projects,
       discussions,
       orgs,
+      notifications,
       author,
       { projectId: projectA.id, controlId: "ac-3", body: "Please review" },
       actor("author-1", "Author"),
@@ -212,6 +223,7 @@ describe("threaded discussions (WP2)", () => {
         resolveDiscussionForOrg(
           projects,
           discussions,
+          notifications,
           other,
           created.comment.id,
           actor("author-2", "Other"),
@@ -221,9 +233,10 @@ describe("threaded discussions (WP2)", () => {
     );
 
     const resolved = await resolveDiscussionForOrg(
-      projects,
-      discussions,
-      author,
+          projects,
+          discussions,
+          notifications,
+          author,
       created.comment.id,
       actor("author-1", "Author"),
     );
@@ -234,7 +247,7 @@ describe("threaded discussions (WP2)", () => {
   });
 
   it("denies cross-tenant discussion access", async () => {
-    const { orgA, orgB, orgs, projects, projectA, discussions } = await setup();
+    const { orgA, orgB, orgs, projects, projectA, discussions, notifications } = await setup();
     const authorA = ctx(orgA.id, "author", "a1");
     const authorB = ctx(orgB.id, "author", "b1");
 
@@ -242,6 +255,7 @@ describe("threaded discussions (WP2)", () => {
       projects,
       discussions,
       orgs,
+      notifications,
       authorA,
       { projectId: projectA.id, controlId: "ac-2", body: "Tenant secret" },
       actor("a1", "A"),
@@ -262,6 +276,7 @@ describe("threaded discussions (WP2)", () => {
       projects,
       discussions,
       orgs,
+      notifications,
       authorB,
       created.comment.id,
       "Hijack",
@@ -271,14 +286,15 @@ describe("threaded discussions (WP2)", () => {
   });
 
   it("denies viewers from creating discussions", async () => {
-    const { orgA, orgs, projects, projectA, discussions } = await setup();
+    const { orgA, orgs, projects, projectA, discussions, notifications } = await setup();
     await assert.rejects(
       () =>
         createDiscussionForOrg(
-          projects,
-          discussions,
-          orgs,
-          ctx(orgA.id, "viewer", "v1"),
+      projects,
+      discussions,
+      orgs,
+      notifications,
+      ctx(orgA.id, "viewer", "v1"),
           { projectId: projectA.id, controlId: "ac-2", body: "Nope" },
           actor("v1", "Viewer"),
         ),
@@ -290,7 +306,7 @@ describe("threaded discussions (WP2)", () => {
 
 describe("mentions (WP3)", () => {
   it("resolves org member mentions and ignores outsiders", async () => {
-    const { db, orgA, orgs, projects, projectA, discussions, makeMember } =
+    const { db, orgA, orgs, projects, projectA, discussions, notifications, makeMember } =
       await setup();
     const alice = await makeMember(
       orgA.id,
@@ -305,6 +321,7 @@ describe("mentions (WP3)", () => {
       projects,
       discussions,
       orgs,
+      notifications,
       author,
       {
         projectId: projectA.id,
@@ -323,7 +340,7 @@ describe("mentions (WP3)", () => {
   });
 
   it("does not resolve mentions across organizations", async () => {
-    const { orgA, orgB, orgs, projects, projectA, discussions, makeMember } =
+    const { orgA, orgB, orgs, projects, projectA, discussions, notifications, makeMember } =
       await setup();
     const aliceA = await makeMember(orgA.id, "alice@example.com");
     const bobB = await makeMember(orgB.id, "bob@example.com");
@@ -333,6 +350,7 @@ describe("mentions (WP3)", () => {
       projects,
       discussions,
       orgs,
+      notifications,
       author,
       {
         projectId: projectA.id,

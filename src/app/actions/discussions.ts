@@ -8,6 +8,8 @@ import type { ProjectRepository } from "@/persistence/repository";
 import { getProjectRepository } from "@/persistence/server";
 import { createPostgresDiscussionService } from "@/persistence/postgres/discussion-service";
 import { createPostgresOrganizationRepository } from "@/persistence/postgres/organization-repository";
+import { createPostgresNotificationRepository } from "@/persistence/postgres/notification-repository";
+import { createNotificationService } from "@/persistence/notification-service";
 import { getDb } from "@/persistence/postgres/client";
 import {
   createDiscussionForOrg,
@@ -52,6 +54,12 @@ async function getDiscussionService() {
 
 async function getOrgRepository() {
   return createPostgresOrganizationRepository(await getDb());
+}
+
+async function getNotificationService() {
+  return createNotificationService(
+    createPostgresNotificationRepository(await getDb()),
+  );
 }
 
 function mapAuthError(error: unknown): DiscussionMutationResult {
@@ -111,6 +119,7 @@ export async function createDiscussionAction(input: {
       projectRepo,
       await getDiscussionService(),
       await getOrgRepository(),
+      await getNotificationService(),
       resolved.ctx,
       {
         projectId,
@@ -143,6 +152,7 @@ export async function editDiscussionAction(input: {
       projectRepo,
       await getDiscussionService(),
       await getOrgRepository(),
+      await getNotificationService(),
       resolved.ctx,
       commentId,
       body,
@@ -216,6 +226,7 @@ export async function resolveDiscussionAction(input: {
     return await resolveDiscussionForOrg(
       projectRepo,
       await getDiscussionService(),
+      await getNotificationService(),
       resolved.ctx,
       commentId,
       resolved.actor,

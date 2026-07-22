@@ -1,6 +1,7 @@
 import type { ActorIdentity } from "@/persistence/actor";
 import type { ProjectRepository } from "@/persistence/repository";
 import type { DiscussionService } from "@/persistence/discussion-service";
+import type { NotificationService } from "@/persistence/notification-service";
 import type { OrganizationRepository } from "@/persistence/postgres/organization-repository";
 import type { Comment } from "@/data/collaboration";
 import { resolveMentions } from "@/data/collaboration/resolve-mentions";
@@ -11,6 +12,7 @@ import {
   type OrgContext,
 } from "@/authz/authorize";
 import { roleHasPermission } from "@/authz/permissions";
+import { emitDiscussionNotifications } from "./discussion-notifications";
 
 /**
  * Authorized, tenant-scoped discussion operations (Milestone 02A WP2/WP8).
@@ -85,6 +87,7 @@ export async function createDiscussionForOrg(
   projectRepo: ProjectRepository,
   discussionService: DiscussionService,
   orgRepo: OrganizationRepository,
+  notificationService: NotificationService,
   ctx: OrgContext,
   input: {
     projectId: string;
@@ -117,6 +120,14 @@ export async function createDiscussionForOrg(
     },
     { ...actor, actorId: ctx.userId },
   );
+  await emitDiscussionNotifications({
+    notificationService,
+    discussionService,
+    ctx,
+    comment: result.comment,
+    mentionedUserIds: result.mentionedUserIds,
+    isNew: true,
+  });
   return {
     ok: true,
     comment: result.comment,
@@ -129,6 +140,7 @@ export async function editDiscussionForOrg(
   projectRepo: ProjectRepository,
   discussionService: DiscussionService,
   orgRepo: OrganizationRepository,
+  notificationService: NotificationService,
   ctx: OrgContext,
   commentId: string,
   body: string,
@@ -160,6 +172,14 @@ export async function editDiscussionForOrg(
   if (!result) {
     return { ok: false, reason: "not-found", message: "Comment not found." };
   }
+  await emitDiscussionNotifications({
+    notificationService,
+    discussionService,
+    ctx,
+    comment: result.comment,
+    mentionedUserIds: result.mentionedUserIds,
+    isNew: false,
+  });
   return {
     ok: true,
     comment: result.comment,
@@ -239,6 +259,7 @@ export async function restoreDiscussionForOrg(
 export async function resolveDiscussionForOrg(
   projectRepo: ProjectRepository,
   discussionService: DiscussionService,
+  notificationService: NotificationService,
   ctx: OrgContext,
   commentId: string,
   actor: ActorIdentity,
@@ -281,6 +302,15 @@ export async function resolveDiscussionForOrg(
   if (!result) {
     return { ok: false, reason: "not-found", message: "Comment not found." };
   }
+  await emitDiscussionNotifications({
+    notificationService,
+    discussionService,
+    ctx,
+    comment: result.comment,
+    mentionedUserIds: [],
+    isNew: false,
+    resolved: true,
+  });
   return {
     ok: true,
     comment: result.comment,
