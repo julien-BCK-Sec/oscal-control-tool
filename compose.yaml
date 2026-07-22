@@ -1,0 +1,23 @@
+# Local development PostgreSQL for Control Freak.
+# Usage: docker compose up -d
+# Cleanup: docker compose down   (keep data)
+#          docker compose down -v  (remove volume)
+services:
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: oscal_control_tool
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d oscal_control_tool"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
