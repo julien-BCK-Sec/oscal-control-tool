@@ -10,7 +10,6 @@ import { FRAMEWORK, FRAMEWORK_CONTROLS } from "@/data/framework";
 import {
   DEFAULT_CONTROL_IMPLEMENTATION,
   type ControlImplementation,
-  type ImplementationStatus,
 } from "@/data/implementation";
 import {
   DEFAULT_CONTROL_RECORD_FIELDS,
@@ -34,21 +33,11 @@ import {
   formatControlIdDisplay,
   parentIdsWithEnhancements,
 } from "@/components/controlBrowser/presentation";
-import { ControlMetadataSection } from "@/components/controlBrowser/ControlMetadataSection";
-import { ControlReviewSection } from "@/components/controlBrowser/ControlReviewSection";
-import { ControlActivityHistory } from "@/components/controlBrowser/ControlActivityHistory";
+import { ControlEditorWorkspace } from "@/components/controlBrowser/ControlEditorWorkspace";
 import { ControlStatusBadge } from "@/components/controlBrowser/ControlStatusBadge";
 import { ControlReviewStatusBadge } from "@/components/controlBrowser/ControlReviewStatusBadge";
-import { splitRequirementSegments } from "@/components/controlBrowser/requirementText";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { ControlsFocusRequest } from "@/components/workspace/presentation";
-
-const STATUS_OPTIONS: { value: ImplementationStatus; label: string }[] = [
-  { value: "not-started", label: "Not Started" },
-  { value: "in-progress", label: "In Progress" },
-  { value: "implemented", label: "Implemented" },
-  { value: "not-applicable", label: "Not Applicable" },
-];
 
 function getImplementation(
   implementations: Record<string, ControlImplementation>,
@@ -182,7 +171,6 @@ export function ControlBrowser({
     controlReviewStatuses,
     selected.id,
   );
-  const requirementSegments = splitRequirementSegments(selected.statement);
 
   useEffect(() => {
     selectedItemRef.current?.scrollIntoView({
@@ -248,7 +236,7 @@ export function ControlBrowser({
     );
     return (
       <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border text-[10px] font-medium leading-none ${
+        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border text-[10px] font-medium leading-none ${
           complete
             ? "border-success/40 bg-success-muted text-success"
             : isSelected
@@ -269,24 +257,24 @@ export function ControlBrowser({
       controlReviewStatuses,
       controlId,
     );
-    const ownerLabel = displayControlOwner(record.owner);
     const unassigned = isControlOwnerUnassigned(record.owner);
     return (
-      <span className="mt-1 flex flex-wrap items-center gap-1.5">
+      <span className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
         <ControlStatusBadge
           implementationStatus={record.implementationStatus}
+          className="shrink-0"
         />
-        <ControlReviewStatusBadge reviewStatus={reviewStatus} />
-        <span
-          className={`text-[11px] ${
-            unassigned ? "text-warning" : "text-text-muted"
-          }`}
-        >
-          {ownerLabel}
-        </span>
-        {unassigned ? (
+        <ControlReviewStatusBadge
+          reviewStatus={reviewStatus}
+          className="shrink-0"
+        />
+        {!unassigned ? (
+          <span className="min-w-0 truncate text-[11px] text-text-muted">
+            {displayControlOwner(record.owner)}
+          </span>
+        ) : (
           <span className="sr-only">No owner assigned</span>
-        ) : null}
+        )}
       </span>
     );
   }
@@ -350,16 +338,19 @@ export function ControlBrowser({
           </div>
         </div>
 
-        <nav className="min-h-0 flex-1 overflow-y-auto py-1.5" aria-label="Control list">
+        <nav
+          className="min-h-0 flex-1 overflow-y-auto py-2"
+          aria-label="Control list"
+        >
           {filteredTree.length === 0 ? (
             <p className="px-4 py-3 text-sm text-text-muted">No controls match.</p>
           ) : (
-            <ul className="flex flex-col">
+            <ul className="flex flex-col gap-1">
               {filteredTree.map((group) => {
                 const familyExpanded = isFamilyExpanded(group.family);
                 const progress = familyProgressByName.get(group.family);
                 return (
-                  <li key={group.family} className="mb-0.5">
+                  <li key={group.family}>
                     <div className="flex items-stretch">
                       <button
                         type="button"
@@ -387,10 +378,10 @@ export function ControlBrowser({
                             toggleId(current, group.family),
                           )
                         }
-                        className="flex min-w-0 flex-1 flex-col items-stretch gap-1 px-1 py-2 text-left hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring"
+                        className="flex min-w-0 flex-1 flex-col items-stretch gap-1 px-1 py-2.5 text-left hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring"
                       >
                         <span className="flex items-baseline justify-between gap-2">
-                          <span className="truncate text-xs font-medium text-foreground">
+                          <span className="truncate text-xs font-semibold text-foreground">
                             {group.family}
                           </span>
                           {progress ? (
@@ -419,7 +410,7 @@ export function ControlBrowser({
                     </div>
 
                     {familyExpanded ? (
-                      <ul className="pb-1">
+                      <ul className="flex flex-col gap-0.5 pb-2">
                         {group.nodes.map((node) => {
                           const parentSelected =
                             node.control.id === selected.id;
@@ -448,12 +439,18 @@ export function ControlBrowser({
                                         : `Expand enhancements for ${formatControlIdDisplay(node.control.id)}`
                                     }
                                   >
-                                    <span aria-hidden="true" className="text-[10px]">
+                                    <span
+                                      aria-hidden="true"
+                                      className="text-[10px]"
+                                    >
                                       {parentExpanded ? "▼" : "▶"}
                                     </span>
                                   </button>
                                 ) : (
-                                  <span className="w-7 shrink-0" aria-hidden="true" />
+                                  <span
+                                    className="w-7 shrink-0"
+                                    aria-hidden="true"
+                                  />
                                 )}
                                 <button
                                   type="button"
@@ -464,15 +461,15 @@ export function ControlBrowser({
                                   aria-current={
                                     parentSelected ? "true" : undefined
                                   }
-                                  className={`flex min-w-0 flex-1 items-start gap-2 border-l-[3px] px-2 py-1.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring ${
+                                  className={`flex min-w-0 flex-1 items-start gap-2 border-l-[3px] px-2 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring ${
                                     parentSelected
                                       ? "border-accent bg-surface text-foreground"
                                       : "border-transparent text-text-secondary hover:bg-surface"
                                   }`}
                                 >
-                                  <span className="min-w-0 flex-1">
+                                  <span className="min-w-0 flex-1 overflow-hidden">
                                     <span
-                                      className={`control-id block text-xs ${
+                                      className={`control-id block text-[11px] font-medium ${
                                         parentSelected
                                           ? "text-accent"
                                           : "text-text-muted"
@@ -480,7 +477,7 @@ export function ControlBrowser({
                                     >
                                       {formatControlIdDisplay(node.control.id)}
                                     </span>
-                                    <span className="block text-[13px] leading-snug">
+                                    <span className="mt-0.5 block truncate text-[13px] font-medium leading-snug text-foreground">
                                       {node.control.title}
                                     </span>
                                     {renderListMeta(node.control.id)}
@@ -493,7 +490,7 @@ export function ControlBrowser({
                               </div>
 
                               {hasEnhancements && parentExpanded ? (
-                                <ul className="mb-1 ml-7 border-l border-border">
+                                <ul className="mb-1 ml-7 flex flex-col gap-0.5 border-l border-border">
                                   {node.enhancements.map((enhancement) => {
                                     const enhancementSelected =
                                       enhancement.id === selected.id;
@@ -516,23 +513,26 @@ export function ControlBrowser({
                                               ? "true"
                                               : undefined
                                           }
-                                          className={`flex w-full items-start gap-2 border-l-[3px] px-2 py-1.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring ${
+                                          className={`flex w-full items-start gap-2 border-l-[3px] px-2 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring ${
                                             enhancementSelected
                                               ? "border-accent bg-surface text-foreground"
                                               : "border-transparent text-text-secondary hover:bg-surface"
                                           }`}
                                         >
-                                          <span className="min-w-0 flex-1">
+                                          <span className="min-w-0 flex-1 overflow-hidden">
                                             <span
-                                              className={`control-id text-xs ${
+                                              className={`control-id block text-[11px] font-medium ${
                                                 enhancementSelected
                                                   ? "text-accent"
                                                   : "text-text-muted"
                                               }`}
                                             >
+                                              {formatControlIdDisplay(
+                                                enhancement.id,
+                                              )}{" "}
                                               ({number})
-                                            </span>{" "}
-                                            <span className="text-[13px] leading-snug">
+                                            </span>
+                                            <span className="mt-0.5 block truncate text-[13px] font-medium leading-snug text-foreground">
                                               {enhancement.title}
                                             </span>
                                             {renderListMeta(enhancement.id)}
@@ -560,164 +560,29 @@ export function ControlBrowser({
         </nav>
       </aside>
 
-      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
-        <div className="border-b border-border bg-surface px-4 py-5 sm:px-8">
-          <p className="control-id text-sm text-accent">
-            {formatControlIdDisplay(selected.id)}
-          </p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">
-            {selected.title}
-          </h2>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
-            <span>{selected.family}</span>
-            <span aria-hidden="true" className="text-border-strong">
-              ·
-            </span>
-            <span
-              className={
-                selectedComplete
-                  ? "font-medium text-success"
-                  : "font-medium text-warning"
-              }
-            >
-              <span aria-hidden="true">{selectedComplete ? "✓ " : "○ "}</span>
-              {selectedComplete ? "Complete" : "Incomplete"}
-            </span>
-            <span aria-hidden="true" className="text-border-strong">
-              ·
-            </span>
-            <ControlStatusBadge
-              implementationStatus={selectedRecord.implementationStatus}
-            />
-            <ControlReviewStatusBadge reviewStatus={selectedReviewStatus} />
-            <span
-              className={
-                isControlOwnerUnassigned(selectedRecord.owner)
-                  ? "text-warning"
-                  : undefined
-              }
-            >
-              {displayControlOwner(selectedRecord.owner)}
-            </span>
-          </div>
-          {isControlOwnerUnassigned(selectedRecord.owner) ? (
-            <p className="mt-2 text-xs text-warning" role="status">
-              No owner assigned
-            </p>
-          ) : null}
-        </div>
-
-        <div className="flex flex-1 flex-col gap-6 px-4 py-5 sm:px-8">
-          <section aria-labelledby="requirement-heading">
-            <h3
-              id="requirement-heading"
-              className="text-xs font-medium uppercase tracking-wide text-text-muted"
-            >
-              Requirement
-            </h3>
-            <div className="mt-2 max-w-3xl border-l-2 border-border bg-surface-secondary/60 px-4 py-3">
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
-                {requirementSegments.map((segment, index) =>
-                  segment.kind === "param" ? (
-                    <code
-                      key={`param-${index}`}
-                      className="control-id rounded-sm bg-accent-muted px-1 py-0.5 text-[0.8em] text-accent"
-                      title={`Parameter: ${segment.name}`}
-                    >
-                      {segment.value}
-                    </code>
-                  ) : (
-                    <span key={`text-${index}`}>{segment.value}</span>
-                  ),
-                )}
-              </p>
-            </div>
-          </section>
-
-          <ControlMetadataSection
-            controlId={selected.id}
-            fields={selectedRecord}
-            onChange={(patch) => updateControlRecord(selected.id, patch)}
-          />
-
-          <ControlReviewSection
-            projectId={projectId}
-            controlId={selected.id}
-            reviewStatus={selectedReviewStatus}
-            onReviewStatusChange={(next) => {
-              onControlReviewStatusesChange({
-                ...controlReviewStatuses,
-                [selected.id]: next,
-              });
-            }}
-            onTransitionSuccess={() => {
-              onActivityRefresh?.();
-            }}
-          />
-
-          <ControlActivityHistory
-            projectId={projectId}
-            controlId={selected.id}
-            refreshToken={activityRefreshToken}
-          />
-
-          <section
-            className="max-w-3xl"
-            aria-labelledby="implementation-heading"
-          >
-            <h3
-              id="implementation-heading"
-              className="text-xs font-medium uppercase tracking-wide text-text-muted"
-            >
-              Implementation
-            </h3>
-
-            <div className="mt-3">
-              <label htmlFor="implementation-status" className="label">
-                Implementation status
-              </label>
-              <select
-                id="implementation-status"
-                value={implementation.status}
-                onChange={(event) =>
-                  updateImplementation(selected.id, {
-                    status: event.target.value as ImplementationStatus,
-                  })
-                }
-                className="field mt-1.5 max-w-xs"
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="mt-4">
-              <label htmlFor="implementation-narrative" className="label">
-                Narrative
-              </label>
-              <textarea
-                id="implementation-narrative"
-                value={implementation.narrative}
-                onChange={(event) =>
-                  updateImplementation(selected.id, {
-                    narrative: event.target.value,
-                  })
-                }
-                placeholder="Describe how this control is implemented…"
-                className="field mt-1.5 min-h-[min(40vh,20rem)] resize-y leading-relaxed"
-              />
-              <p className="mt-1.5 text-xs text-text-muted">
-                {selectedComplete
-                  ? "This control counts as complete (non-empty narrative)."
-                  : "Add implementation text to mark this control complete."}
-              </p>
-            </div>
-          </section>
-        </div>
-      </main>
+      <ControlEditorWorkspace
+        key={selected.id}
+        projectId={projectId}
+        control={selected}
+        implementation={implementation}
+        fields={selectedRecord}
+        reviewStatus={selectedReviewStatus}
+        narrativeComplete={selectedComplete}
+        activityRefreshToken={activityRefreshToken}
+        onUpdateImplementation={(patch) =>
+          updateImplementation(selected.id, patch)
+        }
+        onUpdateFields={(patch) => updateControlRecord(selected.id, patch)}
+        onReviewStatusChange={(next) => {
+          onControlReviewStatusesChange({
+            ...controlReviewStatuses,
+            [selected.id]: next,
+          });
+        }}
+        onTransitionSuccess={() => {
+          onActivityRefresh?.();
+        }}
+      />
     </div>
   );
 }

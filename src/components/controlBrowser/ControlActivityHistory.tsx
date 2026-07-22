@@ -7,6 +7,7 @@ import {
   formatControlActivityTimestamp,
   type ControlActivity,
 } from "@/data/control-activity";
+import { SidebarCard } from "@/components/controlBrowser/SidebarCard";
 
 export type ControlActivityHistoryProps = {
   projectId: string;
@@ -43,38 +44,21 @@ function ControlActivityHistoryBody({
   }, [projectId, controlId]);
 
   return (
-    <section className="max-w-3xl" aria-labelledby="control-history-heading">
-      <h3
-        id="control-history-heading"
-        className="text-xs font-medium uppercase tracking-wide text-text-muted"
-      >
-        History
-      </h3>
-      <p className="mt-1 text-xs text-text-muted">
-        Operational activity for this control — independent of named project
-        versions.
-      </p>
-
+    <SidebarCard title="History" titleId="control-history-heading">
       {activities === null ? (
-        <p className="mt-3 text-sm text-text-muted" role="status">
-          Loading history…
+        <p className="text-sm text-text-muted" role="status">
+          Loading…
         </p>
       ) : activities.length === 0 ? (
-        <p className="mt-3 text-sm text-text-muted">
-          No activity yet. Changes to control metadata will appear here.
-        </p>
+        <p className="text-sm text-text-muted">No activity yet.</p>
       ) : (
-        <ol className="mt-3 space-y-3 border-l border-border pl-3">
+        <ol className="max-h-56 space-y-2.5 overflow-y-auto overscroll-contain pr-1">
           {activities.map((activity) => (
-            <li key={activity.id} className="relative">
-              <span
-                className="absolute -left-[0.85rem] top-1.5 h-2 w-2 rounded-full bg-border-strong"
-                aria-hidden="true"
-              />
-              <p className="text-sm text-foreground">
+            <li key={activity.id} className="min-w-0">
+              <p className="text-[13px] leading-snug text-foreground">
                 {formatControlActivitySummary(activity)}
               </p>
-              <p className="mt-0.5 text-xs text-text-muted">
+              <p className="mt-0.5 text-[11px] text-text-muted">
                 <time dateTime={activity.createdAt}>
                   {formatControlActivityTimestamp(activity.createdAt)}
                 </time>
@@ -83,7 +67,7 @@ function ControlActivityHistoryBody({
           ))}
         </ol>
       )}
-    </section>
+    </SidebarCard>
   );
 }
 

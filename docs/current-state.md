@@ -149,7 +149,11 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Completion: centralized in `src/domain/completion.ts` — a control is complete when its implementation narrative is non-empty after trim; totals come from `FrameworkProvider` (never hardcoded)
 - Family progress: `computeFamilyCompletion` in framework order; Overview family rows navigate into Controls with that family expanded
 - Validation summary: live domain checks (baseline coverage, missing/duplicate/unknown IDs, domain validity); **OSCAL SSP schema validation runs only on demand** (“Run OSCAL validation” / “Refresh validation”) and is not claimed until actually run; result is session-only (not persisted)
-- Controls view: denser navigation with overall + per-family progress, expand/collapse all, accessible complete/incomplete indicators, quieter requirement pane with distinct parameter tokens, primary implementation editor
+- Controls view: denser navigation with overall + per-family progress,
+  expand/collapse all, accessible complete/incomplete indicators; selected
+  control uses a two-column authoring layout (narrative main column +
+  ownership / implementation / review / history operational sidebar) with a
+  persistent control header and collapsible requirement reference
 - Projects list: professional cards with derived completion, revision, updated time; compact New project action; empty state; restyled browser-import callout
 - Project cards load completion by reading each project document on the list page (local-first; fine for small project counts)
 
