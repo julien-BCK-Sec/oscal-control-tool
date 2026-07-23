@@ -9,3 +9,11 @@ export type {
 } from "./types";
 export { DOMAIN_EVENT_AGGREGATE_TYPES } from "./types";
 export { createDomainEvent } from "./create-domain-event";
+export {
+  createInProcessDomainEventBus,
+  type DomainEventBusOptions,
+} from "./in-process-bus";
+export {
+  createDomainEventPublisher,
+  type DomainEventPublisherOptions,
+} from "./publisher";

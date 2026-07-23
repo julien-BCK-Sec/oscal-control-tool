@@ -36,4 +36,13 @@ export type {
   DomainEventMetadata,
   DomainEventPublisher,
 } from "./events";
-export { DOMAIN_EVENT_AGGREGATE_TYPES, createDomainEvent } from "./events";
+export {
+  DOMAIN_EVENT_AGGREGATE_TYPES,
+  createDomainEvent,
+  createDomainEventPublisher,
+  createInProcessDomainEventBus,
+} from "./events";
+export type {
+  DomainEventBusOptions,
+  DomainEventPublisherOptions,
+} from "./events";
