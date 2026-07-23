@@ -13,6 +13,9 @@ import {
 import { organization } from "@/auth/client";
 import { Button } from "@/components/design-system/button/Button";
 import { formatControlActivityTimestamp } from "@/data/control-activity";
+import {
+  NOTIFICATIONS_CHANGED_EVENT,
+} from "@/components/collaboration/notifications-changed";
 
 export type NotificationCenterProps = {
   /** Optional organization context label for screen readers. */
@@ -52,6 +55,16 @@ export function NotificationCenter({
 
   useEffect(() => {
     refresh();
+  }, []);
+
+  useEffect(() => {
+    function onChanged() {
+      refresh();
+    }
+    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, onChanged);
+    return () => {
+      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, onChanged);
+    };
   }, []);
 
   function onToggle() {

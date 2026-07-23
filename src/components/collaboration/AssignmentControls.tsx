@@ -19,6 +19,7 @@ import {
   FormLabel,
 } from "@/components/design-system/form/FormField";
 import { Stack } from "@/components/design-system/layout/primitives";
+import { notifyNotificationsChanged } from "@/components/collaboration/notifications-changed";
 
 export type AssignmentControlsProps = {
   projectId: string;
@@ -123,6 +124,7 @@ export function AssignmentControls({
                             return;
                           }
                           onActivity?.();
+                          notifyNotificationsChanged();
                           reload();
                         });
                       }}
@@ -145,6 +147,7 @@ export function AssignmentControls({
                           return;
                         }
                         onActivity?.();
+                        notifyNotificationsChanged();
                         reload();
                       });
                     }}
@@ -217,6 +220,7 @@ export function AssignmentControls({
                 return;
               }
               onActivity?.();
+              notifyNotificationsChanged();
               reload();
             });
           }}

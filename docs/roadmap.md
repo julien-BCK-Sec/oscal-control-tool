@@ -28,13 +28,15 @@ Strongly typed domain events, `DomainEventPublisher`, in-process
 post-success publication from authorized mutations. See
 `docs/milestones/02B-domain-event-infra.md` and ADR-021.
 
+**Milestone 02C – Workflow Automation** (implemented on
+`feat/workflow-automation-02c`)
+
+Event-driven workflow engine with pluggable triggers/conditions/actions,
+org-admin rule administration, execution history, and no-cascade safety.
+See `docs/milestones/02C-workflow-automation.md`, `docs/workflows.md`, and
+ADR-023.
+
 ## Next
-
-**Milestone 02C – Workflow Automation**
-
-Automated operational workflows that subscribe to the domain event bus built
-in Milestone 02B. See future milestone specs under `docs/milestones/` when
-published.
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
 
@@ -45,4 +47,5 @@ published.
 - Durable domain event store / outbox / external broker
 - Additional compliance frameworks
 - AI-assisted authoring
+- Async / queued workflow execution, approvals, SLA timers
 - Horizontal scaling review beyond single-instance defaults

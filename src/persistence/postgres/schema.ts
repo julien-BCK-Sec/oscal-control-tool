@@ -263,6 +263,77 @@ export const notifications = pgTable(
   ],
 );
 
+/**
+ * Organization-scoped workflow automation rules (Milestone 02C).
+ * Conditions and actions are stored as validated JSON text arrays.
+ */
+export const workflowRules = pgTable(
+  "workflow_rules",
+  {
+    id: text("id").primaryKey().notNull(),
+    organizationId: text("organization_id").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    enabled: boolean("enabled").notNull().default(true),
+    triggerType: text("trigger_type").notNull(),
+    conditionsJson: text("conditions_json").notNull(),
+    actionsJson: text("actions_json").notNull(),
+    createdByUserId: text("created_by_user_id").notNull(),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    index("workflow_rules_org_enabled_idx").on(
+      table.organizationId,
+      table.enabled,
+    ),
+    index("workflow_rules_org_trigger_idx").on(
+      table.organizationId,
+      table.triggerType,
+    ),
+  ],
+);
+
+/**
+ * Practical workflow execution history with structured detail JSON.
+ */
+export const workflowExecutions = pgTable(
+  "workflow_executions",
+  {
+    id: text("id").primaryKey().notNull(),
+    organizationId: text("organization_id").notNull(),
+    workflowRuleId: text("workflow_rule_id")
+      .notNull()
+      .references(() => workflowRules.id, { onDelete: "cascade" }),
+    triggeringEventId: text("triggering_event_id").notNull(),
+    triggeringEventType: text("triggering_event_type").notNull(),
+    correlationId: text("correlation_id").notNull(),
+    projectId: text("project_id"),
+    controlId: text("control_id"),
+    status: text("status").notNull(),
+    conditionsMatched: boolean("conditions_matched").notNull(),
+    durationMs: integer("duration_ms").notNull(),
+    errorMessage: text("error_message"),
+    detailJson: text("detail_json").notNull(),
+    startedAt: text("started_at").notNull(),
+    finishedAt: text("finished_at").notNull(),
+  },
+  (table) => [
+    unique("workflow_executions_event_rule_uid").on(
+      table.triggeringEventId,
+      table.workflowRuleId,
+    ),
+    index("workflow_executions_org_started_idx").on(
+      table.organizationId,
+      table.startedAt,
+    ),
+    index("workflow_executions_rule_started_idx").on(
+      table.workflowRuleId,
+      table.startedAt,
+    ),
+  ],
+);
+
 export type ProjectRow = typeof projects.$inferSelect;
 export type ProjectSnapshotRow = typeof projectSnapshots.$inferSelect;
 export type ControlRecordRow = typeof controlRecords.$inferSelect;
@@ -271,3 +342,5 @@ export type CommentRow = typeof comments.$inferSelect;
 export type CommentMentionRow = typeof commentMentions.$inferSelect;
 export type AssignmentRow = typeof assignments.$inferSelect;
 export type NotificationRow = typeof notifications.$inferSelect;
+export type WorkflowRuleRow = typeof workflowRules.$inferSelect;
+export type WorkflowExecutionRow = typeof workflowExecutions.$inferSelect;

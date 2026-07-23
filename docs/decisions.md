@@ -504,3 +504,36 @@ Reason:
 
 Date:
 2026-07-22
+
+## ADR-023
+
+Decision:
+Workflow automation (Milestone 02C) subscribes to `DomainEventBus` and never
+runs from business services or authorized wrappers directly:
+
+- Business mutations publish domain events after success (ADR-021).
+- The Workflow Engine is a `DomainEventHandler` registered on the shared bus.
+- Triggers, conditions, and actions are pluggable registries with strongly
+  typed configs; unavailable catalog entries (priority, severity, tags) are
+  registered as extension points and rejected at rule write time.
+- Rules and execution history persist in `workflow_rules` and
+  `workflow_executions` with validated JSON for conditions/actions/detail —
+  not separate condition/action/step tables.
+- Execution is synchronous in-process for this milestone (no queues, workers,
+  schedulers, or retries).
+- **No cascade:** while workflow actions run, domain events they publish may
+  still dispatch to other handlers, but the Workflow Engine refuses to
+  evaluate rules for those events (`runWithWorkflowCascadeGuard`).
+- Workflow mutations use the System actor; admin CRUD requires `workflow.read`
+  / `workflow.manage` (organization admin only).
+
+Reason:
+- Keeps automation out of business services so collaboration and authoring
+  paths stay unaware of workflows.
+- Reuses the 02B event seam without claiming durable/async delivery.
+- Favor registration over switch statements so future approvals, schedules,
+  and integrations can extend catalogs without redesigning the engine.
+- No-cascade is the safest default until an explicit cascade policy exists.
+
+Date:
+2026-07-22
