@@ -71,3 +71,15 @@ export {
   type HandlerExecutionResult,
   type HandlerExecutionStatus,
 } from "./handler-framework";
+export {
+  createInMemoryDomainEventDiagnostics,
+  type DomainEventDiagnosticRecord,
+  type DomainEventDiagnostics,
+  type InMemoryDomainEventDiagnosticsOptions,
+} from "./diagnostics";
+export {
+  createDomainEventRuntime,
+  getSharedDomainEventRuntime,
+  setSharedDomainEventRuntime,
+  type DomainEventRuntime,
+} from "./runtime";
