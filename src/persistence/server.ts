@@ -8,6 +8,7 @@ import type { ControlRecordService } from "./control-record-service";
 import type { DiscussionService } from "./discussion-service";
 import type { NotificationRepository } from "./notification-repository";
 import type { ProjectRepository } from "./repository";
+import type { WorkflowRepository } from "./workflow-repository";
 import { getDb } from "./postgres/client";
 import { createPostgresAssignmentRepository } from "./postgres/assignment-repository";
 import { createPostgresCommentRepository } from "./postgres/comment-repository";
@@ -17,6 +18,7 @@ import { createPostgresControlRecordService } from "./postgres/control-record-se
 import { createPostgresDiscussionService } from "./postgres/discussion-service";
 import { createPostgresNotificationRepository } from "./postgres/notification-repository";
 import { createPostgresProjectRepository } from "./postgres/project-repository";
+import { createPostgresWorkflowRepository } from "./postgres/workflow-repository";
 
 /** Default server-side repository bound to DATABASE_URL (PostgreSQL). */
 export async function getProjectRepository(): Promise<ProjectRepository> {
@@ -59,4 +61,9 @@ export async function getNotificationRepository(): Promise<NotificationRepositor
 /** Discussion service coordinating comments + activity (Milestone 02A). */
 export async function getDiscussionService(): Promise<DiscussionService> {
   return createPostgresDiscussionService(await getDb());
+}
+
+/** Workflow automation rules and execution history (Milestone 02C). */
+export async function getWorkflowRepository(): Promise<WorkflowRepository> {
+  return createPostgresWorkflowRepository(await getDb());
 }

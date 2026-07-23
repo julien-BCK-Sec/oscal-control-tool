@@ -39,3 +39,14 @@ export {
   type WorkflowRegistries,
   type WorkflowActionContext,
 } from "./registries";
+export {
+  WorkflowValidationError,
+  parseCreateWorkflowRuleInput,
+  parseUpdateWorkflowRuleInput,
+  parseWorkflowCondition,
+  parseWorkflowAction,
+  parseWorkflowConditions,
+  parseWorkflowActions,
+  type CreateWorkflowRuleInput,
+  type UpdateWorkflowRuleInput,
+} from "./validation";
