@@ -17,3 +17,8 @@ export {
   createDomainEventPublisher,
   type DomainEventPublisherOptions,
 } from "./publisher";
+export {
+  defineDomainEventHandler,
+  handlerMatchesEvent,
+  type DefineDomainEventHandlerInput,
+} from "./handler";

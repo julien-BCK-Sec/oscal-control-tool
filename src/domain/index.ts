@@ -41,8 +41,11 @@ export {
   createDomainEvent,
   createDomainEventPublisher,
   createInProcessDomainEventBus,
+  defineDomainEventHandler,
+  handlerMatchesEvent,
 } from "./events";
 export type {
+  DefineDomainEventHandlerInput,
   DomainEventBusOptions,
   DomainEventPublisherOptions,
 } from "./events";
