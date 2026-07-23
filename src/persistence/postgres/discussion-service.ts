@@ -5,8 +5,12 @@ import { randomUUID } from "node:crypto";
 import {
   DEFAULT_CONTROL_RECORD_FIELDS,
   DEFAULT_CONTROL_REVIEW_STATUS,
+  isControlImplementationStatus,
+  isControlReviewStatus,
+  isEvidenceRequirement,
   type ControlRecord,
 } from "@/data/control-record";
+import { DEFAULT_EVIDENCE_REQUIREMENT } from "@/data/evidence";
 import type { ActorIdentity } from "../actor";
 import { nextActivityTimestamp } from "../activity-clock";
 import type { DiscussionService } from "../discussion-service";
@@ -23,6 +27,17 @@ import { member as memberTable } from "./auth-schema";
 function toControlRecord(
   row: typeof controlRecords.$inferSelect,
 ): ControlRecord {
+  const implementationStatus = isControlImplementationStatus(
+    row.implementationStatus,
+  )
+    ? row.implementationStatus
+    : "draft";
+  const reviewStatus = isControlReviewStatus(row.reviewStatus)
+    ? row.reviewStatus
+    : DEFAULT_CONTROL_REVIEW_STATUS;
+  const evidenceRequirement = isEvidenceRequirement(row.evidenceRequirement)
+    ? row.evidenceRequirement
+    : DEFAULT_EVIDENCE_REQUIREMENT;
   return {
     id: row.id,
     projectId: row.projectId,
@@ -30,10 +45,10 @@ function toControlRecord(
     owner: row.owner,
     coOwner: row.coOwner,
     businessUnit: row.businessUnit,
-    implementationStatus:
-      row.implementationStatus as ControlRecord["implementationStatus"],
-    reviewStatus: row.reviewStatus as ControlRecord["reviewStatus"],
+    implementationStatus,
+    reviewStatus,
     reviewDueDate: row.reviewDueDate,
+    evidenceRequirement,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -91,6 +106,7 @@ async function ensureControlRecord(
     implementationStatus: fields.implementationStatus,
     reviewStatus: DEFAULT_CONTROL_REVIEW_STATUS,
     reviewDueDate: fields.reviewDueDate,
+    evidenceRequirement: fields.evidenceRequirement,
     createdAt,
     updatedAt: createdAt,
   });
@@ -109,12 +125,8 @@ async function ensureControlRecord(
     id,
     projectId,
     controlId,
-    owner: fields.owner,
-    coOwner: fields.coOwner,
-    businessUnit: fields.businessUnit,
-    implementationStatus: fields.implementationStatus,
+    ...fields,
     reviewStatus: DEFAULT_CONTROL_REVIEW_STATUS,
-    reviewDueDate: fields.reviewDueDate,
     createdAt,
     updatedAt: createdAt,
   };

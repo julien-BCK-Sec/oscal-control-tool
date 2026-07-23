@@ -28,6 +28,7 @@ export function resolveControlRecordFields(
     businessUnit: existing.businessUnit,
     implementationStatus: existing.implementationStatus,
     reviewDueDate: existing.reviewDueDate,
+    evidenceRequirement: existing.evidenceRequirement,
   };
 }
 
@@ -61,6 +62,7 @@ export function cloneControlRecords(
         businessUnit: fields.businessUnit,
         implementationStatus: fields.implementationStatus,
         reviewDueDate: fields.reviewDueDate,
+        evidenceRequirement: fields.evidenceRequirement,
       },
     ]),
   );
@@ -78,6 +80,7 @@ export function controlRecordsToFieldMap(
       businessUnit: record.businessUnit,
       implementationStatus: record.implementationStatus,
       reviewDueDate: record.reviewDueDate,
+      evidenceRequirement: record.evidenceRequirement,
     };
   }
   return map;

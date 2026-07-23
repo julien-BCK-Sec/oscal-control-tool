@@ -26,6 +26,9 @@ export const CONTROL_ACTIVITY_TYPES_SUPPORTED: readonly ControlActivityTypeSuppo
     "assignment_changed",
     "assignment_completed",
     "assignment_removed",
+    "evidence_added",
+    "evidence_removed",
+    "evidence_requirement_changed",
   ] as const;
 
 export const CONTROL_ACTIVITY_TYPE_LABELS: Record<ControlActivityType, string> =
@@ -50,11 +53,12 @@ export const CONTROL_ACTIVITY_TYPE_LABELS: Record<ControlActivityType, string> =
     comment_restored: "Restored a comment",
     comment_resolved: "Resolved a discussion",
     discussion_reopened: "Reopened a discussion",
-    evidence_added: "Added evidence",
-    evidence_removed: "Removed evidence",
     assignment_changed: "Changed assignment",
     assignment_completed: "Completed an assignment",
     assignment_removed: "Removed an assignment",
+    evidence_added: "Added evidence",
+    evidence_removed: "Removed evidence",
+    evidence_requirement_changed: "Changed evidence requirement",
   };
 
 export function isControlActivityType(

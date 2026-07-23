@@ -18,12 +18,13 @@ describe("workspace tabs", () => {
     assert.equal(workspaceTabDefinition("overview").label, "Overview");
   });
 
-  it("includes overview, controls, project details, and version history", () => {
+  it("includes overview, controls, evidence, project details, and version history", () => {
     assert.deepEqual(
       WORKSPACE_TABS.map((tab) => tab.id),
-      ["overview", "controls", "details", "history"],
+      ["overview", "controls", "evidence", "details", "history"],
     );
     assert.equal(workspaceTabDefinition("controls").label, "Controls");
+    assert.equal(workspaceTabDefinition("evidence").label, "Evidence");
     assert.equal(
       workspaceTabDefinition("details").label,
       "Project details",
@@ -37,6 +38,7 @@ describe("workspace tabs", () => {
   it("validates tab identifiers", () => {
     assert.equal(isWorkspaceTabId("overview"), true);
     assert.equal(isWorkspaceTabId("controls"), true);
+    assert.equal(isWorkspaceTabId("evidence"), true);
     assert.equal(isWorkspaceTabId("details"), true);
     assert.equal(isWorkspaceTabId("history"), true);
     assert.equal(isWorkspaceTabId("settings"), false);

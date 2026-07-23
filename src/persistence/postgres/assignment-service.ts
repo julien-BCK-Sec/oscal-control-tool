@@ -5,8 +5,12 @@ import { randomUUID } from "node:crypto";
 import {
   DEFAULT_CONTROL_RECORD_FIELDS,
   DEFAULT_CONTROL_REVIEW_STATUS,
+  isControlImplementationStatus,
+  isControlReviewStatus,
+  isEvidenceRequirement,
   type ControlRecord,
 } from "@/data/control-record";
+import { DEFAULT_EVIDENCE_REQUIREMENT } from "@/data/evidence";
 import type { ActorIdentity } from "../actor";
 import { nextActivityTimestamp } from "../activity-clock";
 import type { AssignmentService } from "../assignment-service";
@@ -48,6 +52,17 @@ async function ensureControlRecord(
     .limit(1);
   if (existing[0]) {
     const row = existing[0];
+    const implementationStatus = isControlImplementationStatus(
+      row.implementationStatus,
+    )
+      ? row.implementationStatus
+      : "draft";
+    const reviewStatus = isControlReviewStatus(row.reviewStatus)
+      ? row.reviewStatus
+      : DEFAULT_CONTROL_REVIEW_STATUS;
+    const evidenceRequirement = isEvidenceRequirement(row.evidenceRequirement)
+      ? row.evidenceRequirement
+      : DEFAULT_EVIDENCE_REQUIREMENT;
     return {
       id: row.id,
       projectId: row.projectId,
@@ -55,10 +70,10 @@ async function ensureControlRecord(
       owner: row.owner,
       coOwner: row.coOwner,
       businessUnit: row.businessUnit,
-      implementationStatus:
-        row.implementationStatus as ControlRecord["implementationStatus"],
-      reviewStatus: row.reviewStatus as ControlRecord["reviewStatus"],
+      implementationStatus,
+      reviewStatus,
       reviewDueDate: row.reviewDueDate,
+      evidenceRequirement,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
@@ -77,6 +92,7 @@ async function ensureControlRecord(
     implementationStatus: fields.implementationStatus,
     reviewStatus: DEFAULT_CONTROL_REVIEW_STATUS,
     reviewDueDate: fields.reviewDueDate,
+    evidenceRequirement: fields.evidenceRequirement,
     createdAt,
     updatedAt: createdAt,
   });

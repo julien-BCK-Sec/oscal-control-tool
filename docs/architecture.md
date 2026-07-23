@@ -52,7 +52,7 @@ Contains:
 - Mentions
 - Assignments
 - In-app notifications
-- Evidence (future)
+- Evidence (Milestone 03A)
 
 Operational metadata is never stored inside OSCAL documents.
 
@@ -96,6 +96,14 @@ Milestone 02C capabilities:
   `workflow_executions` and no-cascade loop protection
 - See `docs/workflows.md`
 
+Milestone 03A capabilities:
+
+- Project-scoped Evidence aggregate with stable UUID (ADR-024)
+- Evidence ↔ control many-to-many associations
+- Evidence requirement on ControlRecord (default `required`)
+- Evidence domain events + ControlActivity link/unlink fan-out
+- Evidence browse / CRUD / archive UI (no binary uploads yet)
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 
@@ -103,7 +111,7 @@ Later capabilities remain independent of UI and persistence:
 
 - Email / external notifications
 - AI services
-- Evidence processing
+- Evidence processing / Evidence Versions (binary upload)
 - Durable event store / outbox / external broker
 - Async / queued workflow execution, approvals, SLA timers
 
@@ -123,6 +131,7 @@ Examples:
 - AssignmentRepository
 - NotificationRepository
 - WorkflowRepository
+- EvidenceRepository / EvidenceService
 
 Repositories isolate the database from business logic.
 

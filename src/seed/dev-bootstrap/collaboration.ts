@@ -191,6 +191,7 @@ export async function ensureDemoCollaboration(input: {
         implementationStatus:
           controlId === "ac-2" || controlId === "ia-2" ? "in_review" : "draft",
         reviewDueDate: "2026-09-15",
+        evidenceRequirement: "required",
       },
       actor(bob),
     );

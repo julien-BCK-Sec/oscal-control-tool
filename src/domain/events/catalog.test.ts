@@ -13,6 +13,11 @@ import {
   discussionCreatedEvent,
   discussionResolvedEvent,
   discussionUpdatedEvent,
+  evidenceArchivedEvent,
+  evidenceCreatedEvent,
+  evidenceLinkedEvent,
+  evidenceUnlinkedEvent,
+  evidenceUpdatedEvent,
   notificationCreatedEvent,
   projectCreatedEvent,
   projectUpdatedEvent,
@@ -32,6 +37,11 @@ describe("initial domain event catalog", () => {
       "AssignmentCreated",
       "AssignmentCompleted",
       "NotificationCreated",
+      "EvidenceCreated",
+      "EvidenceUpdated",
+      "EvidenceArchived",
+      "EvidenceLinked",
+      "EvidenceUnlinked",
     ]);
     assert.equal(isDomainEventType("DiscussionCreated"), true);
     assert.equal(isDomainEventType("discussion_created"), false);
@@ -124,6 +134,41 @@ describe("initial domain event catalog", () => {
         relatedObjectId: "a1:assignment_created",
         projectId: "p1",
         controlId: "ac-1",
+      }),
+      evidenceCreatedEvent({
+        ...base,
+        projectId: "p1",
+        evidenceId: "e1",
+        title: "Policy PDF",
+        status: "draft",
+        controlIds: ["ac-1"],
+      }),
+      evidenceUpdatedEvent({
+        ...base,
+        projectId: "p1",
+        evidenceId: "e1",
+        title: "Policy PDF",
+        status: "active",
+      }),
+      evidenceArchivedEvent({
+        ...base,
+        projectId: "p1",
+        evidenceId: "e1",
+        title: "Policy PDF",
+      }),
+      evidenceLinkedEvent({
+        ...base,
+        projectId: "p1",
+        evidenceId: "e1",
+        controlId: "ac-2",
+        title: "Policy PDF",
+      }),
+      evidenceUnlinkedEvent({
+        ...base,
+        projectId: "p1",
+        evidenceId: "e1",
+        controlId: "ac-2",
+        title: "Policy PDF",
       }),
     ];
 

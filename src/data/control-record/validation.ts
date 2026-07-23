@@ -1,6 +1,7 @@
 import {
   CONTROL_IMPLEMENTATION_STATUSES,
   CONTROL_REVIEW_STATUSES,
+  isEvidenceRequirement,
 } from "./defaults";
 import type {
   ControlRecordFields,
@@ -79,6 +80,9 @@ export function isControlRecordFields(
   if (due === undefined) {
     return false;
   }
+  if (!isEvidenceRequirement(record.evidenceRequirement)) {
+    return false;
+  }
   return true;
 }
 
@@ -91,6 +95,7 @@ export function normalizeControlRecordFields(
     businessUnit: value.businessUnit,
     implementationStatus: value.implementationStatus,
     reviewDueDate: parseControlRecordReviewDueDate(value.reviewDueDate) ?? null,
+    evidenceRequirement: value.evidenceRequirement,
   };
 }
 

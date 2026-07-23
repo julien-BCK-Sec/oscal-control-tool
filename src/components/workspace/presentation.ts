@@ -1,6 +1,7 @@
 export const WORKSPACE_TAB_IDS = [
   "overview",
   "controls",
+  "evidence",
   "details",
   "history",
 ] as const;
@@ -28,6 +29,12 @@ export const WORKSPACE_TABS: readonly WorkspaceTabDefinition[] = [
     label: "Controls",
     panelId: "workspace-panel-controls",
     tabId: "workspace-tab-controls",
+  },
+  {
+    id: "evidence",
+    label: "Evidence",
+    panelId: "workspace-panel-evidence",
+    tabId: "workspace-tab-evidence",
   },
   {
     id: "details",

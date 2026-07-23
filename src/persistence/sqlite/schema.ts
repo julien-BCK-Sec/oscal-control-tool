@@ -74,6 +74,9 @@ export const controlRecords = sqliteTable(
     /** Review workflow only — independent of implementation_status. */
     reviewStatus: text("review_status").notNull().default("not_reviewed"),
     reviewDueDate: text("review_due_date"),
+    evidenceRequirement: text("evidence_requirement")
+      .notNull()
+      .default("required"),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },

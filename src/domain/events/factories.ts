@@ -9,6 +9,11 @@ import type {
   DiscussionCreatedEvent,
   DiscussionResolvedEvent,
   DiscussionUpdatedEvent,
+  EvidenceArchivedEvent,
+  EvidenceCreatedEvent,
+  EvidenceLinkedEvent,
+  EvidenceUnlinkedEvent,
+  EvidenceUpdatedEvent,
   NotificationCreatedEvent,
   ProjectCreatedEvent,
   ProjectUpdatedEvent,
@@ -298,6 +303,131 @@ export function notificationCreatedEvent(
       relatedObjectId: input.relatedObjectId,
       projectId: input.projectId,
       controlId: input.controlId,
+    },
+  });
+}
+
+export function evidenceCreatedEvent(
+  input: EventActorInput & {
+    projectId: string;
+    evidenceId: string;
+    title: string;
+    status: string;
+    controlIds: readonly string[];
+  },
+): EvidenceCreatedEvent {
+  return createDomainEvent({
+    eventType: "EvidenceCreated",
+    organizationId: input.organizationId,
+    aggregateId: input.evidenceId,
+    aggregateType: "evidence",
+    actorId: input.actorId,
+    correlationId: input.correlationId,
+    occurredAt: input.occurredAt,
+    payload: {
+      projectId: input.projectId,
+      evidenceId: input.evidenceId,
+      title: input.title,
+      status: input.status,
+      controlIds: [...input.controlIds],
+    },
+  });
+}
+
+export function evidenceUpdatedEvent(
+  input: EventActorInput & {
+    projectId: string;
+    evidenceId: string;
+    title: string;
+    status: string;
+  },
+): EvidenceUpdatedEvent {
+  return createDomainEvent({
+    eventType: "EvidenceUpdated",
+    organizationId: input.organizationId,
+    aggregateId: input.evidenceId,
+    aggregateType: "evidence",
+    actorId: input.actorId,
+    correlationId: input.correlationId,
+    occurredAt: input.occurredAt,
+    payload: {
+      projectId: input.projectId,
+      evidenceId: input.evidenceId,
+      title: input.title,
+      status: input.status,
+    },
+  });
+}
+
+export function evidenceArchivedEvent(
+  input: EventActorInput & {
+    projectId: string;
+    evidenceId: string;
+    title: string;
+  },
+): EvidenceArchivedEvent {
+  return createDomainEvent({
+    eventType: "EvidenceArchived",
+    organizationId: input.organizationId,
+    aggregateId: input.evidenceId,
+    aggregateType: "evidence",
+    actorId: input.actorId,
+    correlationId: input.correlationId,
+    occurredAt: input.occurredAt,
+    payload: {
+      projectId: input.projectId,
+      evidenceId: input.evidenceId,
+      title: input.title,
+    },
+  });
+}
+
+export function evidenceLinkedEvent(
+  input: EventActorInput & {
+    projectId: string;
+    evidenceId: string;
+    controlId: string;
+    title: string;
+  },
+): EvidenceLinkedEvent {
+  return createDomainEvent({
+    eventType: "EvidenceLinked",
+    organizationId: input.organizationId,
+    aggregateId: input.evidenceId,
+    aggregateType: "evidence",
+    actorId: input.actorId,
+    correlationId: input.correlationId,
+    occurredAt: input.occurredAt,
+    payload: {
+      projectId: input.projectId,
+      evidenceId: input.evidenceId,
+      controlId: input.controlId,
+      title: input.title,
+    },
+  });
+}
+
+export function evidenceUnlinkedEvent(
+  input: EventActorInput & {
+    projectId: string;
+    evidenceId: string;
+    controlId: string;
+    title: string;
+  },
+): EvidenceUnlinkedEvent {
+  return createDomainEvent({
+    eventType: "EvidenceUnlinked",
+    organizationId: input.organizationId,
+    aggregateId: input.evidenceId,
+    aggregateType: "evidence",
+    actorId: input.actorId,
+    correlationId: input.correlationId,
+    occurredAt: input.occurredAt,
+    payload: {
+      projectId: input.projectId,
+      evidenceId: input.evidenceId,
+      controlId: input.controlId,
+      title: input.title,
     },
   });
 }

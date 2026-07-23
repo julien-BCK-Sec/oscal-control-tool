@@ -1,8 +1,10 @@
 import {
   controlImplementationStatusLabel,
   controlReviewStatusLabel,
+  evidenceRequirementLabel,
   isControlImplementationStatus,
   isControlReviewStatus,
+  isEvidenceRequirement,
   type ControlRecordFields,
 } from "@/data/control-record";
 import type { ControlActivityTypeSupported } from "./types";
@@ -17,6 +19,17 @@ export type ControlRecordFieldChange = {
     | "changes_requested"
     | "review_resubmitted"
     | "review_reopened"
+    | "comment_added"
+    | "comment_edited"
+    | "comment_deleted"
+    | "comment_restored"
+    | "comment_resolved"
+    | "discussion_reopened"
+    | "assignment_changed"
+    | "assignment_completed"
+    | "assignment_removed"
+    | "evidence_added"
+    | "evidence_removed"
   >;
   fieldName: keyof ControlRecordFields;
   previousValue: string | null;
@@ -85,6 +98,14 @@ export function detectControlRecordFieldChanges(
       newValue: activityValueOrNull(next.reviewDueDate),
     });
   }
+  if (previous.evidenceRequirement !== next.evidenceRequirement) {
+    changes.push({
+      activityType: "evidence_requirement_changed",
+      fieldName: "evidenceRequirement",
+      previousValue: previous.evidenceRequirement,
+      newValue: next.evidenceRequirement,
+    });
+  }
 
   return changes;
 }
@@ -111,6 +132,9 @@ export function formatActivityFieldDisplayValue(
   }
   if (fieldName === "reviewStatus" && isControlReviewStatus(value)) {
     return controlReviewStatusLabel(value);
+  }
+  if (fieldName === "evidenceRequirement" && isEvidenceRequirement(value)) {
+    return evidenceRequirementLabel(value);
   }
   return value;
 }

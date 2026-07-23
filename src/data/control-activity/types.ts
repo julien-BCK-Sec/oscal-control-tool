@@ -25,17 +25,18 @@ export type ControlActivityTypeSupported =
   | "discussion_reopened"
   | "assignment_changed"
   | "assignment_completed"
-  | "assignment_removed";
+  | "assignment_removed"
+  | "evidence_added"
+  | "evidence_removed"
+  | "evidence_requirement_changed";
 
 /**
- * Reserved for future evidence / narrative events.
+ * Reserved for future narrative / parameter events.
  * Included in the union so new emitters can extend without renames.
  */
 export type ControlActivityTypeFuture =
   | "implementation_updated"
-  | "parameter_changed"
-  | "evidence_added"
-  | "evidence_removed";
+  | "parameter_changed";
 
 export type ControlActivityType =
   | ControlActivityTypeSupported

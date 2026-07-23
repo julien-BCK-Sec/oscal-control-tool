@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, it } from "node:test";
 import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
+import { DEFAULT_CONTROL_RECORD_FIELDS } from "@/data/control-record";
 import {
   createDomainEventRuntime,
   setSharedDomainEventRuntime,
@@ -108,7 +109,7 @@ describe("domain event integration", () => {
       env.controls,
       managerCtx,
       project.id,
-      [{ controlId: "ac-1", owner: author.id }],
+      [{ controlId: "ac-1", ...DEFAULT_CONTROL_RECORD_FIELDS, owner: author.id }],
       { actorId: manager.id, actorDisplayName: manager.email },
     );
     assert.equal(controlResult.ok, true);

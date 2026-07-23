@@ -40,6 +40,12 @@ describe("RBAC permission matrix", () => {
       "event.diagnostics.read",
       "workflow.read",
       "workflow.manage",
+      "evidence.read",
+      "evidence.create",
+      "evidence.update",
+      "evidence.associate",
+      "evidence.archive",
+      "evidence.delete",
     ];
     for (const permission of all) {
       assert.equal(
@@ -55,6 +61,7 @@ describe("RBAC permission matrix", () => {
     assert.equal(roleHasPermission("viewer", "discussion.read"), true);
     assert.equal(roleHasPermission("viewer", "assignment.read"), true);
     assert.equal(roleHasPermission("viewer", "notification.read"), true);
+    assert.equal(roleHasPermission("viewer", "evidence.read"), true);
     assert.equal(roleHasPermission("viewer", "discussion.create"), false);
     assert.equal(roleHasPermission("viewer", "discussion.reply"), false);
     assert.equal(roleHasPermission("viewer", "assignment.manage"), false);
@@ -65,6 +72,8 @@ describe("RBAC permission matrix", () => {
     assert.equal(roleHasPermission("viewer", "review.submit"), false);
     assert.equal(roleHasPermission("viewer", "review.approve"), false);
     assert.equal(roleHasPermission("viewer", "org.invite"), false);
+    assert.equal(roleHasPermission("viewer", "evidence.create"), false);
+    assert.equal(roleHasPermission("viewer", "evidence.delete"), false);
   });
 
   it("lets authors participate in discussions but not moderate or assign", () => {
@@ -83,6 +92,10 @@ describe("RBAC permission matrix", () => {
     assert.equal(roleHasPermission("author", "project.create"), false);
     assert.equal(roleHasPermission("author", "project.delete"), false);
     assert.equal(roleHasPermission("author", "org.invite"), false);
+    assert.equal(roleHasPermission("author", "evidence.create"), true);
+    assert.equal(roleHasPermission("author", "evidence.associate"), true);
+    assert.equal(roleHasPermission("author", "evidence.archive"), true);
+    assert.equal(roleHasPermission("author", "evidence.delete"), false);
   });
 
   it("lets reviewers participate in discussions but not assign work", () => {
@@ -99,6 +112,8 @@ describe("RBAC permission matrix", () => {
     assert.equal(roleHasPermission("reviewer", "control.edit_metadata"), false);
     assert.equal(roleHasPermission("reviewer", "review.submit"), false);
     assert.equal(roleHasPermission("reviewer", "project.update"), false);
+    assert.equal(roleHasPermission("reviewer", "evidence.read"), true);
+    assert.equal(roleHasPermission("reviewer", "evidence.create"), false);
   });
 
   it("lets project managers moderate discussions and manage assignments", () => {
@@ -114,6 +129,7 @@ describe("RBAC permission matrix", () => {
     assert.equal(roleHasPermission("project_manager", "event.diagnostics.read"), false);
     assert.equal(roleHasPermission("project_manager", "workflow.read"), false);
     assert.equal(roleHasPermission("project_manager", "workflow.manage"), false);
+    assert.equal(roleHasPermission("project_manager", "evidence.delete"), true);
   });
 
   it("fails closed for unknown or missing roles", () => {

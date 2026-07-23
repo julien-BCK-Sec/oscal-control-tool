@@ -37,6 +37,7 @@ describe("ControlRecordRepository", () => {
       coOwner: "Gary Mercer",
       businessUnit: "CGDS",
       implementationStatus: "in_review",
+      evidenceRequirement: "required",
       reviewDueDate: "2026-08-01",
     });
 
@@ -77,6 +78,7 @@ describe("ControlRecordRepository", () => {
       coOwner: "",
       businessUnit: "Ops",
       implementationStatus: "approved",
+      evidenceRequirement: "required",
       reviewDueDate: null,
     });
 
@@ -109,6 +111,7 @@ describe("ControlRecordRepository", () => {
       coOwner: "",
       businessUnit: "",
       implementationStatus: "draft",
+      evidenceRequirement: "required",
       reviewDueDate: null,
     });
 
@@ -118,6 +121,7 @@ describe("ControlRecordRepository", () => {
       coOwner: "C",
       businessUnit: "Unit",
       implementationStatus: "implemented",
+      evidenceRequirement: "required",
       reviewDueDate: "2026-09-15",
     });
 
@@ -139,6 +143,7 @@ describe("ControlRecordRepository", () => {
           coOwner: "",
           businessUnit: "",
           implementationStatus: "draft",
+          evidenceRequirement: "required" as const,
           reviewDueDate: null,
           createdAt: now,
           updatedAt: now,
@@ -164,6 +169,7 @@ describe("ControlRecordRepository", () => {
       coOwner: "",
       businessUnit: "",
       implementationStatus: "draft",
+      evidenceRequirement: "required",
       reviewDueDate: null,
     });
     await records.upsert(projectB.id, {
@@ -172,6 +178,7 @@ describe("ControlRecordRepository", () => {
       coOwner: "",
       businessUnit: "",
       implementationStatus: "approved",
+      evidenceRequirement: "required",
       reviewDueDate: null,
     });
 
@@ -196,6 +203,7 @@ describe("ControlRecordRepository", () => {
       coOwner: "",
       businessUnit: "",
       implementationStatus: "draft",
+      evidenceRequirement: "required",
       reviewDueDate: null,
     });
 
@@ -213,6 +221,7 @@ describe("ControlRecord defaults for existing controls", () => {
         coOwner: "",
         businessUnit: "Deploy",
         implementationStatus: "approved" as const,
+        evidenceRequirement: "required" as const,
         reviewDueDate: "2026-07-01",
       },
     };
