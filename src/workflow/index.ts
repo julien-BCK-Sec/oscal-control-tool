@@ -50,3 +50,12 @@ export {
   type CreateWorkflowRuleInput,
   type UpdateWorkflowRuleInput,
 } from "./validation";
+export {
+  buildWorkflowEvaluationContext,
+  extractProjectAndControlIds,
+  type EvaluationContextDeps,
+} from "./evaluation-context";
+export {
+  createWorkflowActionExecutors,
+  type WorkflowActionDeps,
+} from "./action-executors";

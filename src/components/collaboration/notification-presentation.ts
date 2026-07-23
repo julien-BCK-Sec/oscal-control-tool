@@ -19,6 +19,7 @@ const EVENT_TYPE_LABELS: Record<NotificationEventType, string> = {
   assignment_reassigned: "Reassignment",
   assignment_completed: "Assignment completed",
   assignment_removed: "Assignment removed",
+  workflow_triggered: "Workflow",
 };
 
 const PREVIEW_MAX_LENGTH = 140;

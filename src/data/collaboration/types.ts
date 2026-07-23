@@ -67,6 +67,7 @@ export const NOTIFICATION_EVENT_TYPES = [
   "assignment_reassigned",
   "assignment_completed",
   "assignment_removed",
+  "workflow_triggered",
 ] as const;
 
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
@@ -74,6 +75,7 @@ export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 export const NOTIFICATION_RELATED_OBJECT_TYPES = [
   "comment",
   "assignment",
+  "workflow_rule",
 ] as const;
 
 export type NotificationRelatedObjectType =

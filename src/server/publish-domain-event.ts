@@ -14,6 +14,11 @@ export async function publishDomainEvent(
   publisher: DomainEventPublisher = getSharedDomainEventRuntime().publisher,
 ): Promise<void> {
   try {
+    // Workflow engine subscribes lazily so business publishers stay unaware.
+    const { ensureWorkflowEngineSubscribed } = await import(
+      "@/workflow/runtime"
+    );
+    ensureWorkflowEngineSubscribed();
     await publisher.publish(event);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
