@@ -5,6 +5,7 @@ import { getSessionUser, resolveOrgContext } from "@/auth/context";
 import { can } from "@/authz/authorize";
 import { listTeam } from "@/server/authorized-organizations";
 import { TeamManagement } from "@/components/organizations/TeamManagement";
+import { OrgAdminNav } from "@/components/organizations/OrgAdminNav";
 
 export const dynamic = "force-dynamic";
 
@@ -41,12 +42,17 @@ export default async function TeamSettingsPage({
   ]);
 
   return (
-    <TeamManagement
-      organizationId={orgId}
-      organizationName={organization?.name ?? "your organization"}
-      currentUserId={user.id}
-      members={team.members}
-      invitations={team.invitations}
-    />
+    <div>
+      <div className="mx-auto max-w-3xl px-4 pt-8">
+        <OrgAdminNav organizationId={orgId} current="team" />
+      </div>
+      <TeamManagement
+        organizationId={orgId}
+        organizationName={organization?.name ?? "your organization"}
+        currentUserId={user.id}
+        members={team.members}
+        invitations={team.invitations}
+      />
+    </div>
   );
 }

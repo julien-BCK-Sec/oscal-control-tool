@@ -249,6 +249,12 @@ function AccountBar({ account }: { account: ProjectsHomeAccount }) {
       >
         Team
       </Link>
+      <Link
+        href={`/organizations/${account.organizationId}/workflows`}
+        className="underline underline-offset-2 hover:text-foreground"
+      >
+        Workflows
+      </Link>
     </div>
   );
 }
