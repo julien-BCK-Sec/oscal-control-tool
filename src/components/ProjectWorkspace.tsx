@@ -21,11 +21,13 @@ import {
   restoreSnapshotAction,
   saveProjectAction,
 } from "@/app/actions/projects";
-import { upsertControlRecordsAction } from "@/app/actions/control-records";
+import { upsertControlRecordsAction, listControlRecordsAction } from "@/app/actions/control-records";
+import { notifyNotificationsChanged } from "@/components/collaboration/notifications-changed";
 import type { ControlImplementation } from "@/data/implementation";
 import {
   controlRecordsToFieldMap,
   controlRecordsToReviewStatusMap,
+  DEFAULT_CONTROL_RECORD_FIELDS,
   type ControlRecord,
   type ControlRecordFields,
   type ControlReviewStatus,
@@ -404,6 +406,59 @@ export function ProjectWorkspace({
     });
   }
 
+  /**
+   * After collaboration mutations, workflows may have changed
+   * implementationStatus / reviewDueDate in the database. Sync those fields
+   * into client state without clobbering other local metadata edits.
+   */
+  async function syncWorkflowMutableControlFields(): Promise<void> {
+    try {
+      const records = await listControlRecordsAction(projectId);
+      if (!mountedRef.current) {
+        return;
+      }
+      setControlRecords((prev) => {
+        const next: Record<string, ControlRecordFields> = { ...prev };
+        for (const record of records) {
+          const existing = next[record.controlId] ?? {
+            ...DEFAULT_CONTROL_RECORD_FIELDS,
+          };
+          next[record.controlId] = {
+            ...existing,
+            implementationStatus: record.implementationStatus,
+            reviewDueDate: record.reviewDueDate,
+          };
+        }
+        workingCopyRef.current = {
+          ...workingCopyRef.current,
+          controlRecords: next,
+        };
+        // Keep saved baseline aligned for workflow-owned fields so autosave
+        // does not immediately overwrite the server with stale values.
+        const savedRecords = {
+          ...savedCopyRef.current.controlRecords,
+        };
+        for (const record of records) {
+          const existing = savedRecords[record.controlId] ?? {
+            ...DEFAULT_CONTROL_RECORD_FIELDS,
+          };
+          savedRecords[record.controlId] = {
+            ...existing,
+            implementationStatus: record.implementationStatus,
+            reviewDueDate: record.reviewDueDate,
+          };
+        }
+        savedCopyRef.current = {
+          ...savedCopyRef.current,
+          controlRecords: savedRecords,
+        };
+        return next;
+      });
+    } catch {
+      // Best-effort sync; user can still hard-refresh.
+    }
+  }
+
   function undo() {
     if (typingGroupRef.current) {
       clearTimeout(typingGroupRef.current);
@@ -704,9 +759,11 @@ export function ProjectWorkspace({
             controlReviewStatuses={controlReviewStatuses}
             onControlReviewStatusesChange={setControlReviewStatuses}
             activityRefreshToken={activityRefreshToken}
-            onActivityRefresh={() =>
-              setActivityRefreshToken((token) => token + 1)
-            }
+            onActivityRefresh={() => {
+              setActivityRefreshToken((token) => token + 1);
+              notifyNotificationsChanged();
+              void syncWorkflowMutableControlFields();
+            }}
             focusRequest={controlsFocus}
             onFocusRequestHandled={() => setControlsFocus(null)}
           />

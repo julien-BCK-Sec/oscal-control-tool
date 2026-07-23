@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   deleteWorkflowRuleAction,
   setWorkflowRuleEnabledAction,
@@ -21,17 +21,36 @@ export type WorkflowRuleListProps = {
   organizationId: string;
   organizationName: string;
   rules: WorkflowRule[];
+  /** Optional flash notice from create/edit redirects. */
+  notice?: "created" | "updated" | null;
 };
 
 export function WorkflowRuleList({
   organizationId,
   organizationName,
   rules,
+  notice = null,
 }: WorkflowRuleListProps) {
   const router = useRouter();
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(() => {
+    if (notice === "created") {
+      return "Workflow created successfully.";
+    }
+    if (notice === "updated") {
+      return "Workflow saved successfully.";
+    }
+    return null;
+  });
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (!notice) {
+      return;
+    }
+    // Clear the query string so refresh does not repeat the toast.
+    router.replace(`/organizations/${organizationId}/workflows`);
+  }, [notice, organizationId, router]);
 
   function toggleEnabled(rule: WorkflowRule) {
     setMessage(null);

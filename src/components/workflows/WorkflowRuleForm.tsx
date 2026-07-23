@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 import {
   createWorkflowRuleAction,
@@ -15,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/design-system/card/Card";
+import { WorkflowBackLink } from "@/components/workflows/WorkflowBackLink";
 import type { WorkflowAction, WorkflowCondition, WorkflowRule } from "@/workflow/types";
 import {
   ASSIGNMENT_ROLE_OPTIONS,
@@ -187,7 +187,6 @@ export function WorkflowRuleForm({
   mode,
   initial,
 }: WorkflowRuleFormProps) {
-  const router = useRouter();
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [enabled, setEnabled] = useState(initial?.enabled ?? true);
@@ -207,11 +206,13 @@ export function WorkflowRuleForm({
         .filter((a): a is ActionDraft => a !== null) ?? [emptyAction()],
   );
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function submit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    setSuccess(null);
     const payload = {
       name,
       description: description.trim() || null,
@@ -236,22 +237,23 @@ export function WorkflowRuleForm({
         setError(result.message);
         return;
       }
-      router.push(`/organizations/${organizationId}/workflows`);
-      router.refresh();
+      const notice = mode === "create" ? "created" : "updated";
+      setSuccess(
+        mode === "create"
+          ? "Workflow created successfully."
+          : "Workflow saved successfully.",
+      );
+      // Prefer hard navigation so the list always loads fresh server data.
+      window.location.assign(
+        `/organizations/${organizationId}/workflows?notice=${notice}`,
+      );
     });
   }
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10">
       <header>
-        <p className="text-sm text-text-secondary">
-          <Link
-            href={`/organizations/${organizationId}/workflows`}
-            className="underline underline-offset-2 hover:text-foreground"
-          >
-            Workflows
-          </Link>
-        </p>
+        <WorkflowBackLink organizationId={organizationId} />
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
           {mode === "create" ? "Create workflow" : "Edit workflow"}
         </h1>
@@ -261,6 +263,11 @@ export function WorkflowRuleForm({
         </p>
       </header>
 
+      {success ? (
+        <p role="status" className="text-sm text-success">
+          {success}
+        </p>
+      ) : null}
       {error ? (
         <p role="alert" className="text-sm text-danger">
           {error}

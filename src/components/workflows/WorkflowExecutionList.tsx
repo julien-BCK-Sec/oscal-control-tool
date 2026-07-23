@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/design-system/card/Card";
+import { WorkflowBackLink } from "@/components/workflows/WorkflowBackLink";
 import type { WorkflowExecution } from "@/persistence/workflow-repository";
 
 export type WorkflowExecutionListProps = {
@@ -36,14 +37,8 @@ export function WorkflowExecutionList({
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10">
       <header>
-        <p className="text-sm text-text-secondary">
-          <Link
-            href={`/organizations/${organizationId}/workflows`}
-            className="underline underline-offset-2 hover:text-foreground"
-          >
-            Workflows
-          </Link>
-          {" / "}
+        <WorkflowBackLink organizationId={organizationId} />
+        <p className="mt-2 text-sm text-text-secondary">
           <Link
             href={`/organizations/${organizationId}/workflows/${ruleId}`}
             className="underline underline-offset-2 hover:text-foreground"

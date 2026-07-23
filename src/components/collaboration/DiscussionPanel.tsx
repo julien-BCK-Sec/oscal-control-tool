@@ -17,6 +17,7 @@ import { Button } from "@/components/design-system/button/Button";
 import { SidebarCard } from "@/components/controlBrowser/SidebarCard";
 import { Stack } from "@/components/design-system/layout/primitives";
 import { formatControlActivityTimestamp } from "@/data/control-activity";
+import { notifyNotificationsChanged } from "@/components/collaboration/notifications-changed";
 
 export type DiscussionPanelProps = {
   projectId: string;
@@ -280,6 +281,7 @@ export function DiscussionPanel({
       setEditingId(null);
       setError(null);
       onActivity?.();
+      notifyNotificationsChanged();
       reload();
     });
   }
@@ -335,6 +337,7 @@ export function DiscussionPanel({
                       return;
                     }
                     onActivity?.();
+                    notifyNotificationsChanged();
                     reload();
                   });
                 }}
@@ -349,6 +352,7 @@ export function DiscussionPanel({
                       return;
                     }
                     onActivity?.();
+                    notifyNotificationsChanged();
                     reload();
                   });
                 }}
@@ -363,6 +367,7 @@ export function DiscussionPanel({
                       return;
                     }
                     onActivity?.();
+                    notifyNotificationsChanged();
                     reload();
                   });
                 }}

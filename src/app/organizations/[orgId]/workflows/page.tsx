@@ -14,10 +14,15 @@ export const metadata = { title: "Workflows" };
 
 export default async function WorkflowsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ orgId: string }>;
+  searchParams: Promise<{ notice?: string }>;
 }) {
   const { orgId } = await params;
+  const { notice: noticeRaw } = await searchParams;
+  const notice =
+    noticeRaw === "created" || noticeRaw === "updated" ? noticeRaw : null;
 
   const user = await getSessionUser();
   if (!user) {
@@ -53,6 +58,7 @@ export default async function WorkflowsPage({
         organizationId={orgId}
         organizationName={organization?.name ?? "your organization"}
         rules={rules}
+        notice={notice}
       />
     </div>
   );

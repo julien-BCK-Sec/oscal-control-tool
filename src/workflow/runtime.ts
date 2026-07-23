@@ -33,6 +33,10 @@ import { createWorkflowEngine } from "./engine";
 import { buildWorkflowEvaluationContext } from "./evaluation-context";
 import { isWorkflowCascadeSuppressed } from "./loop-guard";
 import { createWorkflowRegistries } from "./registries";
+import {
+  revalidateProjectViews,
+  revalidateWorkflowAdmin,
+} from "@/server/revalidate-views";
 
 export const WORKFLOW_ENGINE_HANDLER_ID = "workflow-engine";
 
@@ -115,6 +119,8 @@ export async function processWorkflowDomainEvent(
 
   const results = await engine.handleEvent(event, rules, context);
   const finishedAt = new Date().toISOString();
+  const mutatedProjectIds = new Set<string>();
+  let recordedAny = false;
 
   for (const result of results) {
     if (result.status === "duplicate") {
@@ -140,6 +146,21 @@ export async function processWorkflowDomainEvent(
       startedAt,
       finishedAt,
     });
+    recordedAny = true;
+
+    const actionMutated = result.detail.actionResults.some(
+      (action) => action.status === "executed",
+    );
+    if (actionMutated && result.detail.projectId) {
+      mutatedProjectIds.add(result.detail.projectId);
+    }
+  }
+
+  if (recordedAny) {
+    revalidateWorkflowAdmin(event.metadata.organizationId);
+  }
+  for (const projectId of mutatedProjectIds) {
+    revalidateProjectViews(projectId);
   }
 }
 

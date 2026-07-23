@@ -13,6 +13,7 @@ import {
   setWorkflowRuleEnabledForOrg,
   updateWorkflowRuleForOrg,
 } from "@/server/authorized-workflows";
+import { revalidateWorkflowAdmin } from "@/server/revalidate-views";
 import type { WorkflowExecution } from "@/persistence/workflow-repository";
 import type { WorkflowRule } from "@/workflow/types";
 
@@ -157,9 +158,11 @@ export async function createWorkflowRuleAction(input: {
     conditions: input.conditions,
     actions: input.actions,
   });
-  return result.ok
-    ? { ok: true, rule: result.rule }
-    : { ok: false, message: result.message };
+  if (result.ok) {
+    revalidateWorkflowAdmin(organizationId);
+    return { ok: true, rule: result.rule };
+  }
+  return { ok: false, message: result.message };
 }
 
 export async function updateWorkflowRuleAction(input: {
@@ -199,9 +202,11 @@ export async function updateWorkflowRuleAction(input: {
     conditions: input.conditions,
     actions: input.actions,
   });
-  return result.ok
-    ? { ok: true, rule: result.rule }
-    : { ok: false, message: result.message };
+  if (result.ok) {
+    revalidateWorkflowAdmin(organizationId);
+    return { ok: true, rule: result.rule };
+  }
+  return { ok: false, message: result.message };
 }
 
 export async function setWorkflowRuleEnabledAction(input: {
@@ -237,9 +242,11 @@ export async function setWorkflowRuleEnabledAction(input: {
     ruleId,
     input.enabled,
   );
-  return result.ok
-    ? { ok: true, rule: result.rule }
-    : { ok: false, message: result.message };
+  if (result.ok) {
+    revalidateWorkflowAdmin(organizationId);
+    return { ok: true, rule: result.rule };
+  }
+  return { ok: false, message: result.message };
 }
 
 export async function deleteWorkflowRuleAction(input: {
@@ -266,7 +273,11 @@ export async function deleteWorkflowRuleAction(input: {
   }
   const repo = await getWorkflowRepository();
   const result = await deleteWorkflowRuleForOrg(repo, resolved.ctx, ruleId);
-  return result.ok ? { ok: true } : { ok: false, message: result.message };
+  if (result.ok) {
+    revalidateWorkflowAdmin(organizationId);
+    return { ok: true };
+  }
+  return { ok: false, message: result.message };
 }
 
 export async function listWorkflowExecutionsAction(input: {
