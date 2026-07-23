@@ -2,7 +2,8 @@
 
 > This milestone builds directly upon Platform Foundation and
 > establishes first-class collaboration within Control Freak. It
-> intentionally excludes workflow automation (Milestone 02B).
+> intentionally excludes workflow automation (later Milestone 02C) and
+> domain event infrastructure (Milestone 02B).
 
 ## Status
 
@@ -324,7 +325,7 @@ Implement this milestone exactly as written.
 -   Keep business logic out of UI components.
 -   Run focused tests after each work package.
 -   Update documentation continuously.
--   Do not implement Milestone 02B.
+-   Do not implement Milestone 02B (domain events) or 02C (workflow automation).
 -   Do not merge into main.
 -   Do not deploy.
 -   Finish with the completion report required by AGENTS.md.

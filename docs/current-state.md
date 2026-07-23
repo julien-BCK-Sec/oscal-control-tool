@@ -5,8 +5,8 @@ Date: 2026-07-22
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application built around
-OSCAL. Milestone 02A (Collaboration) adds threaded control discussions,
-mentions, in-app notifications, and assignments on top of Platform Foundation
+OSCAL. Milestone 02B (Domain Event Infrastructure) adds a typed in-process
+event bus on top of Collaboration (Milestone 02A) and Platform Foundation
 (PostgreSQL, Better Auth, organizations, RBAC, invite-only access).
 
 The application currently provides:
@@ -14,13 +14,16 @@ The application currently provides:
 - Organization-owned project management
 - Better Auth email/password authentication with email verification
 - Role-based authorization (`organization_admin`, `project_manager`, `author`,
-  `reviewer`, `viewer`) including collaboration permissions
+  `reviewer`, `viewer`) including collaboration and event-diagnostics
+  permissions
 - Organization invitations and team management
 - Control authoring
 - Review workflow
 - Threaded control discussions (soft delete, resolution, @mentions)
 - Control assignments (owner / reviewer roles)
 - In-app notification center
+- Domain event publication after successful authorized mutations
+- Process-local domain event diagnostics (organization admin)
 - Operational metadata and activity history (including collaboration events)
 - Version history
 - OSCAL SSP export and schema validation
@@ -56,7 +59,9 @@ Current stack:
 8. Collaboration repositories/services → PostgreSQL (`comments`,
    `comment_mentions`, `assignments`, `notifications`)
 9. Centralized Control Freak RBAC (`src/authz`) before repository access
-10. OSCAL exporter + AJV validation
+10. Domain events (`DomainEventPublisher` → `DomainEventBus`) after successful
+    mutations (ADR-021)
+11. OSCAL exporter + AJV validation
 
 Keep these concerns separate. Framework content is never stored in the database.
 Authorization is enforced server-side; UI hiding is not authorization.
@@ -111,6 +116,17 @@ importer; projects use the pinned NIST Moderate baseline.
 - Notification deep links: `/projects/{id}?view=controls&control={id}&comment={id}`
   (authorization still enforced by project/org membership; deleted comments show
   a graceful fallback in the discussion panel)
+
+## Domain events (Milestone 02B)
+
+- Contracts in `src/domain/events` with `<Aggregate><Action>` event names
+- `DomainEventPublisher` and in-process `DomainEventBus` (ADR-021)
+- Authorized wrappers publish after successful project/control/discussion/
+  assignment/notification operations
+- Notifications and ControlActivity remain direct writes (not handler-driven yet)
+- Handler failures are logged and isolated from originating mutations
+- Process-local diagnostics via `event.diagnostics.read` (organization admin)
+- No durable event store, retries, workers, or external broker in this milestone
 ## Current standards position
 
 - OSCAL version: 1.2.2
@@ -175,17 +191,19 @@ cutover only.
 - Snapshot merge UX deferred (reload-latest on conflict)
 - Evidence management not implemented
 - Email / Slack / Teams notifications out of scope (in-app only)
-- Workflow automation deferred to Milestone 02B
+- Workflow automation deferred to Milestone 02C
+- Durable domain event store / outbox / external broker not implemented
 - Named version restore does not roll back ControlRecord metadata, activity,
   or collaboration rows
 - Per-control UI action hiding is coarse; server authorization is authoritative
 
 ## Next approved milestone
 
-Milestone 02B – Workflow Automation (not started). Word/PDF export and later
+Milestone 02C – Workflow Automation (not started). Word/PDF export and later
 framework expansions remain later roadmap items. See `docs/roadmap.md`.
 
-Collaboration (Milestone 02A) is implemented on `feat/collaboration-02a`.
+Domain Event Infrastructure (Milestone 02B) is implemented on
+`feat/domain-events-02b`.
 
 ## Required verification for each milestone
 

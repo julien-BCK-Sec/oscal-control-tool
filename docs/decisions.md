@@ -427,3 +427,44 @@ Reason:
 
 Date:
 2026-07-22
+
+## ADR-021
+
+Decision:
+Introduce an in-process domain event infrastructure (Milestone 02B) with these
+boundaries:
+
+- Distinct contracts: `DomainEvent`, `DomainEventPublisher`, `DomainEventBus`,
+  and `DomainEventHandler`.
+- The central dispatcher is named `DomainEventBus`.
+- Event type names use `<Aggregate><Action>` (for example `DiscussionCreated`).
+- Payloads are immutable plain DTOs (no ORM entities or services).
+- Business services and authorized wrappers publish via `DomainEventPublisher`
+  after successful operations and never invoke handlers directly.
+- Existing notification creation and ControlActivity writes remain direct side
+  effects in this milestone; they are not moved onto event handlers yet.
+- Handler failures are logged and isolated; they must not affect the originating
+  business operation.
+- No durable `domain_events` / handler-execution tables, retries, workers,
+  schedulers, or external brokers in this milestone.
+- Process-local diagnostics (recent events and failed handler runs) are
+  organization-scoped and readable only with `event.diagnostics.read`
+  (organization admin).
+- Interfaces remain transport-agnostic so Milestone 02C (Workflow Automation)
+  can subscribe to `DomainEventBus`, and a future outbox/broker can replace the
+  in-process transport without changing publisher call sites.
+
+Honest delivery limits for the in-process bus:
+
+- Same-process dispatch only after successful publication.
+- No restart-safe retry queue.
+- No cross-instance ordering or horizontal fan-out guarantees.
+
+Reason:
+- Provides a reusable event foundation for workflow automation without claiming
+  broker-class guarantees the current runtime cannot provide.
+- Preserves collaboration behaviour and minimizes regression risk.
+- Keeps a clear upgrade path to durable persistence and external transport.
+
+Date:
+2026-07-22

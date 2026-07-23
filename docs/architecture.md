@@ -78,6 +78,14 @@ Milestone 02A capabilities:
 - Discussion / assignment / notification services over PostgreSQL repositories
 - Collaboration events on the shared ControlActivity stream
 
+Milestone 02B capabilities:
+
+- Domain event contracts and catalog (`src/domain/events`, ADR-021)
+- `DomainEventPublisher` + in-process `DomainEventBus` + handlers
+- Post-success publication from authorized wrappers (notifications and
+  ControlActivity remain direct writes in this milestone)
+- Process-local, org-admin diagnostics (`event.diagnostics.read`)
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 
@@ -86,7 +94,8 @@ Later capabilities remain independent of UI and persistence:
 - Email / external notifications
 - AI services
 - Evidence processing
-- Background jobs / workflow automation (Milestone 02B)
+- Workflow automation that subscribes to DomainEventBus (Milestone 02C)
+- Durable event store / outbox / external broker
 
 ---
 
@@ -176,6 +185,10 @@ Domain / OSCAL export as needed
 Collaboration mutations follow the same path through authorized wrappers in
 `src/server/` (discussions, assignments, notifications) before persistence.
 
+After a successful mutation, authorized wrappers also publish domain events via
+`DomainEventPublisher` → in-process `DomainEventBus` (ADR-021). Handlers run
+independently; failures are logged and do not roll back the business write.
+
 ---
 
 ## Architectural Principles
@@ -189,3 +202,7 @@ Collaboration mutations follow the same path through authorized wrappers in
 - Keep application metadata separate from compliance content.
 - Fail closed on missing authentication, membership, or permission.
 - Never trust client-supplied organization, role, or membership claims.
+- Publish domain events after successful business operations; never invoke
+  subscribers from business services.
+- Do not claim durable retry, cross-instance ordering, or broker delivery for
+  the in-process DomainEventBus.
