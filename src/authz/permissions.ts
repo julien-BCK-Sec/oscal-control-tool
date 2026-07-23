@@ -55,7 +55,10 @@ export type Permission =
   | "notification.read"
   | "notification.manage_own"
   /** Domain event diagnostics (Milestone 02B) — organization admin only. */
-  | "event.diagnostics.read";
+  | "event.diagnostics.read"
+  /** Workflow automation (Milestone 02C) — organization admin only. */
+  | "workflow.read"
+  | "workflow.manage";
 
 /**
  * Role → permissions. Encoded as arrays for readability and frozen into sets
@@ -98,6 +101,8 @@ const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
     "review.reopen",
     ...COLLABORATION_MODERATOR,
     "event.diagnostics.read",
+    "workflow.read",
+    "workflow.manage",
   ],
   project_manager: [
     "project.create",

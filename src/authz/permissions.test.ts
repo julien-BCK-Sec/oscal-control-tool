@@ -38,6 +38,8 @@ describe("RBAC permission matrix", () => {
       "notification.read",
       "notification.manage_own",
       "event.diagnostics.read",
+      "workflow.read",
+      "workflow.manage",
     ];
     for (const permission of all) {
       assert.equal(
@@ -110,6 +112,8 @@ describe("RBAC permission matrix", () => {
     assert.equal(roleHasPermission("project_manager", "org.manage_members"), false);
     assert.equal(roleHasPermission("project_manager", "org.invite"), false);
     assert.equal(roleHasPermission("project_manager", "event.diagnostics.read"), false);
+    assert.equal(roleHasPermission("project_manager", "workflow.read"), false);
+    assert.equal(roleHasPermission("project_manager", "workflow.manage"), false);
   });
 
   it("fails closed for unknown or missing roles", () => {
