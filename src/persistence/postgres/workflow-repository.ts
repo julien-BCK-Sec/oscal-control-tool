@@ -6,7 +6,6 @@ import type {
   WorkflowExecutionDetail,
   WorkflowRule,
   WorkflowRunStatus,
-  WorkflowTriggerType,
 } from "@/workflow/types";
 import { isWorkflowTriggerType } from "@/workflow/types";
 import {

@@ -3,7 +3,7 @@
 Approved plan for Workflow Automation, incorporating review amendments.
 Milestone requirements live in `02C-workflow-automation.md`.
 
-Status: in progress on `feat/workflow-automation-02c`
+Status: implemented on `feat/workflow-automation-02c`
 
 ---
 

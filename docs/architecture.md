@@ -86,6 +86,16 @@ Milestone 02B capabilities:
   ControlActivity remain direct writes in this milestone)
 - Process-local, org-admin diagnostics (`event.diagnostics.read`)
 
+Milestone 02C capabilities:
+
+- Workflow engine subscribes to `DomainEventBus` (ADR-023)
+- Pluggable trigger / condition / action registries (`src/workflow`)
+- Org-admin rule CRUD and execution history (`workflow.read` /
+  `workflow.manage`)
+- Synchronous evaluation with durable `workflow_rules` /
+  `workflow_executions` and no-cascade loop protection
+- See `docs/workflows.md`
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 
@@ -94,8 +104,8 @@ Later capabilities remain independent of UI and persistence:
 - Email / external notifications
 - AI services
 - Evidence processing
-- Workflow automation that subscribes to DomainEventBus (Milestone 02C)
 - Durable event store / outbox / external broker
+- Async / queued workflow execution, approvals, SLA timers
 
 ---
 
@@ -112,6 +122,7 @@ Examples:
 - CommentRepository
 - AssignmentRepository
 - NotificationRepository
+- WorkflowRepository
 
 Repositories isolate the database from business logic.
 
@@ -192,6 +203,8 @@ Collaboration mutations follow the same path through authorized wrappers in
 After a successful mutation, authorized wrappers also publish domain events via
 `DomainEventPublisher` → in-process `DomainEventBus` (ADR-021). Handlers run
 independently; failures are logged and do not roll back the business write.
+The Workflow Engine may subscribe and evaluate org-scoped rules without being
+invoked by business services (ADR-023).
 
 ---
 
@@ -212,3 +225,5 @@ independently; failures are logged and do not roll back the business write.
   subscribers from business services.
 - Do not claim durable retry, cross-instance ordering, or broker delivery for
   the in-process DomainEventBus.
+- Workflow automation must subscribe to domain events; business services must
+  never call the workflow engine directly (ADR-023).

@@ -4,7 +4,6 @@ import type {
   ConditionEvaluationResult,
   WorkflowCondition,
   WorkflowConditionType,
-  WorkflowEvaluationContext,
 } from "../types";
 import type {
   WorkflowConditionDefinition,

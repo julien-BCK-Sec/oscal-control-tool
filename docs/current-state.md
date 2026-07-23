@@ -5,17 +5,17 @@ Date: 2026-07-22
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application built around
-OSCAL. Milestone 02B (Domain Event Infrastructure) adds a typed in-process
-event bus on top of Collaboration (Milestone 02A) and Platform Foundation
-(PostgreSQL, Better Auth, organizations, RBAC, invite-only access).
+OSCAL. Milestone 02C (Workflow Automation) adds an event-driven workflow
+engine on top of Domain Events (02B), Collaboration (02A), and Platform
+Foundation (PostgreSQL, Better Auth, organizations, RBAC, invite-only access).
 
 The application currently provides:
 
 - Organization-owned project management
 - Better Auth email/password authentication with email verification
 - Role-based authorization (`organization_admin`, `project_manager`, `author`,
-  `reviewer`, `viewer`) including collaboration and event-diagnostics
-  permissions
+  `reviewer`, `viewer`) including collaboration, event-diagnostics, and
+  workflow permissions
 - Organization invitations and team management
 - Control authoring
 - Review workflow
@@ -24,6 +24,8 @@ The application currently provides:
 - In-app notification center
 - Domain event publication after successful authorized mutations
 - Process-local domain event diagnostics (organization admin)
+- Workflow automation rules that subscribe to the Domain Event Bus
+- Workflow execution history / diagnostics (organization admin)
 - Operational metadata and activity history (including collaboration events)
 - Version history
 - OSCAL SSP export and schema validation
@@ -62,7 +64,9 @@ Current stack:
 9. Centralized Control Freak RBAC (`src/authz`) before repository access
 10. Domain events (`DomainEventPublisher` → `DomainEventBus`) after successful
     mutations (ADR-021)
-11. OSCAL exporter + AJV validation
+11. Workflow engine subscribes to `DomainEventBus` (ADR-023); business services
+    never invoke workflows
+12. OSCAL exporter + AJV validation
 
 Keep these concerns separate. Framework content is never stored in the database.
 Authorization is enforced server-side; UI hiding is not authorization.
@@ -128,6 +132,20 @@ importer; projects use the pinned NIST Moderate baseline.
 - Handler failures are logged and isolated from originating mutations
 - Process-local diagnostics via `event.diagnostics.read` (organization admin)
 - No durable event store, retries, workers, or external broker in this milestone
+
+## Workflow automation (Milestone 02C)
+
+- Engine and registries in `src/workflow` (ADR-023); see `docs/workflows.md`
+- Subscribes to DomainEventBus after successful publishes; business services
+  never call workflows
+- Persistence: `workflow_rules` + `workflow_executions` (migration
+  `drizzle-pg/0004_*.sql`) with validated JSON for conditions/actions/detail
+- Admin UI: `/organizations/{orgId}/workflows` (list/create/edit/runs)
+- Permissions: `workflow.read` / `workflow.manage` (organization admin)
+- Synchronous execution; no-cascade loop protection
+- Priority/severity/tag catalog entries registered as unavailable extension
+  points (no ControlRecord schema for those fields yet)
+
 ## Current standards position
 
 - OSCAL version: 1.2.2
@@ -163,6 +181,7 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Implementation: Drizzle + `pg` under `src/persistence/postgres/`
 - Collaboration: `CommentRepository`, `AssignmentRepository`,
   `NotificationRepository`, `DiscussionService`, `AssignmentService`
+- Workflow: `WorkflowRepository` (`workflow_rules`, `workflow_executions`)
 - Server entry: `src/persistence/server.ts` (`server-only`) + authorized
   wrappers in `src/server/`
 - Database: `DATABASE_URL` (required in production)
@@ -171,9 +190,11 @@ Do not fetch standards files at runtime and do not use moving branches.
   On Ubuntu `docker.io`, also install `docker-compose-v2`.
 - Migrations: `drizzle-pg/` via `npm run db:migrate` (standalone scripts load
   `.env`, then `.env.local`; existing process env wins). Collaboration tables
-  are in `drizzle-pg/0003_demonic_moondragon.sql`.
+  are in `drizzle-pg/0003_demonic_moondragon.sql`; workflow tables in
+  `drizzle-pg/0004_redundant_paibok.sql`.
 - Routes: `/sign-in`, `/projects`, `/projects/[id]`,
-  `/organizations/[orgId]/settings`, `/invitations/[id]`
+  `/organizations/[orgId]/settings`, `/organizations/[orgId]/workflows`,
+  `/invitations/[id]`
 - ControlRecords / ControlActivity / collaboration tables remain operational
   metadata outside OSCAL and `project_json`
 
@@ -192,7 +213,10 @@ cutover only.
 - Snapshot merge UX deferred (reload-latest on conflict)
 - Evidence management not implemented
 - Email / Slack / Teams notifications out of scope (in-app only)
-- Workflow automation deferred to Milestone 02C
+- ControlRecord priority, severity, and tags not modeled (workflow catalog
+  entries exist but are unavailable)
+- Workflow execution is synchronous / in-process; no queues or retries
+- Workflows do not cascade (documented limitation)
 - Durable domain event store / outbox / external broker not implemented
 - Named version restore does not roll back ControlRecord metadata, activity,
   or collaboration rows
@@ -201,11 +225,11 @@ cutover only.
 
 ## Next approved milestone
 
-Milestone 02C – Workflow Automation (not started). Word/PDF export and later
-framework expansions remain later roadmap items. See `docs/roadmap.md`.
+Word/PDF export (and later framework expansions) remain later roadmap items.
+See `docs/roadmap.md`.
 
-Domain Event Infrastructure (Milestone 02B) is implemented on
-`feat/domain-events-02b`.
+Workflow Automation (Milestone 02C) is implemented on
+`feat/workflow-automation-02c`.
 
 ## Required verification for each milestone
 
