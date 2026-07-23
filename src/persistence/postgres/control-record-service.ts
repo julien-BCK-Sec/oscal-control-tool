@@ -162,6 +162,7 @@ async function upsertOneInTransaction(
         updatedAt: createdAt,
       },
       changed: true,
+      created: true,
       activityCount: 1,
     };
   }
@@ -173,6 +174,7 @@ async function upsertOneInTransaction(
     return {
       record: previous,
       changed: false,
+      created: false,
       activityCount: 0,
     };
   }
@@ -216,6 +218,7 @@ async function upsertOneInTransaction(
       updatedAt,
     },
     changed: true,
+    created: false,
     activityCount: activityInputs.length,
   };
 }

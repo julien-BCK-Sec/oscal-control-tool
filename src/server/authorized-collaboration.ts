@@ -12,7 +12,13 @@ import {
   type OrgContext,
 } from "@/authz/authorize";
 import { roleHasPermission } from "@/authz/permissions";
+import {
+  discussionCreatedEvent,
+  discussionResolvedEvent,
+  discussionUpdatedEvent,
+} from "@/domain/events";
 import { emitDiscussionNotifications } from "./discussion-notifications";
+import { publishDomainEvent } from "./publish-domain-event";
 
 /**
  * Authorized, tenant-scoped discussion operations (Milestone 02A WP2/WP8).
@@ -128,6 +134,17 @@ export async function createDiscussionForOrg(
     mentionedUserIds: result.mentionedUserIds,
     isNew: true,
   });
+  await publishDomainEvent(
+    discussionCreatedEvent({
+      organizationId: ctx.organizationId,
+      actorId: ctx.userId,
+      projectId: result.comment.projectId,
+      controlId: result.comment.controlId,
+      commentId: result.comment.id,
+      parentCommentId: result.comment.parentCommentId,
+      mentionedUserIds: result.mentionedUserIds,
+    }),
+  );
   return {
     ok: true,
     comment: result.comment,
@@ -180,6 +197,16 @@ export async function editDiscussionForOrg(
     mentionedUserIds: result.mentionedUserIds,
     isNew: false,
   });
+  await publishDomainEvent(
+    discussionUpdatedEvent({
+      organizationId: ctx.organizationId,
+      actorId: ctx.userId,
+      projectId: result.comment.projectId,
+      controlId: result.comment.controlId,
+      commentId: result.comment.id,
+      mentionedUserIds: result.mentionedUserIds,
+    }),
+  );
   return {
     ok: true,
     comment: result.comment,
@@ -311,6 +338,16 @@ export async function resolveDiscussionForOrg(
     isNew: false,
     resolved: true,
   });
+  await publishDomainEvent(
+    discussionResolvedEvent({
+      organizationId: ctx.organizationId,
+      actorId: ctx.userId,
+      projectId: result.comment.projectId,
+      controlId: result.comment.controlId,
+      commentId: result.comment.id,
+      resolved: true,
+    }),
+  );
   return {
     ok: true,
     comment: result.comment,

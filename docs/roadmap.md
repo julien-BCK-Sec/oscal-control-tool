@@ -20,12 +20,21 @@ Threaded control discussions, mentions, in-app notifications, assignments,
 collaboration activity history, and tenant-aware authorization. See
 `docs/milestones/02A-collaboration.md` and ADR-020.
 
+**Milestone 02B – Domain Event Infrastructure** (implemented on
+`feat/domain-events-02b`)
+
+Strongly typed domain events, `DomainEventPublisher`, in-process
+`DomainEventBus`, handler isolation, process-local diagnostics, and
+post-success publication from authorized mutations. See
+`docs/milestones/02B-domain-event-infra.md` and ADR-021.
+
 ## Next
 
-**Milestone 02B – Workflow Automation**
+**Milestone 02C – Workflow Automation**
 
-Automated operational workflows built on collaboration and review foundations.
-See future milestone specs under `docs/milestones/` when published.
+Automated operational workflows that subscribe to the domain event bus built
+in Milestone 02B. See future milestone specs under `docs/milestones/` when
+published.
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
 
@@ -33,6 +42,7 @@ See future milestone specs under `docs/milestones/` when published.
 
 - Evidence management
 - Email / Slack / Teams notifications
+- Durable domain event store / outbox / external broker
 - Additional compliance frameworks
 - AI-assisted authoring
 - Horizontal scaling review beyond single-instance defaults

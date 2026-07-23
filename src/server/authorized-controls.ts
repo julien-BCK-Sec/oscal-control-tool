@@ -14,6 +14,11 @@ import type {
 } from "@/data/control-record";
 import { requirePermission, type OrgContext } from "@/authz/authorize";
 import { reviewActionPermission } from "@/authz/permissions";
+import {
+  controlCreatedEvent,
+  controlUpdatedEvent,
+} from "@/domain/events";
+import { publishDomainEvents } from "./publish-domain-event";
 
 /**
  * Authorized, tenant-scoped control-record and review-workflow operations
@@ -62,6 +67,27 @@ export async function upsertControlRecordsForOrg(
     return { ok: false, reason: "not-found", message: "Project not found." };
   }
   const results = await service.upsertManyWithActivity(projectId, inputs, actor);
+  await publishDomainEvents(
+    results
+      .filter((result) => result.changed)
+      .map((result) =>
+        result.created
+          ? controlCreatedEvent({
+              organizationId: ctx.organizationId,
+              actorId: ctx.userId,
+              projectId,
+              controlId: result.record.controlId,
+              controlRecordId: result.record.id,
+            })
+          : controlUpdatedEvent({
+              organizationId: ctx.organizationId,
+              actorId: ctx.userId,
+              projectId,
+              controlId: result.record.controlId,
+              controlRecordId: result.record.id,
+            }),
+      ),
+  );
   return { ok: true, records: results.map((result) => result.record) };
 }
 

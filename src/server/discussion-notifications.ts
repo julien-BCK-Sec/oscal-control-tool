@@ -2,10 +2,13 @@ import type { NotificationService } from "@/persistence/notification-service";
 import type { DiscussionService } from "@/persistence/discussion-service";
 import type { Comment } from "@/data/collaboration";
 import type { OrgContext } from "@/authz/authorize";
+import { notificationCreatedEvent } from "@/domain/events";
+import { publishDomainEvent } from "./publish-domain-event";
 
 /**
  * Emit in-app notifications for discussion events. Never notifies the actor.
  * Duplicate prevention is handled by the notification repository.
+ * Domain events are published in addition to direct notification writes.
  */
 export async function emitDiscussionNotifications(input: {
   notificationService: NotificationService;
@@ -28,11 +31,30 @@ export async function emitDiscussionNotifications(input: {
   const actorUserId = ctx.userId;
   const organizationId = ctx.organizationId;
 
+  async function notifyAndPublish(
+    createInput: Parameters<NotificationService["notify"]>[0],
+  ): Promise<void> {
+    const notification = await notificationService.notify(createInput);
+    await publishDomainEvent(
+      notificationCreatedEvent({
+        organizationId: notification.organizationId,
+        actorId: actorUserId,
+        notificationId: notification.id,
+        recipientUserId: notification.recipientUserId,
+        notificationEventType: notification.eventType,
+        relatedObjectType: notification.relatedObjectType,
+        relatedObjectId: notification.relatedObjectId,
+        projectId: notification.projectId,
+        controlId: notification.controlId,
+      }),
+    );
+  }
+
   for (const recipientUserId of mentionedUserIds) {
     if (recipientUserId === actorUserId) {
       continue;
     }
-    await notificationService.notify({
+    await notifyAndPublish({
       organizationId,
       recipientUserId,
       actorUserId,
@@ -51,7 +73,7 @@ export async function emitDiscussionNotifications(input: {
       comment.parentCommentId,
     );
     if (parent && parent.authorId !== actorUserId) {
-      await notificationService.notify({
+      await notifyAndPublish({
         organizationId,
         recipientUserId: parent.authorId,
         actorUserId,
@@ -78,7 +100,7 @@ export async function emitDiscussionNotifications(input: {
       root = parent;
     }
     if (root.authorId !== actorUserId) {
-      await notificationService.notify({
+      await notifyAndPublish({
         organizationId,
         recipientUserId: root.authorId,
         actorUserId,

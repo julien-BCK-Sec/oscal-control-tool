@@ -11,6 +11,11 @@ import type {
   StoredProject,
 } from "@/persistence/types";
 import { requirePermission, type OrgContext } from "@/authz/authorize";
+import {
+  projectCreatedEvent,
+  projectUpdatedEvent,
+} from "@/domain/events";
+import { publishDomainEvent } from "./publish-domain-event";
 
 /**
  * Authorized, tenant-scoped project operations (Milestone 1 WP3/WP5).
@@ -62,7 +67,20 @@ export async function createProjectForOrg(
   input: Omit<CreateProjectInput, "organizationId">,
 ): Promise<StoredProject> {
   requirePermission(ctx, ctx.organizationId, "project.create");
-  return repo.create({ ...input, organizationId: ctx.organizationId });
+  const project = await repo.create({
+    ...input,
+    organizationId: ctx.organizationId,
+  });
+  await publishDomainEvent(
+    projectCreatedEvent({
+      organizationId: ctx.organizationId,
+      actorId: ctx.userId,
+      projectId: project.id,
+      name: project.name,
+      frameworkId: project.frameworkId,
+    }),
+  );
+  return project;
 }
 
 export async function loadProjectForOrg(
@@ -84,7 +102,19 @@ export async function saveProjectForOrg(
   if (!owned.ok) {
     return { ok: false, reason: "not-found", message: "Project not found." };
   }
-  return repo.save(input);
+  const result = await repo.save(input);
+  if (result.ok) {
+    await publishDomainEvent(
+      projectUpdatedEvent({
+        organizationId: ctx.organizationId,
+        actorId: ctx.userId,
+        projectId: result.project.id,
+        name: result.project.name,
+        revision: result.project.revision,
+      }),
+    );
+  }
+  return result;
 }
 
 export async function renameProjectForOrg(
@@ -98,7 +128,19 @@ export async function renameProjectForOrg(
   if (!owned.ok) {
     return null;
   }
-  return repo.rename(projectId, name);
+  const project = await repo.rename(projectId, name);
+  if (project) {
+    await publishDomainEvent(
+      projectUpdatedEvent({
+        organizationId: ctx.organizationId,
+        actorId: ctx.userId,
+        projectId: project.id,
+        name: project.name,
+        revision: project.revision,
+      }),
+    );
+  }
+  return project;
 }
 
 export async function deleteProjectForOrg(
