@@ -238,21 +238,17 @@ export function ProjectsHome({
 }
 
 function AccountBar({ account }: { account: ProjectsHomeAccount }) {
+  if (!account.canManageMembers) {
+    return null;
+  }
   return (
     <div className="flex flex-wrap items-center justify-end gap-3 text-sm text-text-secondary">
-      <span className="min-w-0 truncate">
-        <span className="font-medium text-foreground">{account.name}</span>
-        {" · "}
-        {account.organizationName}
-      </span>
-      {account.canManageMembers ? (
-        <Link
-          href={`/organizations/${account.organizationId}/settings`}
-          className="underline underline-offset-2 hover:text-foreground"
-        >
-          Team
-        </Link>
-      ) : null}
+      <Link
+        href={`/organizations/${account.organizationId}/settings`}
+        className="underline underline-offset-2 hover:text-foreground"
+      >
+        Team
+      </Link>
     </div>
   );
 }

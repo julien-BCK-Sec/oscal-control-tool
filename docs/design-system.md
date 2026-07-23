@@ -122,7 +122,8 @@ into pages.
 ## Layout patterns
 
 - **ProductHeader** — brand lockup (sm+) / mark (mobile); optional context;
-  no fake account menus.
+  trailing actions via `AuthenticatedHeaderActions` (notifications + account
+  menu).
 - **Workspace** — ProductHeader + WorkspaceHeader (project name, tabs, undo) +
   tab panels.
 - **Control editor** — sticky control header; `SplitLayout` main (~70%) +

@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 
 export type ButtonVariant = "default" | "primary" | "danger";
 export type ButtonSize = "sm" | "md";
@@ -7,6 +7,7 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
   children: ReactNode;
+  ref?: Ref<HTMLButtonElement>;
 };
 
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
@@ -24,11 +25,13 @@ export function Button({
   className = "",
   type = "button",
   children,
+  ref,
   ...rest
 }: ButtonProps) {
   const sizeClass = size === "sm" ? "btn-sm" : "";
   return (
     <button
+      ref={ref}
       type={type}
       className={`${VARIANT_CLASS[variant]} ${sizeClass} ${className}`.trim()}
       {...rest}

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Brand } from "@/components/design-system/brand/Brand";
 
 export type ProductHeaderProps = {
-  /** Optional trailing actions (no fake account menus). */
+  /** Optional trailing actions (notifications, account menu, etc.). */
   actions?: ReactNode;
   /** Compact context line under / beside brand. */
   context?: ReactNode;
