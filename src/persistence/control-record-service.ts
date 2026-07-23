@@ -11,6 +11,8 @@ export type UpsertControlRecordWithActivityResult = {
   record: ControlRecord;
   /** True when the row or any activity was written. */
   changed: boolean;
+  /** True when this call inserted a new ControlRecord row. */
+  created: boolean;
   activityCount: number;
 };
 

@@ -10,6 +10,13 @@ import {
   type OrgContext,
 } from "@/authz/authorize";
 import { isAssignmentRole } from "@/data/collaboration";
+import {
+  assignmentCompletedEvent,
+  assignmentCreatedEvent,
+  controlAssignedEvent,
+  notificationCreatedEvent,
+} from "@/domain/events";
+import { publishDomainEvent, publishDomainEvents } from "./publish-domain-event";
 
 async function projectBelongsToOrg(
   projectRepo: ProjectRepository,
@@ -50,7 +57,7 @@ async function notifyAssignee(
   if (assignment.assigneeUserId === ctx.userId) {
     return;
   }
-  await notificationService.notify({
+  const notification = await notificationService.notify({
     organizationId: ctx.organizationId,
     recipientUserId: assignment.assigneeUserId,
     actorUserId: ctx.userId,
@@ -61,6 +68,19 @@ async function notifyAssignee(
     controlId: assignment.controlId,
     summary,
   });
+  await publishDomainEvent(
+    notificationCreatedEvent({
+      organizationId: notification.organizationId,
+      actorId: ctx.userId,
+      notificationId: notification.id,
+      recipientUserId: notification.recipientUserId,
+      notificationEventType: notification.eventType,
+      relatedObjectType: notification.relatedObjectType,
+      relatedObjectId: notification.relatedObjectId,
+      projectId: notification.projectId,
+      controlId: notification.controlId,
+    }),
+  );
 }
 
 export async function listAssignmentsForOrg(
@@ -137,6 +157,26 @@ export async function createAssignmentForOrg(
     "assignment_created",
     `Assigned as ${result.assignment.assignmentRole} on ${result.assignment.controlId}`,
   );
+  await publishDomainEvents([
+    assignmentCreatedEvent({
+      organizationId: ctx.organizationId,
+      actorId: ctx.userId,
+      projectId: result.assignment.projectId,
+      controlId: result.assignment.controlId,
+      assignmentId: result.assignment.id,
+      assigneeUserId: result.assignment.assigneeUserId,
+      assignmentRole: result.assignment.assignmentRole,
+    }),
+    controlAssignedEvent({
+      organizationId: ctx.organizationId,
+      actorId: ctx.userId,
+      projectId: result.assignment.projectId,
+      controlId: result.assignment.controlId,
+      assignmentId: result.assignment.id,
+      assigneeUserId: result.assignment.assigneeUserId,
+      assignmentRole: result.assignment.assignmentRole,
+    }),
+  ]);
   return {
     ok: true,
     assignment: result.assignment,
@@ -190,6 +230,17 @@ export async function reassignAssignmentForOrg(
     "assignment_reassigned",
     `Reassigned as ${result.assignment.assignmentRole} on ${result.assignment.controlId}`,
   );
+  await publishDomainEvent(
+    controlAssignedEvent({
+      organizationId: ctx.organizationId,
+      actorId: ctx.userId,
+      projectId: result.assignment.projectId,
+      controlId: result.assignment.controlId,
+      assignmentId: result.assignment.id,
+      assigneeUserId: result.assignment.assigneeUserId,
+      assignmentRole: result.assignment.assignmentRole,
+    }),
+  );
   return {
     ok: true,
     assignment: result.assignment,
@@ -223,6 +274,17 @@ export async function completeAssignmentForOrg(
     result.assignment,
     "assignment_completed",
     `Assignment completed on ${result.assignment.controlId}`,
+  );
+  await publishDomainEvent(
+    assignmentCompletedEvent({
+      organizationId: ctx.organizationId,
+      actorId: ctx.userId,
+      projectId: result.assignment.projectId,
+      controlId: result.assignment.controlId,
+      assignmentId: result.assignment.id,
+      assigneeUserId: result.assignment.assigneeUserId,
+      assignmentRole: result.assignment.assignmentRole,
+    }),
   );
   return {
     ok: true,
