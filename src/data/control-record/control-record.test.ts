@@ -83,10 +83,12 @@ describe("control-record domain helpers", () => {
       businessUnit: "C",
       implementationStatus: "approved",
       reviewDueDate: "2026-08-01",
+      evidenceRequirement: "required",
     });
     assert.ok(parsed);
     assert.equal(parsed?.controlId, "ac-2");
     assert.equal(parsed?.implementationStatus, "approved");
+    assert.equal(parsed?.evidenceRequirement, "required");
     assert.equal(
       parseUpsertControlRecordInput({
         controlId: "ac-2",
@@ -95,6 +97,7 @@ describe("control-record domain helpers", () => {
         businessUnit: "",
         implementationStatus: "bogus",
         reviewDueDate: null,
+        evidenceRequirement: "required",
       }),
       null,
     );
@@ -107,6 +110,7 @@ describe("control-record domain helpers", () => {
     );
     assert.equal(resolveControlReviewStatus({}, "ac-99"), "not_reviewed");
     assert.equal(DEFAULT_CONTROL_REVIEW_STATUS, "not_reviewed");
+    assert.equal(DEFAULT_CONTROL_RECORD_FIELDS.evidenceRequirement, "required");
   });
 
   it("does not put reviewStatus on upsert metadata payload", () => {
@@ -117,6 +121,7 @@ describe("control-record domain helpers", () => {
       businessUnit: "",
       implementationStatus: "draft",
       reviewDueDate: null,
+      evidenceRequirement: "optional",
       reviewStatus: "approved",
     });
     assert.ok(parsed);
@@ -124,5 +129,6 @@ describe("control-record domain helpers", () => {
       Object.prototype.hasOwnProperty.call(parsed, "reviewStatus"),
       false,
     );
+    assert.equal(parsed?.evidenceRequirement, "optional");
   });
 });

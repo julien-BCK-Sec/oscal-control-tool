@@ -1,3 +1,5 @@
+import type { EvidenceRequirement } from "@/data/evidence/types";
+
 /**
  * Application-level control implementation lifecycle.
  * Separate from OSCAL, from ControlImplementation.status (narrative editor),
@@ -33,11 +35,17 @@ export type ControlRecordFields = {
   implementationStatus: ControlImplementationStatus;
   /** ISO date `YYYY-MM-DD`, or null when unset. */
   reviewDueDate: string | null;
+  /**
+   * Whether this control implementation expects evidence (ADR-024).
+   * Default is `required` for new / lazy-created records.
+   */
+  evidenceRequirement: EvidenceRequirement;
 };
 
 /**
  * Persisted ControlRecord row (application DTO, no Drizzle types).
- * Future ControlComment / evidence / etc. reference `id`.
+ * Evidence associations use projectId + controlId (ADR-024); ControlRecord.id
+ * remains the hub for ControlActivity.
  */
 export type ControlRecord = ControlRecordFields & {
   id: string;

@@ -12,7 +12,7 @@ import { ControlReviewSection } from "@/components/controlBrowser/ControlReviewS
 import { ControlActivityHistory } from "@/components/controlBrowser/ControlActivityHistory";
 import { ControlEditorHeader } from "@/components/controlBrowser/ControlEditorHeader";
 import { CollapsibleRequirement } from "@/components/controlBrowser/CollapsibleRequirement";
-import { EvidencePlaceholderCard } from "@/components/controlBrowser/EvidencePlaceholderCard";
+import { ControlEvidencePanel } from "@/components/controlBrowser/ControlEvidencePanel";
 import { DiscussionPanel } from "@/components/collaboration/DiscussionPanel";
 import { AssignmentControls } from "@/components/collaboration/AssignmentControls";
 import { useControlReviewTransition } from "@/components/controlBrowser/useControlReviewTransition";
@@ -146,7 +146,13 @@ export function ControlEditorWorkspace({
         </FormField>
       </section>
 
-      <EvidencePlaceholderCard />
+      <ControlEvidencePanel
+        projectId={projectId}
+        controlId={control.id}
+        refreshToken={activityRefreshToken}
+        canEdit
+        onActivity={onTransitionSuccess}
+      />
     </>
   );
 

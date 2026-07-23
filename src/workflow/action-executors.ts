@@ -8,6 +8,7 @@
 
 import type { OrgRole } from "@/authz/permissions";
 import type { AssignmentRole } from "@/data/collaboration";
+import { DEFAULT_EVIDENCE_REQUIREMENT } from "@/data/evidence";
 import {
   assignmentCreatedEvent,
   controlAssignedEvent,
@@ -270,6 +271,8 @@ export function createWorkflowActionExecutors(
         businessUnit: existing?.businessUnit ?? "",
         implementationStatus: existing?.implementationStatus ?? "draft",
         reviewDueDate,
+        evidenceRequirement:
+          existing?.evidenceRequirement ?? DEFAULT_EVIDENCE_REQUIREMENT,
       };
       const result = await deps.controlRecordService.upsertWithActivity(
         ids.projectId,
@@ -313,6 +316,8 @@ export function createWorkflowActionExecutors(
         businessUnit: existing?.businessUnit ?? "",
         implementationStatus: config.implementationStatus,
         reviewDueDate: existing?.reviewDueDate ?? null,
+        evidenceRequirement:
+          existing?.evidenceRequirement ?? DEFAULT_EVIDENCE_REQUIREMENT,
       };
       const result = await deps.controlRecordService.upsertWithActivity(
         ids.projectId,

@@ -537,3 +537,50 @@ Reason:
 
 Date:
 2026-07-22
+
+## ADR-024
+
+Decision:
+Introduce project-scoped Evidence as a first-class operational aggregate
+(Milestone 03A):
+
+- Evidence is **not** a file. It is a permanent logical assertion with a
+  **stable UUID** (`evidence.id`). Future file uploads create **Evidence
+  Versions** bound to that id — they must not create new Evidence rows.
+- Evidence belongs to a **project** only in this milestone (no org-wide
+  library yet).
+- Evidence links to framework controls through a many-to-many junction
+  (`evidence_controls`) keyed by `project_id` + `control_id` (same control
+  identity convention as collaboration). Associations do not use
+  `control_record_id` as the primary key.
+- **Evidence requirement** (`required` | `optional` | `not_required`) lives
+  on **ControlRecord**, defaulting to **`required`**. Absence of evidence is
+  “missing” only when requirement is `required` and no non-archived linked
+  Evidence exists. Optional / Not required explicitly clear the gap — this
+  satisfies “controls are not automatically incomplete when no evidence
+  exists” without defaulting every control to optional.
+- Evidence lifecycle status is `draft` | `active` | `archived`. Prefer
+  archive over hard delete. Hard delete is allowed only for `draft` evidence
+  with no control associations (manager-gated via `evidence.delete`).
+- Audit: emit ControlActivity `evidence_added` / `evidence_removed` (and
+  `evidence_requirement_changed` on ControlRecord) per linked control;
+  emit Evidence domain events (`EvidenceCreated`, `EvidenceUpdated`,
+  `EvidenceArchived`, `EvidenceLinked`, `EvidenceUnlinked`) for aggregate
+  lifecycle. Do not introduce a parallel Evidence audit table.
+- Permissions: dedicated `evidence.read|create|update|associate|archive|delete`
+  in `src/authz/permissions.ts`. Reviewers are read-only for Evidence in 03A.
+- Evidence is never stored in `project_json` or exported as OSCAL.
+
+This decision supersedes the ADR-009 implication that Evidence would be a
+child of a single ControlRecord. ControlRecord remains the hub for
+ControlActivity and evidence requirement metadata.
+
+Reason:
+- Separates reusable logical evidence from future binary versions.
+- Matches collaboration tenancy/control-id patterns and the existing
+  ControlActivity + DomainEvent architecture.
+- Required-by-default makes evidence gaps visible; Optional / Not required
+  remain explicit opt-outs.
+
+Date:
+2026-07-23

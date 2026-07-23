@@ -9,6 +9,7 @@ import type { DiscussionService } from "./discussion-service";
 import type { NotificationRepository } from "./notification-repository";
 import type { ProjectRepository } from "./repository";
 import type { WorkflowRepository } from "./workflow-repository";
+import type { EvidenceService } from "./evidence-service";
 import { getDb } from "./postgres/client";
 import { createPostgresAssignmentRepository } from "./postgres/assignment-repository";
 import { createPostgresCommentRepository } from "./postgres/comment-repository";
@@ -16,6 +17,7 @@ import { createPostgresControlActivityRepository } from "./postgres/control-acti
 import { createPostgresControlRecordRepository } from "./postgres/control-record-repository";
 import { createPostgresControlRecordService } from "./postgres/control-record-service";
 import { createPostgresDiscussionService } from "./postgres/discussion-service";
+import { createPostgresEvidenceService } from "./postgres/evidence-service";
 import { createPostgresNotificationRepository } from "./postgres/notification-repository";
 import { createPostgresProjectRepository } from "./postgres/project-repository";
 import { createPostgresWorkflowRepository } from "./postgres/workflow-repository";
@@ -66,4 +68,9 @@ export async function getDiscussionService(): Promise<DiscussionService> {
 /** Workflow automation rules and execution history (Milestone 02C). */
 export async function getWorkflowRepository(): Promise<WorkflowRepository> {
   return createPostgresWorkflowRepository(await getDb());
+}
+
+/** Evidence management (Milestone 03A). */
+export async function getEvidenceService(): Promise<EvidenceService> {
+  return createPostgresEvidenceService(await getDb());
 }

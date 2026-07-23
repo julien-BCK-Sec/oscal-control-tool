@@ -15,6 +15,7 @@ export const DOMAIN_EVENT_AGGREGATE_TYPES = [
   "discussion",
   "assignment",
   "notification",
+  "evidence",
 ] as const;
 
 export type DomainEventAggregateType =

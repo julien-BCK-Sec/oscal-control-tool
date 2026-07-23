@@ -72,6 +72,7 @@ describe("reviewStatus defaults", () => {
       coOwner: "",
       businessUnit: "",
       implementationStatus: "draft",
+      evidenceRequirement: "required",
       reviewDueDate: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

@@ -1,21 +1,21 @@
 # Current Project State
 
-Date: 2026-07-22
+Date: 2026-07-23
 
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application built around
-OSCAL. Milestone 02C (Workflow Automation) adds an event-driven workflow
-engine on top of Domain Events (02B), Collaboration (02A), and Platform
-Foundation (PostgreSQL, Better Auth, organizations, RBAC, invite-only access).
+OSCAL. Milestone 03A (Evidence Management Foundation) adds project-scoped
+Evidence on top of Workflow Automation (02C), Domain Events (02B),
+Collaboration (02A), and Platform Foundation.
 
 The application currently provides:
 
 - Organization-owned project management
 - Better Auth email/password authentication with email verification
 - Role-based authorization (`organization_admin`, `project_manager`, `author`,
-  `reviewer`, `viewer`) including collaboration, event-diagnostics, and
-  workflow permissions
+  `reviewer`, `viewer`) including collaboration, event-diagnostics, workflow,
+  and evidence permissions
 - Organization invitations and team management
 - Control authoring
 - Review workflow
@@ -26,7 +26,10 @@ The application currently provides:
 - Process-local domain event diagnostics (organization admin)
 - Workflow automation rules that subscribe to the Domain Event Bus
 - Workflow execution history / diagnostics (organization admin)
-- Operational metadata and activity history (including collaboration events)
+- Project-scoped Evidence records with control associations and requirement
+  metadata on ControlRecord (ADR-024; no binary uploads yet)
+- Operational metadata and activity history (including collaboration and
+  evidence link/unlink events)
 - Version history
 - OSCAL SSP export and schema validation
 - Idempotent demo project seeding into a demo organization
@@ -146,6 +149,23 @@ importer; projects use the pinned NIST Moderate baseline.
 - Priority/severity/tag catalog entries registered as unavailable extension
   points (no ControlRecord schema for those fields yet)
 
+## Evidence management (Milestone 03A)
+
+- Aggregate: project-scoped Evidence with stable UUID (ADR-024)
+- Junction: `evidence_controls` (M:N to framework `control_id`)
+- ControlRecord.`evidenceRequirement`: `required` (default) | `optional` |
+  `not_required`
+- Lifecycle: `draft` | `active` | `archived`; hard-delete only for unlinked
+  drafts (`evidence.delete` for managers)
+- Audit: ControlActivity `evidence_added` / `evidence_removed` /
+  `evidence_requirement_changed`; domain events `EvidenceCreated` /
+  `EvidenceUpdated` / `EvidenceArchived` / `EvidenceLinked` /
+  `EvidenceUnlinked`
+- Permissions: `evidence.read|create|update|associate|archive|delete`
+- UI: workspace Evidence tab; control editor Evidence panel
+- Out of scope: binary upload, versions/object storage, approval, dashboards,
+  OSCAL export of evidence
+
 ## Current standards position
 
 - OSCAL version: 1.2.2
@@ -191,12 +211,14 @@ Do not fetch standards files at runtime and do not use moving branches.
 - Migrations: `drizzle-pg/` via `npm run db:migrate` (standalone scripts load
   `.env`, then `.env.local`; existing process env wins). Collaboration tables
   are in `drizzle-pg/0003_demonic_moondragon.sql`; workflow tables in
-  `drizzle-pg/0004_redundant_paibok.sql`.
-- Routes: `/sign-in`, `/projects`, `/projects/[id]`,
+  `drizzle-pg/0004_redundant_paibok.sql`; evidence tables +
+  `control_records.evidence_requirement` in
+  `drizzle-pg/0005_happy_lethal_legion.sql`.
+- Routes: `/sign-in`, `/projects`, `/projects/[id]` (including `?view=evidence`),
   `/organizations/[orgId]/settings`, `/organizations/[orgId]/workflows`,
   `/invitations/[id]`
-- ControlRecords / ControlActivity / collaboration tables remain operational
-  metadata outside OSCAL and `project_json`
+- ControlRecords / ControlActivity / collaboration / evidence tables remain
+  operational metadata outside OSCAL and `project_json`
 
 Legacy SQLite code under `src/persistence/sqlite/` and `drizzle/` supports
 cutover only.
@@ -211,7 +233,8 @@ cutover only.
 - No portable OSCAL package
 - No OSCAL import (SSP → project)
 - Snapshot merge UX deferred (reload-latest on conflict)
-- Evidence management not implemented
+- Evidence binary upload / Evidence Versions / object storage not implemented
+- Evidence approval workflow and dashboards not implemented
 - Email / Slack / Teams notifications out of scope (in-app only)
 - ControlRecord priority, severity, and tags not modeled (workflow catalog
   entries exist but are unavailable)
@@ -228,8 +251,8 @@ cutover only.
 Word/PDF export (and later framework expansions) remain later roadmap items.
 See `docs/roadmap.md`.
 
-Workflow Automation (Milestone 02C) is implemented on
-`feat/workflow-automation-02c`.
+Evidence Management Foundation (Milestone 03A) is implemented on
+`feat/evidence-management-03a`.
 
 ## Required verification for each milestone
 

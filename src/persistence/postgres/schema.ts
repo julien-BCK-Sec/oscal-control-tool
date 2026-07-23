@@ -102,6 +102,13 @@ export const controlRecords = pgTable(
     /** Review workflow only — independent of implementation_status. */
     reviewStatus: text("review_status").notNull().default("not_reviewed"),
     reviewDueDate: text("review_due_date"),
+    /**
+     * Whether this control implementation expects evidence (Milestone 03A).
+     * Default `required` — see ADR-024 / DEFAULT_EVIDENCE_REQUIREMENT.
+     */
+    evidenceRequirement: text("evidence_requirement")
+      .notNull()
+      .default("required"),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },
@@ -334,6 +341,63 @@ export const workflowExecutions = pgTable(
   ],
 );
 
+/**
+ * Project-scoped Evidence aggregate (Milestone 03A, ADR-024).
+ * Logical assertion with a permanent UUID; future file uploads become
+ * Evidence Versions bound to this id — not new Evidence rows.
+ */
+export const evidence = pgTable(
+  "evidence",
+  {
+    id: text("id").primaryKey().notNull(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    owner: text("owner").notNull().default(""),
+    evidenceType: text("evidence_type").notNull(),
+    status: text("status").notNull().default("draft"),
+    collectionDate: text("collection_date"),
+    reviewDueDate: text("review_due_date"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+  },
+  (table) => [
+    index("evidence_project_id_idx").on(table.projectId),
+    index("evidence_project_status_idx").on(table.projectId, table.status),
+  ],
+);
+
+/**
+ * Many-to-many Evidence ↔ framework control within a project.
+ */
+export const evidenceControls = pgTable(
+  "evidence_controls",
+  {
+    id: text("id").primaryKey().notNull(),
+    evidenceId: text("evidence_id")
+      .notNull()
+      .references(() => evidence.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    controlId: text("control_id").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    unique("evidence_controls_evidence_control_uid").on(
+      table.evidenceId,
+      table.controlId,
+    ),
+    index("evidence_controls_project_control_idx").on(
+      table.projectId,
+      table.controlId,
+    ),
+    index("evidence_controls_evidence_id_idx").on(table.evidenceId),
+  ],
+);
+
 export type ProjectRow = typeof projects.$inferSelect;
 export type ProjectSnapshotRow = typeof projectSnapshots.$inferSelect;
 export type ControlRecordRow = typeof controlRecords.$inferSelect;
@@ -344,3 +408,5 @@ export type AssignmentRow = typeof assignments.$inferSelect;
 export type NotificationRow = typeof notifications.$inferSelect;
 export type WorkflowRuleRow = typeof workflowRules.$inferSelect;
 export type WorkflowExecutionRow = typeof workflowExecutions.$inferSelect;
+export type EvidenceRow = typeof evidence.$inferSelect;
+export type EvidenceControlRow = typeof evidenceControls.$inferSelect;

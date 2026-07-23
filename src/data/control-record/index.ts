@@ -15,8 +15,12 @@ export {
   controlImplementationStatusLabel,
   controlReviewStatusLabel,
   displayControlOwner,
+  evidenceRequirementLabel,
   isControlOwnerUnassigned,
+  isEvidenceRequirement,
 } from "./defaults";
+export type { EvidenceRequirement } from "./defaults";
+export { EVIDENCE_REQUIREMENTS } from "@/data/evidence/types";
 export {
   cloneControlRecords,
   controlRecordsEqual,

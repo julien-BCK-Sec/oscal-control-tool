@@ -20,6 +20,11 @@ export const DOMAIN_EVENT_TYPES = [
   "AssignmentCreated",
   "AssignmentCompleted",
   "NotificationCreated",
+  "EvidenceCreated",
+  "EvidenceUpdated",
+  "EvidenceArchived",
+  "EvidenceLinked",
+  "EvidenceUnlinked",
 ] as const;
 
 export type DomainEventType = (typeof DOMAIN_EVENT_TYPES)[number];
@@ -111,6 +116,41 @@ export type NotificationCreatedPayload = {
   readonly controlId: string | null;
 };
 
+export type EvidenceCreatedPayload = {
+  readonly projectId: string;
+  readonly evidenceId: string;
+  readonly title: string;
+  readonly status: string;
+  readonly controlIds: readonly string[];
+};
+
+export type EvidenceUpdatedPayload = {
+  readonly projectId: string;
+  readonly evidenceId: string;
+  readonly title: string;
+  readonly status: string;
+};
+
+export type EvidenceArchivedPayload = {
+  readonly projectId: string;
+  readonly evidenceId: string;
+  readonly title: string;
+};
+
+export type EvidenceLinkedPayload = {
+  readonly projectId: string;
+  readonly evidenceId: string;
+  readonly controlId: string;
+  readonly title: string;
+};
+
+export type EvidenceUnlinkedPayload = {
+  readonly projectId: string;
+  readonly evidenceId: string;
+  readonly controlId: string;
+  readonly title: string;
+};
+
 export type ProjectCreatedEvent = DomainEvent<
   "ProjectCreated",
   ProjectCreatedPayload
@@ -155,6 +195,26 @@ export type NotificationCreatedEvent = DomainEvent<
   "NotificationCreated",
   NotificationCreatedPayload
 >;
+export type EvidenceCreatedEvent = DomainEvent<
+  "EvidenceCreated",
+  EvidenceCreatedPayload
+>;
+export type EvidenceUpdatedEvent = DomainEvent<
+  "EvidenceUpdated",
+  EvidenceUpdatedPayload
+>;
+export type EvidenceArchivedEvent = DomainEvent<
+  "EvidenceArchived",
+  EvidenceArchivedPayload
+>;
+export type EvidenceLinkedEvent = DomainEvent<
+  "EvidenceLinked",
+  EvidenceLinkedPayload
+>;
+export type EvidenceUnlinkedEvent = DomainEvent<
+  "EvidenceUnlinked",
+  EvidenceUnlinkedPayload
+>;
 
 export type InitialDomainEvent =
   | ProjectCreatedEvent
@@ -167,4 +227,9 @@ export type InitialDomainEvent =
   | DiscussionResolvedEvent
   | AssignmentCreatedEvent
   | AssignmentCompletedEvent
-  | NotificationCreatedEvent;
+  | NotificationCreatedEvent
+  | EvidenceCreatedEvent
+  | EvidenceUpdatedEvent
+  | EvidenceArchivedEvent
+  | EvidenceLinkedEvent
+  | EvidenceUnlinkedEvent;

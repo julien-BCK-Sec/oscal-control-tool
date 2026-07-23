@@ -11,12 +11,15 @@ import {
   DEFAULT_CONTROL_REVIEW_STATUS,
   isControlImplementationStatus,
   isControlReviewStatus,
+  isEvidenceRequirement,
   normalizeControlRecordFields,
   type ControlRecord,
   type ControlImplementationStatus,
   type ControlReviewStatus,
+  type EvidenceRequirement,
   type UpsertControlRecordInput,
 } from "@/data/control-record";
+import { DEFAULT_EVIDENCE_REQUIREMENT } from "@/data/evidence";
 import { resolveReviewTransition } from "@/data/control-review";
 import { nextActivityTimestamp } from "../activity-clock";
 import type { ActorIdentity } from "../actor";
@@ -51,6 +54,11 @@ function toControlRecord(
   )
     ? row.reviewStatus
     : DEFAULT_CONTROL_REVIEW_STATUS;
+  const evidenceRequirement: EvidenceRequirement = isEvidenceRequirement(
+    row.evidenceRequirement,
+  )
+    ? row.evidenceRequirement
+    : DEFAULT_EVIDENCE_REQUIREMENT;
   return {
     id: row.id,
     projectId: row.projectId,
@@ -61,6 +69,7 @@ function toControlRecord(
     implementationStatus,
     reviewStatus,
     reviewDueDate: row.reviewDueDate,
+    evidenceRequirement,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -133,6 +142,7 @@ async function upsertOneInTransaction(
       implementationStatus: fields.implementationStatus,
       reviewStatus: DEFAULT_CONTROL_REVIEW_STATUS,
       reviewDueDate: fields.reviewDueDate,
+      evidenceRequirement: fields.evidenceRequirement,
       createdAt,
       updatedAt: createdAt,
     });
@@ -158,6 +168,7 @@ async function upsertOneInTransaction(
         implementationStatus: fields.implementationStatus,
         reviewStatus: DEFAULT_CONTROL_REVIEW_STATUS,
         reviewDueDate: fields.reviewDueDate,
+        evidenceRequirement: fields.evidenceRequirement,
         createdAt,
         updatedAt: createdAt,
       },
@@ -188,6 +199,7 @@ async function upsertOneInTransaction(
       businessUnit: fields.businessUnit,
       implementationStatus: fields.implementationStatus,
       reviewDueDate: fields.reviewDueDate,
+      evidenceRequirement: fields.evidenceRequirement,
       updatedAt,
     })
     .where(eq(controlRecords.id, row.id));
@@ -215,6 +227,7 @@ async function upsertOneInTransaction(
       businessUnit: fields.businessUnit,
       implementationStatus: fields.implementationStatus,
       reviewDueDate: fields.reviewDueDate,
+      evidenceRequirement: fields.evidenceRequirement,
       updatedAt,
     },
     changed: true,
@@ -286,6 +299,7 @@ async function transitionReviewInTransaction(
       implementationStatus: fields.implementationStatus,
       reviewStatus: transition.to,
       reviewDueDate: fields.reviewDueDate,
+      evidenceRequirement: fields.evidenceRequirement,
       createdAt,
       updatedAt,
     });

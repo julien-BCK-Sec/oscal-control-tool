@@ -36,13 +36,22 @@ org-admin rule administration, execution history, and no-cascade safety.
 See `docs/milestones/02C-workflow-automation.md`, `docs/workflows.md`, and
 ADR-023.
 
+**Milestone 03A – Evidence Management Foundation** (implemented on
+`feat/evidence-management-03a`)
+
+Project-scoped Evidence aggregate, control associations, evidence
+requirement on ControlRecord, RBAC, audit/events, and browse/CRUD UI without
+binary uploads. See `docs/milestones/03A-evidence-management.md` and ADR-024.
+
 ## Next
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
 
 ## Later
 
-- Evidence management
+- Evidence Versions / binary upload / object storage
+- Evidence review / approval workflow
+- Evidence dashboards and reporting
 - Email / Slack / Teams notifications
 - Durable domain event store / outbox / external broker
 - Additional compliance frameworks

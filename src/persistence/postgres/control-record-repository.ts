@@ -6,12 +6,15 @@ import {
   DEFAULT_CONTROL_REVIEW_STATUS,
   isControlImplementationStatus,
   isControlReviewStatus,
+  isEvidenceRequirement,
   normalizeControlRecordFields,
   type ControlRecord,
   type ControlImplementationStatus,
   type ControlReviewStatus,
+  type EvidenceRequirement,
   type UpsertControlRecordInput,
 } from "@/data/control-record";
+import { DEFAULT_EVIDENCE_REQUIREMENT } from "@/data/evidence";
 import type { ControlRecordRepository } from "../control-record-repository";
 import type { AppDatabase } from "./client";
 import { controlRecords, projects } from "./schema";
@@ -36,6 +39,11 @@ function toControlRecord(
   )
     ? row.reviewStatus
     : DEFAULT_CONTROL_REVIEW_STATUS;
+  const evidenceRequirement: EvidenceRequirement = isEvidenceRequirement(
+    row.evidenceRequirement,
+  )
+    ? row.evidenceRequirement
+    : DEFAULT_EVIDENCE_REQUIREMENT;
   return {
     id: row.id,
     projectId: row.projectId,
@@ -46,6 +54,7 @@ function toControlRecord(
     implementationStatus,
     reviewStatus,
     reviewDueDate: row.reviewDueDate,
+    evidenceRequirement,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -99,6 +108,7 @@ export function createPostgresControlRecordRepository(
           businessUnit: fields.businessUnit,
           implementationStatus: fields.implementationStatus,
           reviewDueDate: fields.reviewDueDate,
+          evidenceRequirement: fields.evidenceRequirement,
           updatedAt,
         })
         .where(eq(controlRecords.id, row.id));
@@ -110,6 +120,7 @@ export function createPostgresControlRecordRepository(
         businessUnit: fields.businessUnit,
         implementationStatus: fields.implementationStatus,
         reviewDueDate: fields.reviewDueDate,
+        evidenceRequirement: fields.evidenceRequirement,
         updatedAt,
       });
     }
@@ -126,6 +137,7 @@ export function createPostgresControlRecordRepository(
       implementationStatus: fields.implementationStatus,
       reviewStatus: DEFAULT_CONTROL_REVIEW_STATUS,
       reviewDueDate: fields.reviewDueDate,
+      evidenceRequirement: fields.evidenceRequirement,
       createdAt,
       updatedAt,
     });
@@ -140,6 +152,7 @@ export function createPostgresControlRecordRepository(
       implementationStatus: fields.implementationStatus,
       reviewStatus: DEFAULT_CONTROL_REVIEW_STATUS,
       reviewDueDate: fields.reviewDueDate,
+      evidenceRequirement: fields.evidenceRequirement,
       createdAt,
       updatedAt,
     };

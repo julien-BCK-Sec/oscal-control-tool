@@ -58,7 +58,14 @@ export type Permission =
   | "event.diagnostics.read"
   /** Workflow automation (Milestone 02C) — organization admin only. */
   | "workflow.read"
-  | "workflow.manage";
+  | "workflow.manage"
+  /** Evidence management (Milestone 03A) */
+  | "evidence.read"
+  | "evidence.create"
+  | "evidence.update"
+  | "evidence.associate"
+  | "evidence.archive"
+  | "evidence.delete";
 
 /**
  * Role → permissions. Encoded as arrays for readability and frozen into sets
@@ -83,6 +90,21 @@ const COLLABORATION_MODERATOR: readonly Permission[] = [
   "assignment.manage",
 ];
 
+/** Authors and managers may create, edit, associate, and archive evidence. */
+const EVIDENCE_AUTHOR: readonly Permission[] = [
+  "evidence.read",
+  "evidence.create",
+  "evidence.update",
+  "evidence.associate",
+  "evidence.archive",
+];
+
+/** Hard-delete of eligible draft evidence is manager-gated. */
+const EVIDENCE_MANAGER: readonly Permission[] = [
+  ...EVIDENCE_AUTHOR,
+  "evidence.delete",
+];
+
 const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
   organization_admin: [
     "org.manage_members",
@@ -100,6 +122,7 @@ const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
     "review.resubmit",
     "review.reopen",
     ...COLLABORATION_MODERATOR,
+    ...EVIDENCE_MANAGER,
     "event.diagnostics.read",
     "workflow.read",
     "workflow.manage",
@@ -118,6 +141,7 @@ const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
     "review.resubmit",
     "review.reopen",
     ...COLLABORATION_MODERATOR,
+    ...EVIDENCE_MANAGER,
   ],
   author: [
     "project.read",
@@ -127,6 +151,7 @@ const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
     "review.submit",
     "review.resubmit",
     ...COLLABORATION_PARTICIPANT,
+    ...EVIDENCE_AUTHOR,
   ],
   reviewer: [
     "project.read",
@@ -135,10 +160,16 @@ const ROLE_PERMISSION_LISTS: Record<OrgRole, readonly Permission[]> = {
     "review.request_changes",
     "review.reopen",
     ...COLLABORATION_PARTICIPANT,
+    "evidence.read",
   ],
-  viewer: ["project.read", "discussion.read", "assignment.read", "notification.read"],
+  viewer: [
+    "project.read",
+    "discussion.read",
+    "assignment.read",
+    "notification.read",
+    "evidence.read",
+  ],
 };
-
 const ROLE_PERMISSIONS: Record<OrgRole, ReadonlySet<Permission>> = Object.freeze(
   ORG_ROLES.reduce(
     (acc, role) => {

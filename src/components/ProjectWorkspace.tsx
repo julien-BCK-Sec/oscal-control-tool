@@ -10,6 +10,7 @@ import {
   type MouseEvent,
 } from "react";
 import { ControlBrowser } from "@/components/ControlBrowser";
+import { EvidenceBrowser } from "@/components/evidence/EvidenceBrowser";
 import { ProjectMetadataSection } from "@/components/ProjectMetadataSection";
 import { ProjectOverview } from "@/components/ProjectOverview";
 import { AuthenticatedHeaderActions } from "@/components/auth/AuthenticatedHeaderActions";
@@ -767,6 +768,26 @@ export function ProjectWorkspace({
             focusRequest={controlsFocus}
             onFocusRequestHandled={() => setControlsFocus(null)}
           />
+        </div>
+
+        <div
+          id="workspace-panel-evidence"
+          role="tabpanel"
+          aria-labelledby="workspace-tab-evidence"
+          hidden={activeTab !== "evidence"}
+          className={
+            activeTab === "evidence"
+              ? "flex min-h-0 flex-1 flex-col overflow-hidden bg-background"
+              : "hidden"
+          }
+        >
+          {activeTab === "evidence" ? (
+            <EvidenceBrowser
+              projectId={projectId}
+              canEdit
+              canDelete
+            />
+          ) : null}
         </div>
 
         <div

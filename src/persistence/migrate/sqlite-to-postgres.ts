@@ -1,6 +1,10 @@
 import "server-only";
 
 import { inArray } from "drizzle-orm";
+import {
+  DEFAULT_EVIDENCE_REQUIREMENT,
+  isEvidenceRequirement,
+} from "@/data/evidence";
 import type { AppDatabase as SqliteDatabase } from "../sqlite/client";
 import {
   controlActivities as sqliteControlActivities,
@@ -110,6 +114,12 @@ const ORPHAN_SAMPLE_SIZE = 5;
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+function mapEvidenceRequirement(
+  value: string | null | undefined,
+): string {
+  return isEvidenceRequirement(value) ? value : DEFAULT_EVIDENCE_REQUIREMENT;
 }
 
 function chunk<T>(items: T[], size: number): T[][] {
@@ -364,6 +374,8 @@ async function migrateControlRecordsTable(
       existingRow.implementationStatus === row.implementationStatus &&
       existingRow.reviewStatus === row.reviewStatus &&
       existingRow.reviewDueDate === row.reviewDueDate &&
+      existingRow.evidenceRequirement ===
+        mapEvidenceRequirement(row.evidenceRequirement) &&
       existingRow.createdAt === row.createdAt &&
       existingRow.updatedAt === row.updatedAt;
     if (!matches) {
@@ -388,6 +400,7 @@ async function migrateControlRecordsTable(
           implementationStatus: row.implementationStatus,
           reviewStatus: row.reviewStatus,
           reviewDueDate: row.reviewDueDate,
+          evidenceRequirement: mapEvidenceRequirement(row.evidenceRequirement),
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
         })),

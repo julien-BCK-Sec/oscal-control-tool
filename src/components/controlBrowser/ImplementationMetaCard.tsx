@@ -1,6 +1,9 @@
 "use client";
 
 import {
+  EVIDENCE_REQUIREMENTS,
+  evidenceRequirementLabel,
+  type EvidenceRequirement,
   CONTROL_IMPLEMENTATION_STATUSES,
   controlImplementationStatusLabel,
   type ControlRecordFields,
@@ -26,6 +29,7 @@ export function ImplementationMetaCard({
 }: ImplementationMetaCardProps) {
   const implementationStatusFieldId = `control-implementation-status-${controlId}`;
   const reviewDueFieldId = `control-review-due-${controlId}`;
+  const evidenceRequirementFieldId = `control-evidence-requirement-${controlId}`;
 
   return (
     <SidebarCard
@@ -70,6 +74,28 @@ export function ImplementationMetaCard({
             }
             className="field mt-1"
           />
+        </FormField>
+
+        <FormField>
+          <FormLabel htmlFor={evidenceRequirementFieldId}>
+            Evidence requirement
+          </FormLabel>
+          <select
+            id={evidenceRequirementFieldId}
+            value={fields.evidenceRequirement}
+            onChange={(event) =>
+              onChange({
+                evidenceRequirement: event.target.value as EvidenceRequirement,
+              })
+            }
+            className="field mt-1"
+          >
+            {EVIDENCE_REQUIREMENTS.map((requirement) => (
+              <option key={requirement} value={requirement}>
+                {evidenceRequirementLabel(requirement)}
+              </option>
+            ))}
+          </select>
         </FormField>
       </Stack>
     </SidebarCard>
