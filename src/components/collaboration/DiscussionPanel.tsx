@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { Comment } from "@/data/collaboration";
 import {
   createDiscussionAction,
@@ -22,6 +22,8 @@ export type DiscussionPanelProps = {
   projectId: string;
   controlId: string;
   refreshToken?: number;
+  focusCommentId?: string | null;
+  onFocusCommentHandled?: () => void;
   onActivity?: () => void;
 };
 
@@ -41,6 +43,7 @@ function CommentNode({
   depth,
   childrenByParent,
   pending,
+  highlightId,
   onReply,
   onEdit,
   onDelete,
@@ -51,6 +54,7 @@ function CommentNode({
   depth: number;
   childrenByParent: Map<string | null, Comment[]>;
   pending: boolean;
+  highlightId: string | null;
   onReply: (parentId: string) => void;
   onEdit: (comment: Comment) => void;
   onDelete: (commentId: string) => void;
@@ -59,6 +63,15 @@ function CommentNode({
 }) {
   const children = childrenByParent.get(comment.id) ?? [];
   const deleted = Boolean(comment.deletedAt);
+  const highlighted = comment.id === highlightId;
+  const articleRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!highlighted || !articleRef.current) {
+      return;
+    }
+    articleRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [highlighted]);
 
   return (
     <li
@@ -66,10 +79,17 @@ function CommentNode({
       style={{ marginLeft: depth > 0 ? Math.min(depth, 4) * 12 : 0 }}
     >
       <article
-        className={`rounded-md border border-border px-3 py-2 ${
-          comment.resolved ? "bg-success/5" : "bg-surface"
+        ref={articleRef}
+        id={`discussion-comment-${comment.id}`}
+        className={`rounded-md border px-3 py-2 ${
+          highlighted
+            ? "border-accent bg-accent-muted/50 ring-2 ring-accent/40"
+            : comment.resolved
+              ? "border-border bg-success/5"
+              : "border-border bg-surface"
         }`}
         aria-label={deleted ? "Deleted comment" : "Comment"}
+        aria-current={highlighted ? "true" : undefined}
       >
         {deleted ? (
           <p className="text-sm italic text-text-muted">Comment deleted</p>
@@ -141,6 +161,7 @@ function CommentNode({
               depth={depth + 1}
               childrenByParent={childrenByParent}
               pending={pending}
+              highlightId={highlightId}
               onReply={onReply}
               onEdit={onEdit}
               onDelete={onDelete}
@@ -158,6 +179,8 @@ export function DiscussionPanel({
   projectId,
   controlId,
   refreshToken = 0,
+  focusCommentId = null,
+  onFocusCommentHandled,
   onActivity,
 }: DiscussionPanelProps) {
   const [comments, setComments] = useState<Comment[] | null>(null);
@@ -166,6 +189,10 @@ export function DiscussionPanel({
   const [parentCommentId, setParentCommentId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [focusFallback, setFocusFallback] = useState<string | null>(null);
+  const [appliedCommentFocus, setAppliedCommentFocus] = useState<string | null>(
+    null,
+  );
   const [pending, startTransition] = useTransition();
 
   function reload() {
@@ -190,10 +217,39 @@ export function DiscussionPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- remount via key
   }, [projectId, controlId, refreshToken]);
 
-  const tree = useMemo(
-    () => buildTree(comments?.filter((c) => !c.deletedAt) ?? []),
-    [comments],
+  // Apply deep-link comment focus during render once comments are loaded
+  // (same pattern as ControlBrowser focusRequest handling).
+  if (
+    focusCommentId &&
+    comments !== null &&
+    appliedCommentFocus !== focusCommentId
+  ) {
+    setAppliedCommentFocus(focusCommentId);
+    const match = comments.find((comment) => comment.id === focusCommentId);
+    if (match && !match.deletedAt) {
+      setFocusFallback(null);
+    } else {
+      setFocusFallback("This comment is no longer available.");
+    }
+  }
+
+  useEffect(() => {
+    if (focusCommentId && appliedCommentFocus === focusCommentId) {
+      onFocusCommentHandled?.();
+    }
+  }, [focusCommentId, appliedCommentFocus, onFocusCommentHandled]);
+
+  const activeHighlightId = appliedCommentFocus;
+
+  const visibleComments = useMemo(
+    () =>
+      (comments ?? []).filter(
+        (comment) =>
+          !comment.deletedAt || comment.id === activeHighlightId,
+      ),
+    [comments, activeHighlightId],
   );
+  const tree = useMemo(() => buildTree(visibleComments), [visibleComments]);
   const roots = tree.get(null) ?? [];
 
   function submit() {
@@ -237,6 +293,12 @@ export function DiscussionPanel({
           </p>
         ) : null}
 
+        {focusFallback ? (
+          <p className="text-sm text-text-secondary" role="status">
+            {focusFallback}
+          </p>
+        ) : null}
+
         {comments === null ? (
           <p className="text-sm text-text-muted" role="status">
             Loading…
@@ -252,6 +314,7 @@ export function DiscussionPanel({
                 depth={0}
                 childrenByParent={tree}
                 pending={pending}
+                highlightId={activeHighlightId}
                 onReply={(parentId) => {
                   setParentCommentId(parentId);
                   setEditingId(null);

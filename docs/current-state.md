@@ -105,10 +105,12 @@ importer; projects use the pinned NIST Moderate baseline.
 - Activity: collaboration events append to the existing ControlActivity stream
   with newest-first pagination
 - UI: discussion panel, assignment controls, mention autocomplete, notification
-  center in product header
+  center in product header (enriched context + deep links into Controls)
 - Routes / actions: discussion, assignment, notification, and mention-candidate
   Server Actions under `src/app/actions/`
-
+- Notification deep links: `/projects/{id}?view=controls&control={id}&comment={id}`
+  (authorization still enforced by project/org membership; deleted comments show
+  a graceful fallback in the discussion panel)
 ## Current standards position
 
 - OSCAL version: 1.2.2

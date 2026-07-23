@@ -111,6 +111,7 @@ export function ControlBrowser({
   );
   const [appliedFocus, setAppliedFocus] =
     useState<ControlsFocusRequest | null>(null);
+  const [pendingCommentId, setPendingCommentId] = useState<string | null>(null);
   const selectedItemRef = useRef<HTMLButtonElement | null>(null);
 
   // Apply Overview → Controls focus during render (preferred over an effect).
@@ -129,6 +130,9 @@ export function ControlBrowser({
         nextParents.delete(parentMatch[1].toLowerCase());
         setCollapsedParents(nextParents);
       }
+    }
+    if (focusRequest.commentId) {
+      setPendingCommentId(focusRequest.commentId);
     }
   }
 
@@ -568,6 +572,8 @@ export function ControlBrowser({
         reviewStatus={selectedReviewStatus}
         narrativeComplete={selectedComplete}
         activityRefreshToken={activityRefreshToken}
+        focusCommentId={pendingCommentId}
+        onFocusCommentHandled={() => setPendingCommentId(null)}
         onUpdateImplementation={(patch) =>
           updateImplementation(selected.id, patch)
         }

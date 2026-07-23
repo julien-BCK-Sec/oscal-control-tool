@@ -1,19 +1,21 @@
 "use server";
 
-import type { Notification } from "@/data/collaboration";
+import type { NotificationView } from "@/components/collaboration/notification-presentation";
 import { AuthorizationError } from "@/authz/authorize";
 import { getSessionUser, resolveOrgContext } from "@/auth/context";
 import { createPostgresNotificationRepository } from "@/persistence/postgres/notification-repository";
+import { createPostgresDiscussionService } from "@/persistence/postgres/discussion-service";
 import { createNotificationService } from "@/persistence/notification-service";
 import { getDb } from "@/persistence/postgres/client";
 import { createPostgresOrganizationRepository } from "@/persistence/postgres/organization-repository";
+import { getProjectRepository } from "@/persistence/server";
 import {
   countUnreadNotificationsForUser,
   deleteNotificationForUser,
-  listNotificationsForUser,
   markAllNotificationsReadForUser,
   markNotificationReadForUser,
 } from "@/server/authorized-notifications";
+import { listNotificationViewsForUser } from "@/server/notification-views";
 
 async function resolveUserContext() {
   const user = await getSessionUser();
@@ -42,14 +44,16 @@ async function getNotifications() {
 export async function listNotificationsAction(options?: {
   unreadOnly?: boolean;
   limit?: number;
-}): Promise<Notification[]> {
+}): Promise<NotificationView[]> {
   const ctx = await resolveUserContext();
   if (!ctx) {
     return [];
   }
   try {
-    return await listNotificationsForUser(
+    return await listNotificationViewsForUser(
       await getNotifications(),
+      await getProjectRepository(),
+      createPostgresDiscussionService(await getDb()),
       ctx,
       options,
     );

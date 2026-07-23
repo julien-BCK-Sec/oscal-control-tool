@@ -58,6 +58,8 @@ export type ProjectWorkspaceProps = {
   initialControlRecords: ControlRecord[];
   initialSnapshots: ProjectSnapshotSummary[];
   initialView?: WorkspaceTabId;
+  /** Deep-link focus into Controls (notification / overview navigation). */
+  initialFocus?: ControlsFocusRequest;
 };
 
 type FlushSaveResult =
@@ -81,6 +83,7 @@ export function ProjectWorkspace({
   initialControlRecords,
   initialSnapshots,
   initialView = DEFAULT_WORKSPACE_TAB,
+  initialFocus,
 }: ProjectWorkspaceProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -118,9 +121,11 @@ export function ProjectWorkspace({
   const [versionMessage, setVersionMessage] = useState<string | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
-  const [activeTab, setActiveTab] = useState<WorkspaceTabId>(initialView);
+  const [activeTab, setActiveTab] = useState<WorkspaceTabId>(
+    initialFocus?.controlId ? "controls" : initialView,
+  );
   const [controlsFocus, setControlsFocus] =
-    useState<ControlsFocusRequest | null>(null);
+    useState<ControlsFocusRequest | null>(initialFocus ?? null);
 
   const historyRef = useRef(
     new EditorHistory(initialWorkingCopy(initialProject, initialRecordsMap)),

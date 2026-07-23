@@ -42,6 +42,8 @@ export type ControlEditorWorkspaceProps = {
   reviewStatus: ControlReviewStatus;
   narrativeComplete: boolean;
   activityRefreshToken: number;
+  focusCommentId?: string | null;
+  onFocusCommentHandled?: () => void;
   onUpdateImplementation: (patch: Partial<ControlImplementation>) => void;
   onUpdateFields: (patch: Partial<ControlRecordFields>) => void;
   onReviewStatusChange: (next: ControlReviewStatus) => void;
@@ -60,6 +62,8 @@ export function ControlEditorWorkspace({
   reviewStatus,
   narrativeComplete,
   activityRefreshToken,
+  focusCommentId = null,
+  onFocusCommentHandled,
   onUpdateImplementation,
   onUpdateFields,
   onReviewStatusChange,
@@ -178,6 +182,8 @@ export function ControlEditorWorkspace({
         projectId={projectId}
         controlId={control.id}
         refreshToken={activityRefreshToken}
+        focusCommentId={focusCommentId}
+        onFocusCommentHandled={onFocusCommentHandled}
         onActivity={onTransitionSuccess}
       />
       <ControlActivityHistory
