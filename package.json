@@ -18,6 +18,7 @@
     "db:migrate:sqlite-to-pg": "tsx --require ./scripts/mock-server-only.cjs scripts/migrate-sqlite-to-postgres.ts",
     "db:seed:demo": "tsx --require ./scripts/mock-server-only.cjs scripts/seed-demo.ts",
     "bootstrap:admin": "tsx --require ./scripts/mock-server-only.cjs scripts/bootstrap-admin.ts",
+    "bootstrap:demo": "tsx --require ./scripts/mock-server-only.cjs scripts/bootstrap-demo.ts",
     "auth:generate": "better-auth generate --config src/auth/server.ts --output drizzle-pg/better-auth-schema.reference.ts -y",
     "db:studio": "drizzle-kit studio --config=drizzle-pg.config.ts",
     "smoke:persistence": "tsx --require ./scripts/mock-server-only.cjs scripts/smoke-persistence.ts",

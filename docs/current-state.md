@@ -25,6 +25,8 @@ The application currently provides:
 - Version history
 - OSCAL SSP export and schema validation
 - Idempotent demo project seeding into a demo organization
+- Developer demo bootstrap (`npm run bootstrap:demo`) for a full local
+  multi-tenant environment (Acme + Contoso, users, projects, collaboration)
 
 OSCAL is an export/interchange format, not the internal editing model.
 Collaboration metadata is never exported as OSCAL.
@@ -67,10 +69,29 @@ Authorization is enforced server-side; UI hiding is not authorization.
 - Roles and permissions: authoritative matrix in `src/authz/permissions.ts`
 - Cutover: one-shot SQLite → PostgreSQL
   (`docs/playbooks/sqlite-to-postgres-cutover.md`, ADR-016)
-- Demo: authenticated invite-only; bootstrap admin via
-  `npm run bootstrap:admin`; seed with `SEED_DEMO_ORG_SLUG` (never `--reset`
-  on deploy)
+- Demo: authenticated invite-only; full local environment via
+  `npm run bootstrap:demo` (development-only, idempotent, never truncates);
+  minimal admin via `npm run bootstrap:admin`; deploy seed with
+  `SEED_DEMO_ORG_SLUG` (never `--reset` on deploy)
 - Health: `GET /api/health` probes PostgreSQL without exposing secrets
+
+## Developer demo bootstrap
+
+`npm run bootstrap:demo` prepares a complete local environment without manual
+`.env.local` editing, invitations, or hand-built demo data. It:
+
+1. Ensures `.env.local` (create from `.env.example` or fill missing keys only)
+2. Refuses production / non-local databases
+3. Runs `npm run db:migrate`
+4. Creates Acme Corporation and Contoso Industries with RBAC memberships
+5. Creates four NIST SP 800-53 Rev. 5 Moderate projects (Goose flagship plus
+   thinner Acme/Contoso projects)
+6. Populates Milestone 02A collaboration via discussion/assignment services
+   (markers keep seeds idempotent)
+
+Shared demo password: `ControlFreakDemo123!`. Olivia’s prompt label
+“Contributor” maps to the existing `author` role. There is no FedRAMP Moderate
+importer; projects use the pinned NIST Moderate baseline.
 
 ## Collaboration (Milestone 02A)
 
