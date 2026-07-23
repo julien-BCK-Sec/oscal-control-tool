@@ -63,3 +63,11 @@ export {
   projectCreatedEvent,
   projectUpdatedEvent,
 } from "./factories";
+export {
+  consoleDomainEventLogger,
+  executeDomainEventHandler,
+  type DomainEventLogger,
+  type HandlerExecutionObserver,
+  type HandlerExecutionResult,
+  type HandlerExecutionStatus,
+} from "./handler-framework";

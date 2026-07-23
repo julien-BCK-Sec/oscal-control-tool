@@ -87,6 +87,7 @@ describe("domain event publishing infrastructure", () => {
   it("isolates handler failures from the publish caller", async () => {
     const errors: string[] = [];
     const bus = createInProcessDomainEventBus({
+      logger: { error() {} },
       onHandlerError(error, context) {
         errors.push(`${context.handlerId}:${String(error)}`);
       },

@@ -1,3 +1,10 @@
+import {
+  consoleDomainEventLogger,
+  executeDomainEventHandler,
+  type DomainEventLogger,
+  type HandlerExecutionObserver,
+  type HandlerExecutionResult,
+} from "./handler-framework";
 import type { DomainEvent, DomainEventBus, DomainEventHandler } from "./types";
 
 export type DomainEventBusOptions = {
@@ -10,20 +17,13 @@ export type DomainEventBusOptions = {
     context: {
       handlerId: string;
       event: DomainEvent;
+      result: HandlerExecutionResult;
     },
   ) => void;
+  /** Optional observer for succeeded and failed handler runs (diagnostics). */
+  onHandlerExecuted?: HandlerExecutionObserver["onHandlerExecuted"];
+  logger?: DomainEventLogger;
 };
-
-function defaultHandlerErrorLog(
-  error: unknown,
-  context: { handlerId: string; event: DomainEvent },
-): void {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(
-    `[DomainEventBus] handler "${context.handlerId}" failed for ${context.event.eventType} ` +
-      `(org=${context.event.metadata.organizationId} id=${context.event.metadata.id}): ${message}`,
-  );
-}
 
 /**
  * In-process DomainEventBus.
@@ -36,7 +36,7 @@ export function createInProcessDomainEventBus(
   options: DomainEventBusOptions = {},
 ): DomainEventBus {
   const handlers = new Map<string, DomainEventHandler>();
-  const onHandlerError = options.onHandlerError ?? defaultHandlerErrorLog;
+  const logger = options.logger ?? consoleDomainEventLogger;
 
   return {
     subscribe(handler: DomainEventHandler): void {
@@ -61,12 +61,13 @@ export function createInProcessDomainEventBus(
       );
 
       for (const handler of matched) {
-        try {
-          await handler.handle(event);
-        } catch (error) {
-          onHandlerError(error, {
+        const result = await executeDomainEventHandler(handler, event, logger);
+        options.onHandlerExecuted?.(result);
+        if (result.status === "failed") {
+          options.onHandlerError?.(new Error(result.errorMessage ?? "failed"), {
             handlerId: handler.handlerId,
             event,
+            result,
           });
         }
       }
