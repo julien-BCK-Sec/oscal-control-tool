@@ -27,3 +27,13 @@ export {
   isDomainProjectValid,
   oscalValidationCheck,
 } from "./projectValidation";
+export type {
+  CreateDomainEventInput,
+  DomainEvent,
+  DomainEventAggregateType,
+  DomainEventBus,
+  DomainEventHandler,
+  DomainEventMetadata,
+  DomainEventPublisher,
+} from "./events";
+export { DOMAIN_EVENT_AGGREGATE_TYPES, createDomainEvent } from "./events";
