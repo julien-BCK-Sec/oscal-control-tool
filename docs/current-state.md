@@ -41,7 +41,8 @@ Current stack:
 - PostgreSQL + Drizzle (`pg`) for application persistence
 - Better Auth (sessions, organizations plugin)
 - SQLite tooling retained only for offline cutover from legacy deployments
-- Browser localStorage only as a legacy import source
+- Browser localStorage retained only for non-authoritative UI preferences
+  (legacy one-shot import banner removed; authoritative data is PostgreSQL)
 
 ## Architecture
 

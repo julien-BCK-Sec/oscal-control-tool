@@ -8,7 +8,6 @@ import {
   deleteProjectAction,
   renameProjectAction,
 } from "@/app/actions/projects";
-import { LegacyMigrationBanner } from "@/components/LegacyMigrationBanner";
 import { signOut } from "@/auth/client";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Button } from "@/components/design-system/button/Button";
@@ -147,12 +146,6 @@ export function ProjectsHome({
           ) : null}
         </div>
       </header>
-
-      <LegacyMigrationBanner
-        onImported={(projectId) => {
-          router.push(`/projects/${projectId}`);
-        }}
-      />
 
       {showCreate ? (
         <form
