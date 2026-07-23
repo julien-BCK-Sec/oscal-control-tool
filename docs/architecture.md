@@ -147,7 +147,8 @@ Contains:
 
 - Next.js
 - React
-- Design System
+- Design System (semantic light/dark tokens, Brand, Account menu Theme
+  preference — ADR-022)
 - Workspace UI
 - Sign-in and organization team settings
 - Collaboration UI (discussion panel, assignments, notification center,
@@ -158,6 +159,9 @@ Presentation never performs persistence directly.
 Presentation never contains OSCAL serialization.
 
 UI may hide unauthorized actions but is never the authorization boundary.
+
+Theme preference is a client UI concern (`src/theme/`, localStorage). It is not
+part of auth, tenancy, or domain persistence.
 
 ---
 
@@ -198,6 +202,8 @@ independently; failures are logged and do not roll back the business write.
 - Keep the domain model independent of export formats.
 - Keep repositories database-specific.
 - Keep UI independent of persistence.
+- Keep theme preference (ADR-022) independent of authentication and domain
+  persistence; resolve via semantic tokens on the document root.
 - Keep exports deterministic.
 - Keep application metadata separate from compliance content.
 - Fail closed on missing authentication, membership, or permission.

@@ -10,10 +10,13 @@ import {
 } from "react";
 import {
   accountInitials,
+  THEME_MENU_OPTIONS,
   type AccountMenuAccount,
   type AccountMenuItem,
 } from "@/components/auth/account-menu";
 import { Button } from "@/components/design-system/button/Button";
+import { useTheme } from "@/theme/ThemeProvider";
+import type { ThemePreference } from "@/theme/preference";
 
 export type AccountMenuProps = {
   account: AccountMenuAccount;
@@ -22,9 +25,13 @@ export type AccountMenuProps = {
   onSignOut: () => void;
 };
 
+const MENU_ITEM_SELECTOR =
+  '[role="menuitem"]:not([aria-disabled="true"]), [role="menuitemradio"]';
+
 /**
  * Lightweight accessible account menu. Presentation only — callers supply
- * account labels and the sign-out handler.
+ * account labels and the sign-out handler. Theme preference uses useTheme
+ * (local UI preference; not auth-backed).
  */
 export function AccountMenu({
   account,
@@ -36,7 +43,9 @@ export function AccountMenu({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
+  const themeGroupId = useId();
   const initials = accountInitials(account.displayName);
+  const { preference, setPreference } = useTheme();
 
   function close(focusTrigger = true) {
     setOpen(false);
@@ -79,9 +88,7 @@ export function AccountMenu({
     if (!open) {
       return;
     }
-    const firstItem = menuRef.current?.querySelector<HTMLElement>(
-      '[role="menuitem"]:not([aria-disabled="true"])',
-    );
+    const firstItem = menuRef.current?.querySelector<HTMLElement>(MENU_ITEM_SELECTOR);
     firstItem?.focus();
   }, [open]);
 
@@ -93,9 +100,7 @@ export function AccountMenu({
   }
 
   function focusMenuItem(offset: number) {
-    const items = menuRef.current?.querySelectorAll<HTMLElement>(
-      '[role="menuitem"]:not([aria-disabled="true"])',
-    );
+    const items = menuRef.current?.querySelectorAll<HTMLElement>(MENU_ITEM_SELECTOR);
     if (!items || items.length === 0) {
       return;
     }
@@ -123,17 +128,11 @@ export function AccountMenu({
         break;
       case "Home":
         event.preventDefault();
-        menuRef.current
-          ?.querySelectorAll<HTMLElement>(
-            '[role="menuitem"]:not([aria-disabled="true"])',
-          )[0]
-          ?.focus();
+        menuRef.current?.querySelectorAll<HTMLElement>(MENU_ITEM_SELECTOR)[0]?.focus();
         break;
       case "End": {
         event.preventDefault();
-        const all = menuRef.current?.querySelectorAll<HTMLElement>(
-          '[role="menuitem"]:not([aria-disabled="true"])',
-        );
+        const all = menuRef.current?.querySelectorAll<HTMLElement>(MENU_ITEM_SELECTOR);
         all?.[all.length - 1]?.focus();
         break;
       }
@@ -151,6 +150,10 @@ export function AccountMenu({
     }
     item.onSelect?.();
     close(true);
+  }
+
+  function selectTheme(next: ThemePreference) {
+    setPreference(next);
   }
 
   return (
@@ -187,7 +190,7 @@ export function AccountMenu({
           aria-label="Account"
           tabIndex={-1}
           onKeyDown={onMenuKeyDown}
-          className="absolute right-0 z-20 mt-2 w-[min(16rem,calc(100vw-2rem))] rounded-md border border-border bg-surface py-1 shadow-md"
+          className="absolute right-0 z-20 mt-2 w-[min(16rem,calc(100vw-2rem))] rounded-md border border-border bg-surface py-1 shadow-elevated"
         >
           <div className="border-b border-border px-3 py-2" role="presentation">
             <p className="truncate text-sm font-medium text-foreground">
@@ -227,6 +230,40 @@ export function AccountMenu({
               ))}
             </ul>
           ) : null}
+
+          <div
+            className="border-b border-border py-1"
+            role="group"
+            aria-labelledby={themeGroupId}
+          >
+            <p
+              id={themeGroupId}
+              className="px-3 py-1.5 text-xs font-medium text-text-secondary"
+              role="presentation"
+            >
+              Theme
+            </p>
+            {THEME_MENU_OPTIONS.map((option) => {
+              const selected = preference === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={selected}
+                  className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-surface-secondary focus-visible:bg-surface-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus-ring"
+                  onClick={() => selectTheme(option.value)}
+                >
+                  <span>{option.label}</span>
+                  {selected ? (
+                    <span className="text-xs font-medium text-accent" aria-hidden="true">
+                      Selected
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
 
           <div className="py-1" role="presentation">
             <button

@@ -132,7 +132,7 @@ export function MentionTextarea({
         <ul
           role="listbox"
           aria-label="Mention suggestions"
-          className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-border bg-surface shadow-md"
+          className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-border bg-surface shadow-elevated"
         >
           {filtered.map((candidate, index) => (
             <li key={candidate.userId} role="option" aria-selected={index === activeIndex}>

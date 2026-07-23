@@ -44,7 +44,7 @@ export function SignInForm({ redirectTo }: { redirectTo: string }) {
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col justify-center gap-6 px-4 py-16">
-      <Brand variant="lockup" appearance="on-light" size="sm" priority />
+      <Brand variant="lockup" appearance="auto" size="sm" priority />
       <Card prominent aria-labelledby="sign-in-heading">
         <CardHeader>
           <CardTitle id="sign-in-heading">Sign in</CardTitle>

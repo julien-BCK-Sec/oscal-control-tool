@@ -3,6 +3,8 @@
  * Keep session fetching and sign-out side effects out of this module.
  */
 
+import type { ThemePreference } from "@/theme/preference";
+
 export type AccountMenuAccount = {
   displayName: string;
   organizationName: string;
@@ -19,6 +21,30 @@ export type AccountMenuItem = {
   onSelect?: () => void;
   disabled?: boolean;
 };
+
+export type ThemeMenuOption = {
+  value: ThemePreference;
+  label: string;
+};
+
+/** Theme choices shown in the account menu (order is presentation order). */
+export const THEME_MENU_OPTIONS: readonly ThemeMenuOption[] = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+] as const;
+
+export function themeMenuOptionLabel(preference: ThemePreference): string {
+  const match = THEME_MENU_OPTIONS.find((option) => option.value === preference);
+  return match?.label ?? preference;
+}
+
+export function isThemeMenuOptionSelected(
+  preference: ThemePreference,
+  option: ThemePreference,
+): boolean {
+  return preference === option;
+}
 
 /** Initials for the compact avatar trigger (1–2 characters). */
 export function accountInitials(displayName: string): string {

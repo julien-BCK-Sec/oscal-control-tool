@@ -124,7 +124,7 @@ export function NotificationCenter({
         Notifications
         {unread > 0 ? (
           <span
-            className="ml-2 inline-flex min-w-[1.25rem] items-center justify-center rounded-sm bg-danger px-1 text-xs font-medium text-white"
+            className="ml-2 inline-flex min-w-[1.25rem] items-center justify-center rounded-sm bg-danger px-1 text-xs font-medium text-on-danger"
             aria-hidden="true"
           >
             {unread > 99 ? "99+" : unread}
@@ -137,7 +137,7 @@ export function NotificationCenter({
           id={panelId}
           role="region"
           aria-label={label}
-          className="absolute right-0 z-20 mt-2 w-[min(24rem,calc(100vw-2rem))] rounded-md border border-border bg-surface shadow-md"
+          className="absolute right-0 z-20 mt-2 w-[min(24rem,calc(100vw-2rem))] rounded-md border border-border bg-surface shadow-elevated"
         >
           <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
             <p className="text-sm font-medium text-text-primary">{label}</p>

@@ -29,10 +29,10 @@ export function ProductHeader({
             aria-label="Control Freak home"
           >
             <span className="hidden sm:inline-flex">
-              <Brand variant="lockup" appearance="on-light" size="sm" priority />
+              <Brand variant="lockup" appearance="auto" size="sm" priority />
             </span>
             <span className="inline-flex sm:hidden">
-              <Brand variant="mark" appearance="on-light" size="sm" priority />
+              <Brand variant="mark" appearance="auto" size="sm" priority />
             </span>
           </Link>
           {context ? (

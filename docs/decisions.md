@@ -468,3 +468,39 @@ Reason:
 
 Date:
 2026-07-22
+
+## ADR-022
+
+Decision:
+Support light and dark themes through semantic CSS variables with a
+user-selectable preference of `system` | `light` | `dark`:
+
+- Token values live in `src/app/globals.css` under `:root` (light) and
+  `[data-theme="dark"]` (dark). Tailwind v4 `@theme inline` maps those
+  variables to utilities. Components use semantic utilities and shared
+  classes (`.btn`, `.field`, `.ds-card`) — not component-specific dark colors.
+- The document root carries the *resolved* theme as `data-theme="light|dark"`
+  and matching `color-scheme`. The stored *preference* may be `system`.
+- Preference persistence is browser `localStorage` only
+  (`cf-theme-preference`). No server-side user preference storage.
+- A blocking inline script in the root layout reads the preference and OS
+  scheme before first paint to avoid a flash of the wrong theme.
+- `ThemeProvider` keeps React in sync, listens for `prefers-color-scheme`
+  changes while preference is `system`, and ignores OS changes when the
+  preference is explicitly `light` or `dark`.
+- Brand assets use `appearance="auto"` (both on-light and on-dark images;
+  CSS shows the match for `data-theme`) so logos do not flash on hydration.
+- The authenticated account menu exposes the Theme selector (System / Light /
+  Dark). Theme code stays independent of authentication and domain logic.
+
+A user override (not system-only) was chosen so operators can keep a stable
+workspace appearance under shared or brightly lit machines, while still
+defaulting to system for new visitors.
+
+Reason:
+- Extends ADR-013 token architecture without a second styling system.
+- Matches existing localStorage use for non-authoritative UI preferences.
+- Keeps FOUC and Brand appearance correct under SSR.
+
+Date:
+2026-07-22

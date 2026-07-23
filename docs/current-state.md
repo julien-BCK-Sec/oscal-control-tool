@@ -45,7 +45,8 @@ Current stack:
 - Better Auth (sessions, organizations plugin)
 - SQLite tooling retained only for offline cutover from legacy deployments
 - Browser localStorage retained only for non-authoritative UI preferences
-  (legacy one-shot import banner removed; authoritative data is PostgreSQL)
+  (theme preference `system` | `light` | `dark`, ADR-022; authoritative data is
+  PostgreSQL)
 
 ## Architecture
 
@@ -196,6 +197,7 @@ cutover only.
 - Named version restore does not roll back ControlRecord metadata, activity,
   or collaboration rows
 - Per-control UI action hiding is coarse; server authorization is authoritative
+- Favicon remains the light-mark asset (not theme-switched)
 
 ## Next approved milestone
 
