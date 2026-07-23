@@ -3,7 +3,7 @@
  * Separate from OSCAL / project_json document history.
  */
 
-/** Currently emitted by ControlRecord metadata saves and review transitions. */
+/** Emitted by ControlRecord metadata saves, review transitions, and collaboration. */
 export type ControlActivityTypeSupported =
   | "control_record_created"
   | "owner_changed"
@@ -16,20 +16,26 @@ export type ControlActivityTypeSupported =
   | "review_approved"
   | "changes_requested"
   | "review_resubmitted"
-  | "review_reopened";
+  | "review_reopened"
+  | "comment_added"
+  | "comment_edited"
+  | "comment_deleted"
+  | "comment_restored"
+  | "comment_resolved"
+  | "discussion_reopened"
+  | "assignment_changed"
+  | "assignment_completed"
+  | "assignment_removed";
 
 /**
- * Reserved for future comment / evidence / narrative events.
+ * Reserved for future evidence / narrative events.
  * Included in the union so new emitters can extend without renames.
  */
 export type ControlActivityTypeFuture =
   | "implementation_updated"
   | "parameter_changed"
-  | "comment_added"
-  | "comment_resolved"
   | "evidence_added"
-  | "evidence_removed"
-  | "assignment_changed";
+  | "evidence_removed";
 
 export type ControlActivityType =
   | ControlActivityTypeSupported
@@ -60,4 +66,11 @@ export type AppendControlActivityInput = {
   metadataJson?: string | null;
   /** Defaults to now when omitted. */
   createdAt?: string;
+};
+
+export type ListControlActivitiesOptions = {
+  /** Maximum rows to return (newest first). */
+  limit?: number;
+  /** ISO timestamp cursor: return activities created strictly before this. */
+  beforeCreatedAt?: string;
 };

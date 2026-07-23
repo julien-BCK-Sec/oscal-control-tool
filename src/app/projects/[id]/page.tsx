@@ -5,13 +5,21 @@ import {
 } from "@/app/actions/projects";
 import { listControlRecordsAction } from "@/app/actions/control-records";
 import { ProjectWorkspace } from "@/components/ProjectWorkspace";
-import { parseWorkspaceViewParam } from "@/components/workspace/presentation";
+import {
+  parseCommentQueryParam,
+  parseControlQueryParam,
+  parseWorkspaceViewParam,
+} from "@/components/workspace/presentation";
 
 export const dynamic = "force-dynamic";
 
 type ProjectPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ view?: string | string[] }>;
+  searchParams: Promise<{
+    view?: string | string[];
+    control?: string | string[];
+    comment?: string | string[];
+  }>;
 };
 
 export default async function ProjectPage({
@@ -21,7 +29,22 @@ export default async function ProjectPage({
   const { id } = await params;
   const query = await searchParams;
   const viewParam = Array.isArray(query.view) ? query.view[0] : query.view;
+  const controlParam = Array.isArray(query.control)
+    ? query.control[0]
+    : query.control;
+  const commentParam = Array.isArray(query.comment)
+    ? query.comment[0]
+    : query.comment;
   const initialView = parseWorkspaceViewParam(viewParam);
+  const initialControlId = parseControlQueryParam(controlParam);
+  const initialCommentId = parseCommentQueryParam(commentParam);
+  const initialFocus =
+    initialControlId || initialCommentId
+      ? {
+          controlId: initialControlId,
+          commentId: initialCommentId,
+        }
+      : undefined;
 
   const loaded = await loadProjectAction(id);
   if (!loaded.ok) {
@@ -50,7 +73,8 @@ export default async function ProjectPage({
       initialProject={loaded.project}
       initialControlRecords={controlRecords}
       initialSnapshots={snapshots}
-      initialView={initialView}
+      initialView={initialControlId ? "controls" : initialView}
+      initialFocus={initialFocus}
     />
   );
 }

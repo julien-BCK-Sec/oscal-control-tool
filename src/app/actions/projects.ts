@@ -323,23 +323,3 @@ export async function createAutomaticSnapshotAction(
   }
   return createAutomaticSnapshotForOrg(repo, ctx, id);
 }
-
-export async function importLegacyProjectAction(input: {
-  name: string;
-  metadata: unknown;
-  implementations: unknown;
-}): Promise<StoredProject> {
-  const ctx = await requireDefaultOrgContext();
-  const name = requireNonEmptyString(input.name, "name");
-  if (!isProjectMetadata(input.metadata)) {
-    throw new Error("Invalid legacy project metadata.");
-  }
-  const implementations = parseImplementations(input.implementations) ?? {};
-
-  return createProjectForOrg(await getProjectRepository(), ctx, {
-    name,
-    frameworkId: NIST_MODERATE_FRAMEWORK_ID,
-    metadata: input.metadata,
-    implementations,
-  });
-}

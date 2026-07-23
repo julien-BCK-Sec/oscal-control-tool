@@ -70,13 +70,19 @@ src/components/design-system/
                   SectionHeader, EmptyState
 ```
 
-Domain UI stays under `controlBrowser/`, `workspace/`, etc., and **composes**
-these primitives.
+Domain UI stays under `controlBrowser/`, `workspace/`, `collaboration/`, etc.,
+and **composes** these primitives.
+
+Collaboration surfaces (`DiscussionPanel`, `AssignmentControls`,
+`NotificationCenter`, `MentionTextarea`) live under
+`src/components/collaboration/` and reuse `Button`, `SidebarCard`, `Stack`, and
+form primitives. Do not move workflow or persistence logic into
+`design-system/`.
 
 ### Preferred composition
 
 ```tsx
-<AppShell header={<ProductHeader />}>
+<AppShell header={<ProductHeader actions={<NotificationCenter />} />}>
   <PageContent narrow>{/* projects list */}</PageContent>
 </AppShell>
 
@@ -92,6 +98,9 @@ these primitives.
 
 <SplitLayout main={<>…narrative…</>} side={<>…cards…</>} />
 ```
+
+Control editor sidebar order (operational): ownership → implementation meta →
+review → assignments → discussions → history.
 
 ## Badge semantics
 

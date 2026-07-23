@@ -396,3 +396,34 @@ Reason:
 
 Date:
 2026-07-22
+
+## ADR-020
+
+Decision:
+Introduce control-scoped collaboration as operational metadata (Milestone 02A):
+
+- Collaboration targets are Controls only.
+- Discussions use an unlimited-depth parent-child comment model.
+- Comments are soft-deleted (`deleted_at`) to preserve auditability; moderators
+  may restore.
+- Mentions resolve `@token` values against organization members only (email,
+  email local-part, or display name); unresolved tokens are ignored.
+- In-app notifications are retained indefinitely unless explicitly soft-deleted;
+  active-row duplicate prevention keys on recipient + event type + related
+  object id.
+- Assignments carry one primary assignee per assignment record with role
+  `owner` or `reviewer`.
+- Collaboration events append to the existing ControlActivity stream and follow
+  the same retention policy.
+- Collaboration metadata is never stored in `project_json` or exported as OSCAL.
+
+Centralize collaboration permissions in `src/authz/permissions.ts` and enforce
+them in authorized server wrappers before repository access.
+
+Reason:
+- Enables first-class collaboration without contaminating standards interchange.
+- Reuses Platform Foundation tenancy, RBAC, and activity patterns.
+- Keeps email/chat/live presence and workflow automation out of scope.
+
+Date:
+2026-07-22

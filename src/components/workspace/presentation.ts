@@ -74,8 +74,32 @@ export function isWorkspacePanelActive(
   return activeTab === panel;
 }
 
-/** Focus request when navigating from Overview into Controls. */
+/** Focus request when navigating from Overview or a notification deep link. */
 export type ControlsFocusRequest = {
   family?: string;
   controlId?: string;
+  /** Scroll/highlight a discussion comment when practical. */
+  commentId?: string;
 };
+
+/** Parse `control` query param for Controls deep links. */
+export function parseControlQueryParam(
+  value: string | null | undefined,
+): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+/** Parse `comment` query param for discussion deep links. */
+export function parseCommentQueryParam(
+  value: string | null | undefined,
+): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}

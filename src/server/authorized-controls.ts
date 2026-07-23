@@ -94,6 +94,7 @@ export async function listControlActivitiesForOrg(
   ctx: OrgContext,
   projectId: string,
   controlId: string,
+  options?: { limit?: number; beforeCreatedAt?: string },
 ): Promise<ControlActivity[]> {
   requirePermission(ctx, ctx.organizationId, "project.read");
   if (!(await projectBelongsToOrg(projectRepo, ctx, projectId))) {
@@ -106,5 +107,5 @@ export async function listControlActivitiesForOrg(
   if (!record) {
     return [];
   }
-  return activityRepo.listByControlRecordId(record.id);
+  return activityRepo.listByControlRecordId(record.id, options);
 }

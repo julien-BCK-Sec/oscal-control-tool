@@ -13,6 +13,8 @@ import { ControlActivityHistory } from "@/components/controlBrowser/ControlActiv
 import { ControlEditorHeader } from "@/components/controlBrowser/ControlEditorHeader";
 import { CollapsibleRequirement } from "@/components/controlBrowser/CollapsibleRequirement";
 import { EvidencePlaceholderCard } from "@/components/controlBrowser/EvidencePlaceholderCard";
+import { DiscussionPanel } from "@/components/collaboration/DiscussionPanel";
+import { AssignmentControls } from "@/components/collaboration/AssignmentControls";
 import { useControlReviewTransition } from "@/components/controlBrowser/useControlReviewTransition";
 import { splitRequirementSegments } from "@/components/controlBrowser/requirementText";
 import {
@@ -40,6 +42,8 @@ export type ControlEditorWorkspaceProps = {
   reviewStatus: ControlReviewStatus;
   narrativeComplete: boolean;
   activityRefreshToken: number;
+  focusCommentId?: string | null;
+  onFocusCommentHandled?: () => void;
   onUpdateImplementation: (patch: Partial<ControlImplementation>) => void;
   onUpdateFields: (patch: Partial<ControlRecordFields>) => void;
   onReviewStatusChange: (next: ControlReviewStatus) => void;
@@ -58,6 +62,8 @@ export function ControlEditorWorkspace({
   reviewStatus,
   narrativeComplete,
   activityRefreshToken,
+  focusCommentId = null,
+  onFocusCommentHandled,
   onUpdateImplementation,
   onUpdateFields,
   onReviewStatusChange,
@@ -165,6 +171,20 @@ export function ControlEditorWorkspace({
         error={reviewTransition.error}
         onAction={(action) => void reviewTransition.runAction(action)}
         omitPrimaryOnDesktop
+      />
+      <AssignmentControls
+        projectId={projectId}
+        controlId={control.id}
+        refreshToken={activityRefreshToken}
+        onActivity={onTransitionSuccess}
+      />
+      <DiscussionPanel
+        projectId={projectId}
+        controlId={control.id}
+        refreshToken={activityRefreshToken}
+        focusCommentId={focusCommentId}
+        onFocusCommentHandled={onFocusCommentHandled}
+        onActivity={onTransitionSuccess}
       />
       <ControlActivityHistory
         projectId={projectId}

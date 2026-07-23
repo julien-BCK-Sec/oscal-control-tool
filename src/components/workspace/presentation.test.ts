@@ -5,6 +5,8 @@ import {
   WORKSPACE_TABS,
   isWorkspacePanelActive,
   isWorkspaceTabId,
+  parseCommentQueryParam,
+  parseControlQueryParam,
   parseWorkspaceViewParam,
   workspaceTabDefinition,
 } from "@/components/workspace/presentation";
@@ -46,6 +48,15 @@ describe("workspace tabs", () => {
     assert.equal(parseWorkspaceViewParam("history"), "history");
     assert.equal(parseWorkspaceViewParam(undefined), "overview");
     assert.equal(parseWorkspaceViewParam("nope"), "overview");
+  });
+
+  it("parses control and comment deep-link query params", () => {
+    assert.equal(parseControlQueryParam("ac-2"), "ac-2");
+    assert.equal(parseControlQueryParam("  ac-2.1 "), "ac-2.1");
+    assert.equal(parseControlQueryParam(""), undefined);
+    assert.equal(parseControlQueryParam(undefined), undefined);
+    assert.equal(parseCommentQueryParam("comment-1"), "comment-1");
+    assert.equal(parseCommentQueryParam("   "), undefined);
   });
 
   it("shows only the selected panel as active", () => {

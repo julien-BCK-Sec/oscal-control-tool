@@ -54,16 +54,20 @@ docker compose version
 ```bash
 git clone <repository-url>
 cd oscal-control-tool
-docker compose up -d
 npm install --legacy-peer-deps
-cp .env.example .env.local
-# Edit .env.local: BETTER_AUTH_SECRET, BETTER_AUTH_URL, NEXT_PUBLIC_APP_URL,
-# and BOOTSTRAP_* values. DATABASE_URL already matches compose.yaml.
-# Standalone scripts load .env.local (then .env) automatically.
-npm run db:migrate
-npm run bootstrap:admin
+docker compose up -d
+npm run bootstrap:demo
 npm run dev
 ```
+
+`npm run bootstrap:demo` is the standard local setup path. It:
+
+- Ensures `.env.local` exists (copies from `.env.example`, fills localhost
+  defaults, generates missing secrets only — never overwrites existing keys)
+- Verifies PostgreSQL connectivity and runs `npm run db:migrate`
+- Creates demo organizations, users, memberships, projects, and collaboration
+  data (idempotent; safe to re-run)
+- Prints login emails and the shared demo password
 
 Compose PostgreSQL defaults (no `compose.yaml` edits required):
 
@@ -77,8 +81,42 @@ Open:
 http://localhost:3000/sign-in
 ```
 
+Demo accounts (shared password `ControlFreakDemo123!`):
+
+| Email | Role | Organization |
+|-------|------|--------------|
+| alice@example.com | Organization Admin | Acme Corporation |
+| bob@example.com | Project Manager | Acme Corporation |
+| carol@example.com | Author | Acme Corporation |
+| dave@example.com | Reviewer | Acme Corporation |
+| victor@example.com | Viewer | Acme Corporation |
+| olivia@example.com | Author (Contributor) | Acme Corporation |
+| oscar@example.com | Organization Admin | Contoso Industries |
+| rachel@example.com | Reviewer | Contoso Industries |
+
+Projects: Goose Command Control Center (flagship), Customer A SSP, Internal Lab
+Environment (Acme), Contoso Cloud Platform (Contoso). Framework content uses the
+pinned NIST SP 800-53 Rev. 5 Moderate baseline (no FedRAMP profile is shipped).
+
+Migrations vs demo data: `npm run db:migrate` applies schema only.
+`bootstrap:demo` runs migrations, then seeds identity and demo content.
+You can still run migrations alone when you only need schema updates.
+
 Development verification and invitation links are written to `data/email-sink.json`
-(see `.env.example`).
+(see `.env.example`). Email delivery is not required for demo users (verified at
+seed time).
+
+#### Troubleshooting PostgreSQL connectivity
+
+If `bootstrap:demo` cannot connect:
+
+1. Confirm Compose is up: `docker compose ps` (service `postgres` healthy).
+2. Confirm `DATABASE_URL` in `.env.local` matches Compose
+   (`postgres://postgres:postgres@localhost:5432/oscal_control_tool`).
+3. If port 5432 is already taken, stop the other Postgres instance or change
+   the Compose port mapping and `DATABASE_URL` together.
+4. `bootstrap:demo` refuses production `NODE_ENV`, Render, and non-local
+   database hosts — it never truncates or resets data.
 
 ### Local database cleanup
 
@@ -113,11 +151,16 @@ npm run db:migrate
 npm run db:generate
 npm run db:studio
 npm run db:migrate:sqlite-to-pg
+npm run bootstrap:demo
 npm run bootstrap:admin
 npm run db:seed:demo
 
 npm run derive:framework
 ```
+
+`bootstrap:admin` remains available for a minimal single-admin org when you do
+not want the full multi-tenant demo. Prefer `bootstrap:demo` for day-to-day
+local development.
 
 ---
 

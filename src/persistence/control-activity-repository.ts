@@ -1,6 +1,7 @@
 import type {
   AppendControlActivityInput,
   ControlActivity,
+  ListControlActivitiesOptions,
 } from "@/data/control-activity";
 
 /**
@@ -9,5 +10,8 @@ import type {
 export interface ControlActivityRepository {
   append(input: AppendControlActivityInput): Promise<ControlActivity>;
   appendMany(inputs: AppendControlActivityInput[]): Promise<ControlActivity[]>;
-  listByControlRecordId(controlRecordId: string): Promise<ControlActivity[]>;
+  listByControlRecordId(
+    controlRecordId: string,
+    options?: ListControlActivitiesOptions,
+  ): Promise<ControlActivity[]>;
 }
