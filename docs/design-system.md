@@ -82,7 +82,7 @@ form primitives. Do not move workflow or persistence logic into
 ### Preferred composition
 
 ```tsx
-<AppShell header={<ProductHeader actions={<NotificationCenter />} />}>
+<AppShell header={<ProductHeader actions={<AuthenticatedHeaderActions />} />}>
   <PageContent narrow>{/* projects list */}</PageContent>
 </AppShell>
 

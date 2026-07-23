@@ -12,8 +12,8 @@ import {
 import { ControlBrowser } from "@/components/ControlBrowser";
 import { ProjectMetadataSection } from "@/components/ProjectMetadataSection";
 import { ProjectOverview } from "@/components/ProjectOverview";
+import { AuthenticatedHeaderActions } from "@/components/auth/AuthenticatedHeaderActions";
 import { ProductHeader } from "@/components/design-system/layout/AppShell";
-import { NotificationCenter } from "@/components/collaboration/NotificationCenter";
 import {
   createNamedVersionAction,
   createAutomaticSnapshotAction,
@@ -633,7 +633,7 @@ export function ProjectWorkspace({
             {name.trim() || "Untitled project"}
           </span>
         }
-        actions={<NotificationCenter />}
+        actions={<AuthenticatedHeaderActions />}
       />
       <WorkspaceHeader
         projectName={name}

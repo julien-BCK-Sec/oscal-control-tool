@@ -8,7 +8,7 @@ import {
   deleteProjectAction,
   renameProjectAction,
 } from "@/app/actions/projects";
-import { signOut } from "@/auth/client";
+import { AuthenticatedHeaderActions } from "@/components/auth/AuthenticatedHeaderActions";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Button } from "@/components/design-system/button/Button";
 import {
@@ -16,7 +16,6 @@ import {
   PageContent,
   ProductHeader,
 } from "@/components/design-system/layout/AppShell";
-import { NotificationCenter } from "@/components/collaboration/NotificationCenter";
 import { EmptyState } from "@/components/design-system/layout/primitives";
 import {
   Card,
@@ -119,7 +118,9 @@ export function ProjectsHome({
   }
 
   return (
-    <AppShell header={<ProductHeader actions={<NotificationCenter />} />}>
+    <AppShell
+      header={<ProductHeader actions={<AuthenticatedHeaderActions />} />}
+    >
       <PageContent narrow>
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
@@ -237,7 +238,6 @@ export function ProjectsHome({
 }
 
 function AccountBar({ account }: { account: ProjectsHomeAccount }) {
-  const router = useRouter();
   return (
     <div className="flex flex-wrap items-center justify-end gap-3 text-sm text-text-secondary">
       <span className="min-w-0 truncate">
@@ -253,15 +253,6 @@ function AccountBar({ account }: { account: ProjectsHomeAccount }) {
           Team
         </Link>
       ) : null}
-      <Button
-        type="button"
-        variant="default"
-        onClick={() => {
-          void signOut().then(() => router.push("/sign-in"));
-        }}
-      >
-        Sign out
-      </Button>
     </div>
   );
 }
