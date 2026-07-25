@@ -25,6 +25,7 @@ export const DOMAIN_EVENT_TYPES = [
   "EvidenceArchived",
   "EvidenceLinked",
   "EvidenceUnlinked",
+  "EvidenceVersionUploaded",
 ] as const;
 
 export type DomainEventType = (typeof DOMAIN_EVENT_TYPES)[number];
@@ -151,6 +152,17 @@ export type EvidenceUnlinkedPayload = {
   readonly title: string;
 };
 
+export type EvidenceVersionUploadedPayload = {
+  readonly projectId: string;
+  readonly evidenceId: string;
+  readonly versionId: string;
+  readonly versionNumber: number;
+  readonly originalFilename: string;
+  readonly mimeType: string;
+  readonly sizeBytes: number;
+  readonly sha256: string;
+};
+
 export type ProjectCreatedEvent = DomainEvent<
   "ProjectCreated",
   ProjectCreatedPayload
@@ -215,6 +227,10 @@ export type EvidenceUnlinkedEvent = DomainEvent<
   "EvidenceUnlinked",
   EvidenceUnlinkedPayload
 >;
+export type EvidenceVersionUploadedEvent = DomainEvent<
+  "EvidenceVersionUploaded",
+  EvidenceVersionUploadedPayload
+>;
 
 export type InitialDomainEvent =
   | ProjectCreatedEvent
@@ -232,4 +248,5 @@ export type InitialDomainEvent =
   | EvidenceUpdatedEvent
   | EvidenceArchivedEvent
   | EvidenceLinkedEvent
-  | EvidenceUnlinkedEvent;
+  | EvidenceUnlinkedEvent
+  | EvidenceVersionUploadedEvent;

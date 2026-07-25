@@ -571,6 +571,16 @@ Introduce project-scoped Evidence as a first-class operational aggregate
   in `src/authz/permissions.ts`. Reviewers are read-only for Evidence in 03A.
 - Evidence is never stored in `project_json` or exported as OSCAL.
 
+**Amendment (Milestone 03B, 2026-07-23):**
+
+- Evidence may reference its **current Evidence Version** via
+  `current_version_id` (nullable until the first upload).
+- Uploading a file creates an **immutable Evidence Version** bound to the
+  existing Evidence UUID; it must never create a new Evidence row.
+- Historical versions remain browseable; replacing a file advances the
+  current-version pointer only after a successful version insert.
+- Binary storage and provider selection are defined in **ADR-025**.
+
 This decision supersedes the ADR-009 implication that Evidence would be a
 child of a single ControlRecord. ControlRecord remains the hub for
 ControlActivity and evidence requirement metadata.
@@ -581,6 +591,67 @@ Reason:
   ControlActivity + DomainEvent architecture.
 - Required-by-default makes evidence gaps visible; Optional / Not required
   remain explicit opt-outs.
+
+Date:
+2026-07-23
+
+## ADR-025
+
+Decision:
+Introduce immutable Evidence Versions and a production-ready object storage
+abstraction (Milestone 03B):
+
+- **Evidence Versions** are immutable snapshots of uploaded artifacts belonging
+  to a single Evidence aggregate. Version rows store metadata only: version
+  number, original filename, opaque storage key, MIME type, byte size,
+  SHA-256 checksum, uploaded-by, uploaded-at. They do not duplicate Evidence
+  title/description/type/status.
+- **Binary bytes are never stored in PostgreSQL.** The database holds only
+  metadata and an opaque storage identifier.
+- **Storage port:** application code depends on a small provider interface
+  (`put` / `get` / `delete` / `exists`) that accepts opaque keys and byte
+  streams or buffers. Provider-specific types, filesystem paths, bucket names,
+  and regions must not leak into the Evidence domain or HTTP APIs.
+- **Production provider:** S3-compatible object storage (AWS S3, MinIO,
+  Cloudflare R2, and other S3 API endpoints) via the AWS SDK v3 S3 client.
+  Production **fails closed** when durable object-storage configuration is
+  absent or invalid. Never silently fall back to local disk in production.
+- **Development/test provider:** local filesystem under a configured root
+  (default `data/evidence-storage`). Filesystem storage is not a production
+  deployment path.
+- **Transfer model (03B):** authorized **app-proxied** upload and download
+  through Next.js Route Handlers. Clients never send or receive raw storage
+  keys. Downloads resolve an Evidence Version by application identifiers
+  (`projectId`, `evidenceId`, `versionId`) after `evidence.read` authorization,
+  and respond with `Content-Disposition: attachment` and safe filename
+  encoding. Presigned/direct client↔object-store transfers are a future
+  scaling optimization behind the same storage port.
+- **Upload limit:** configurable via `EVIDENCE_UPLOAD_MAX_BYTES` with default
+  **25 MiB** (26_214_400). Enforced server-side. Empty files are rejected.
+- **Upload atomicity:** (1) write bytes to storage under a new opaque key;
+  (2) insert the version row and update `evidence.current_version_id` in one
+  database transaction; (3) never advance the current pointer on partial
+  failure; (4) on DB failure after a successful put, attempt storage delete and
+  log cleanup failures for future orphan reconciliation.
+- **Authorization:** reuse existing permissions — `evidence.read` for version
+  history and download; `evidence.update` for upload and replacement. No new
+  permission strings in 03B.
+- **MIME and filename:** detect/validate MIME type server-side; sanitize
+  original filenames (no path components, bounded length). Do not trust
+  client-supplied checksums.
+- **Future providers** (Azure Blob Storage, GCS) and features (virus scan,
+  OCR, preview, retention, org-wide libraries) must plug into the same storage
+  port and version metadata without redesigning the Evidence aggregate.
+
+Reason:
+- Keeps ADR-024’s permanent Evidence UUID stable while enabling audit-friendly
+  artifact history.
+- Matches multi-tenant authorization and fail-closed production configuration
+  already used for `DATABASE_URL`.
+- S3-compatible storage is the practical production default across common
+  hosts; a narrow port keeps Azure/GCS additive.
+- App-proxied transfers preserve centralized auth and trustworthy hashing for
+  current file-size expectations without blocking a later presigned path.
 
 Date:
 2026-07-23

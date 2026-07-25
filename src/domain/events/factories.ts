@@ -14,6 +14,7 @@ import type {
   EvidenceLinkedEvent,
   EvidenceUnlinkedEvent,
   EvidenceUpdatedEvent,
+  EvidenceVersionUploadedEvent,
   NotificationCreatedEvent,
   ProjectCreatedEvent,
   ProjectUpdatedEvent,
@@ -428,6 +429,39 @@ export function evidenceUnlinkedEvent(
       evidenceId: input.evidenceId,
       controlId: input.controlId,
       title: input.title,
+    },
+  });
+}
+
+export function evidenceVersionUploadedEvent(
+  input: EventActorInput & {
+    projectId: string;
+    evidenceId: string;
+    versionId: string;
+    versionNumber: number;
+    originalFilename: string;
+    mimeType: string;
+    sizeBytes: number;
+    sha256: string;
+  },
+): EvidenceVersionUploadedEvent {
+  return createDomainEvent({
+    eventType: "EvidenceVersionUploaded",
+    organizationId: input.organizationId,
+    aggregateId: input.evidenceId,
+    aggregateType: "evidence",
+    actorId: input.actorId,
+    correlationId: input.correlationId,
+    occurredAt: input.occurredAt,
+    payload: {
+      projectId: input.projectId,
+      evidenceId: input.evidenceId,
+      versionId: input.versionId,
+      versionNumber: input.versionNumber,
+      originalFilename: input.originalFilename,
+      mimeType: input.mimeType,
+      sizeBytes: input.sizeBytes,
+      sha256: input.sha256,
     },
   });
 }
