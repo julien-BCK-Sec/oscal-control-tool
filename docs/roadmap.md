@@ -43,14 +43,29 @@ Project-scoped Evidence aggregate, control associations, evidence
 requirement on ControlRecord, RBAC, audit/events, and browse/CRUD UI without
 binary uploads. See `docs/milestones/03A-evidence-management.md` and ADR-024.
 
+**Milestone 03B – Evidence Storage & Versioning** (implemented on
+`feat/evidence-storage-03b`)
+
+Immutable Evidence Versions, object storage abstraction (filesystem
+dev/test; S3-compatible production), app-proxied upload/download, version
+history UI. See `docs/milestones/03B-evidence-storage-and-versioning.md` and
+ADR-025.
+
+**Milestone 03C – Searchable Evidence Picker** (implemented on
+`feat/evidence-picker-03c`)
+
+Reusable presentational Evidence Picker, project-scoped server search with
+keyset pagination, control linking integration. See
+`docs/milestones/03C-evidence-picker.md`.
+
 ## Next
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
 
 ## Later
 
-- Evidence Versions / binary upload / object storage
-- Evidence review / approval workflow
+- Organization-wide Evidence library (reuse picker + new search scope)
+- Evidence review / approval workflow (Milestone 03D candidate)
 - Evidence dashboards and reporting
 - Email / Slack / Teams notifications
 - Durable domain event store / outbox / external broker
@@ -58,3 +73,5 @@ binary uploads. See `docs/milestones/03A-evidence-management.md` and ADR-024.
 - AI-assisted authoring
 - Async / queued workflow execution, approvals, SLA timers
 - Horizontal scaling review beyond single-instance defaults
+- Presigned/direct object-store transfers (scaling optimization)
+- Postgres FTS/trigram if project libraries outgrow ILIKE

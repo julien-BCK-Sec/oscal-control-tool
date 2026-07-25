@@ -342,9 +342,9 @@ export const workflowExecutions = pgTable(
 );
 
 /**
- * Project-scoped Evidence aggregate (Milestone 03A, ADR-024).
- * Logical assertion with a permanent UUID; future file uploads become
- * Evidence Versions bound to this id — not new Evidence rows.
+ * Project-scoped Evidence aggregate (Milestone 03A/03B, ADR-024 / ADR-025).
+ * Logical assertion with a permanent UUID; file uploads become Evidence
+ * Versions bound to this id — not new Evidence rows.
  */
 export const evidence = pgTable(
   "evidence",
@@ -360,12 +360,54 @@ export const evidence = pgTable(
     status: text("status").notNull().default("draft"),
     collectionDate: text("collection_date"),
     reviewDueDate: text("review_due_date"),
+    /** Nullable until first upload; FK added after evidence_versions exists. */
+    currentVersionId: text("current_version_id"),
     createdAt: text("created_at").notNull(),
     updatedAt: text("updated_at").notNull(),
   },
   (table) => [
     index("evidence_project_id_idx").on(table.projectId),
     index("evidence_project_status_idx").on(table.projectId, table.status),
+    /** Keyset pagination for Evidence search (Milestone 03C). */
+    index("evidence_project_updated_id_idx").on(
+      table.projectId,
+      table.updatedAt,
+      table.id,
+    ),
+  ],
+);
+
+/**
+ * Immutable Evidence Version metadata (Milestone 03B, ADR-025).
+ * Binary bytes live in object storage under `storage_key`.
+ */
+export const evidenceVersions = pgTable(
+  "evidence_versions",
+  {
+    id: text("id").primaryKey().notNull(),
+    evidenceId: text("evidence_id")
+      .notNull()
+      .references(() => evidence.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    versionNumber: integer("version_number").notNull(),
+    originalFilename: text("original_filename").notNull(),
+    storageKey: text("storage_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    sha256: text("sha256").notNull(),
+    uploadedByUserId: text("uploaded_by_user_id").notNull(),
+    uploadedAt: text("uploaded_at").notNull(),
+  },
+  (table) => [
+    unique("evidence_versions_evidence_version_uid").on(
+      table.evidenceId,
+      table.versionNumber,
+    ),
+    unique("evidence_versions_storage_key_uid").on(table.storageKey),
+    index("evidence_versions_evidence_id_idx").on(table.evidenceId),
+    index("evidence_versions_project_id_idx").on(table.projectId),
   ],
 );
 
@@ -409,4 +451,5 @@ export type NotificationRow = typeof notifications.$inferSelect;
 export type WorkflowRuleRow = typeof workflowRules.$inferSelect;
 export type WorkflowExecutionRow = typeof workflowExecutions.$inferSelect;
 export type EvidenceRow = typeof evidence.$inferSelect;
+export type EvidenceVersionRow = typeof evidenceVersions.$inferSelect;
 export type EvidenceControlRow = typeof evidenceControls.$inferSelect;

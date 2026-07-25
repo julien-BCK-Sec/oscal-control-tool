@@ -53,6 +53,7 @@ Contains:
 - Assignments
 - In-app notifications
 - Evidence (Milestone 03A)
+- Evidence Versions / object storage (Milestone 03B)
 
 Operational metadata is never stored inside OSCAL documents.
 
@@ -102,7 +103,22 @@ Milestone 03A capabilities:
 - Evidence ↔ control many-to-many associations
 - Evidence requirement on ControlRecord (default `required`)
 - Evidence domain events + ControlActivity link/unlink fan-out
-- Evidence browse / CRUD / archive UI (no binary uploads yet)
+- Evidence browse / CRUD / archive UI
+
+Milestone 03B capabilities:
+
+- Immutable Evidence Versions with current-version pointer (ADR-024 amendment)
+- Object storage port: filesystem (dev/test) + S3-compatible (production,
+  fail closed) — ADR-025
+- App-proxied upload/download Route Handlers; SHA-256 + MIME validation
+- Version history UI on the Evidence tab
+
+Milestone 03C capabilities:
+
+- Presentational reusable Evidence Picker (`<dialog>`)
+- Project-scoped server-side search with keyset pagination
+- Control panel owns associate/create; picker emits selection callbacks
+- Associate rejects archived Evidence for new links
 
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
@@ -111,7 +127,7 @@ Later capabilities remain independent of UI and persistence:
 
 - Email / external notifications
 - AI services
-- Evidence processing / Evidence Versions (binary upload)
+- Evidence processing (virus scan, OCR, preview)
 - Durable event store / outbox / external broker
 - Async / queued workflow execution, approvals, SLA timers
 
@@ -131,7 +147,9 @@ Examples:
 - AssignmentRepository
 - NotificationRepository
 - WorkflowRepository
-- EvidenceRepository / EvidenceService
+- EvidenceRepository / EvidenceService (including search)
+- EvidenceVersionRepository / EvidenceVersionService
+- ObjectStorageProvider (filesystem | S3-compatible)
 
 Repositories isolate the database from business logic.
 

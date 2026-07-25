@@ -4,11 +4,13 @@ import type {
   EvidenceControlLink,
   EvidenceWithControlIds,
   ListEvidenceOptions,
+  SearchEvidenceInput,
+  SearchEvidencePage,
   UpdateEvidenceInput,
 } from "@/data/evidence";
 
 /**
- * Persistence boundary for project-scoped Evidence (Milestone 03A).
+ * Persistence boundary for project-scoped Evidence (Milestone 03A/03C).
  * Tenancy is enforced via project ownership in authorized wrappers.
  */
 export interface EvidenceRepository {
@@ -23,6 +25,11 @@ export interface EvidenceRepository {
     projectId: string,
     options?: ListEvidenceOptions,
   ): Promise<EvidenceWithControlIds[]>;
+
+  /**
+   * Bounded, keyset-paginated Evidence search for the picker (Milestone 03C).
+   */
+  search(input: SearchEvidenceInput): Promise<SearchEvidencePage>;
 
   update(
     projectId: string,

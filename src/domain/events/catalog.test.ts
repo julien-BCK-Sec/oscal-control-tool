@@ -18,6 +18,7 @@ import {
   evidenceLinkedEvent,
   evidenceUnlinkedEvent,
   evidenceUpdatedEvent,
+  evidenceVersionUploadedEvent,
   notificationCreatedEvent,
   projectCreatedEvent,
   projectUpdatedEvent,
@@ -42,6 +43,7 @@ describe("initial domain event catalog", () => {
       "EvidenceArchived",
       "EvidenceLinked",
       "EvidenceUnlinked",
+      "EvidenceVersionUploaded",
     ]);
     assert.equal(isDomainEventType("DiscussionCreated"), true);
     assert.equal(isDomainEventType("discussion_created"), false);
@@ -169,6 +171,17 @@ describe("initial domain event catalog", () => {
         evidenceId: "e1",
         controlId: "ac-2",
         title: "Policy PDF",
+      }),
+      evidenceVersionUploadedEvent({
+        ...base,
+        projectId: "p1",
+        evidenceId: "e1",
+        versionId: "v1",
+        versionNumber: 1,
+        originalFilename: "policy.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 12,
+        sha256: "a".repeat(64),
       }),
     ];
 

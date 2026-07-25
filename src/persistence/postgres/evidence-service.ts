@@ -18,14 +18,16 @@ import type { AppendControlActivityInput } from "@/data/control-activity";
 import type { ActorIdentity } from "../actor";
 import { nextActivityTimestamp } from "../activity-clock";
 import type {
+  EvidenceAssociateResult,
   EvidenceDeleteResult,
   EvidenceMutationResult,
   EvidenceService,
 } from "../evidence-service";
 import { appendActivitiesInTransaction } from "./control-activity-repository";
 import { createPostgresEvidenceRepository } from "./evidence-repository";
+import { createPostgresEvidenceVersionRepository } from "./evidence-version-repository";
 import type { AppDatabase } from "./client";
-import { controlRecords, projects } from "./schema";
+import { controlRecords, evidence, projects } from "./schema";
 
 async function ensureControlRecord(
   db: AppDatabase,
@@ -163,6 +165,10 @@ export function createPostgresEvidenceService(
       return repo.listByProject(projectId, options);
     },
 
+    search(input) {
+      return repo.search(input);
+    },
+
     async create(input: CreateEvidenceInput, actor) {
       const evidence = await repo.create(input);
       const activities = await appendLinkActivities(
@@ -218,6 +224,18 @@ export function createPostgresEvidenceService(
             "Only draft evidence with no control associations may be permanently deleted. Archive instead.",
         };
       }
+      const versionRepo = createPostgresEvidenceVersionRepository(db);
+      const storageKeys = await versionRepo.listStorageKeys(
+        projectId,
+        evidenceId,
+      );
+      // Clear current pointer before cascade-deleting versions.
+      await db
+        .update(evidence)
+        .set({ currentVersionId: null, updatedAt: new Date().toISOString() })
+        .where(
+          and(eq(evidence.projectId, projectId), eq(evidence.id, evidenceId)),
+        );
       const deleted = await repo.delete(projectId, evidenceId);
       if (!deleted) {
         return {
@@ -226,34 +244,58 @@ export function createPostgresEvidenceService(
           message: "Evidence not found.",
         };
       }
-      return { ok: true, deleted: true };
+      return { ok: true, deleted: true, storageKeys };
     },
 
-    async associate(projectId, evidenceId, controlId, actor) {
+    async associate(
+      projectId,
+      evidenceId,
+      controlId,
+      actor,
+    ): Promise<EvidenceAssociateResult> {
       const before = await repo.getById(projectId, evidenceId);
       if (!before) {
-        return null;
+        return {
+          ok: false,
+          reason: "not-found",
+          message: "Evidence not found.",
+        };
       }
       if (before.controlIds.includes(controlId.trim())) {
-        return { evidence: before, activities: [] };
+        return { ok: true, evidence: before, activities: [] };
+      }
+      if (before.status === "archived") {
+        return {
+          ok: false,
+          reason: "archived",
+          message: "Archived evidence cannot be linked to controls.",
+        };
       }
       const link = await repo.associate(projectId, evidenceId, controlId);
       if (!link) {
-        return null;
+        return {
+          ok: false,
+          reason: "not-found",
+          message: "Evidence not found.",
+        };
       }
-      const evidence = await repo.getById(projectId, evidenceId);
-      if (!evidence) {
-        return null;
+      const evidenceRow = await repo.getById(projectId, evidenceId);
+      if (!evidenceRow) {
+        return {
+          ok: false,
+          reason: "not-found",
+          message: "Evidence not found.",
+        };
       }
       const activities = await appendLinkActivities(
         db,
         projectId,
-        evidence,
+        evidenceRow,
         [controlId.trim()],
         "evidence_added",
         actor,
       );
-      return { evidence, activities };
+      return { ok: true, evidence: evidenceRow, activities };
     },
 
     async dissociate(projectId, evidenceId, controlId, actor) {

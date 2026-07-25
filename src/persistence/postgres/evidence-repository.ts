@@ -1,22 +1,30 @@
 import "server-only";
 
-import { and, asc, eq, inArray, ne } from "drizzle-orm";
+import { and, asc, desc, eq, exists, ilike, inArray, lt, ne, not, or } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
+  decodeEvidenceSearchCursor,
+  encodeEvidenceSearchCursor,
+  escapeIlikePattern,
+  EVIDENCE_SEARCH_DEFAULT_LIMIT,
+  EVIDENCE_SEARCH_MAX_LIMIT,
   isEvidenceStatus,
   isEvidenceType,
   type CreateEvidenceInput,
   type Evidence,
   type EvidenceControlLink,
+  type EvidenceSearchResult,
   type EvidenceStatus,
   type EvidenceType,
   type EvidenceWithControlIds,
   type ListEvidenceOptions,
+  type SearchEvidenceInput,
+  type SearchEvidencePage,
   type UpdateEvidenceInput,
 } from "@/data/evidence";
 import type { EvidenceRepository } from "../evidence-repository";
 import type { AppDatabase } from "./client";
-import { evidence, evidenceControls, projects } from "./schema";
+import { evidence, evidenceControls, evidenceVersions, projects } from "./schema";
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -39,6 +47,7 @@ function toEvidence(row: typeof evidence.$inferSelect): Evidence {
     status,
     collectionDate: row.collectionDate,
     reviewDueDate: row.reviewDueDate,
+    currentVersionId: row.currentVersionId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -134,6 +143,7 @@ export function createPostgresEvidenceRepository(
           status,
           collectionDate: input.collectionDate ?? null,
           reviewDueDate: input.reviewDueDate ?? null,
+          currentVersionId: null,
           createdAt,
           updatedAt: createdAt,
         });
@@ -158,6 +168,7 @@ export function createPostgresEvidenceRepository(
         status,
         collectionDate: input.collectionDate ?? null,
         reviewDueDate: input.reviewDueDate ?? null,
+        currentVersionId: null,
         createdAt,
         updatedAt: createdAt,
         controlIds,
@@ -218,6 +229,150 @@ export function createPostgresEvidenceRepository(
         results.push(await withControlIds(db, toEvidence(row)));
       }
       return results;
+    },
+
+    async search(input: SearchEvidenceInput): Promise<SearchEvidencePage> {
+      const projectId = input.projectId.trim();
+      if (!projectId) {
+        return { items: [], nextCursor: null, hasMore: false };
+      }
+
+      const limitRaw = input.limit ?? EVIDENCE_SEARCH_DEFAULT_LIMIT;
+      const limit = Math.min(
+        Math.max(1, Number.isFinite(limitRaw) ? Math.floor(limitRaw) : EVIDENCE_SEARCH_DEFAULT_LIMIT),
+        EVIDENCE_SEARCH_MAX_LIMIT,
+      );
+
+      const conditions = [eq(evidence.projectId, projectId)];
+
+      if (input.status) {
+        if (!isEvidenceStatus(input.status)) {
+          throw new Error("Invalid evidence status filter.");
+        }
+        conditions.push(eq(evidence.status, input.status));
+      } else if (input.excludeArchived !== false) {
+        conditions.push(ne(evidence.status, "archived"));
+      }
+
+      if (input.evidenceType) {
+        if (!isEvidenceType(input.evidenceType)) {
+          throw new Error("Invalid evidence type filter.");
+        }
+        conditions.push(eq(evidence.evidenceType, input.evidenceType));
+      }
+
+      const excludeControlId = input.excludeLinkedToControlId?.trim();
+      if (excludeControlId) {
+        conditions.push(
+              not(
+            exists(
+              db
+                .select({ id: evidenceControls.id })
+                .from(evidenceControls)
+                .where(
+                  and(
+                    eq(evidenceControls.projectId, projectId),
+                    eq(evidenceControls.evidenceId, evidence.id),
+                    eq(evidenceControls.controlId, excludeControlId),
+                  ),
+                ),
+            ),
+          ),
+        );
+      }
+
+      const query = input.query?.trim() ?? "";
+      if (query) {
+        const pattern = `%${escapeIlikePattern(query)}%`;
+        conditions.push(
+          or(
+            ilike(evidence.title, pattern),
+            ilike(evidence.description, pattern),
+            ilike(evidence.owner, pattern),
+            ilike(evidenceVersions.originalFilename, pattern),
+          )!,
+        );
+      }
+
+      const cursor = decodeEvidenceSearchCursor(input.cursor);
+      if (input.cursor && input.cursor.trim() !== "" && !cursor) {
+        throw new Error("Invalid search cursor.");
+      }
+      if (cursor) {
+        conditions.push(
+          or(
+            lt(evidence.updatedAt, cursor.updatedAt),
+            and(
+              eq(evidence.updatedAt, cursor.updatedAt),
+              lt(evidence.id, cursor.id),
+            ),
+          )!,
+        );
+      }
+
+      const rows = await db
+        .select({
+          id: evidence.id,
+          title: evidence.title,
+          evidenceType: evidence.evidenceType,
+          owner: evidence.owner,
+          status: evidence.status,
+          updatedAt: evidence.updatedAt,
+          versionFilename: evidenceVersions.originalFilename,
+          versionMimeType: evidenceVersions.mimeType,
+          versionSizeBytes: evidenceVersions.sizeBytes,
+          versionUploadedAt: evidenceVersions.uploadedAt,
+        })
+        .from(evidence)
+        .leftJoin(
+          evidenceVersions,
+          eq(evidence.currentVersionId, evidenceVersions.id),
+        )
+        .where(and(...conditions))
+        .orderBy(desc(evidence.updatedAt), desc(evidence.id))
+        .limit(limit + 1);
+
+      const hasMore = rows.length > limit;
+      const pageRows = hasMore ? rows.slice(0, limit) : rows;
+      const items: EvidenceSearchResult[] = pageRows.map((row) => {
+        const evidenceType: EvidenceType = isEvidenceType(row.evidenceType)
+          ? row.evidenceType
+          : "other";
+        const status: EvidenceStatus = isEvidenceStatus(row.status)
+          ? row.status
+          : "draft";
+        return {
+          id: row.id,
+          title: row.title,
+          evidenceType,
+          owner: row.owner,
+          status,
+          updatedAt: row.updatedAt,
+          currentVersion:
+            row.versionFilename &&
+            row.versionMimeType &&
+            typeof row.versionSizeBytes === "number" &&
+            row.versionUploadedAt
+              ? {
+                  originalFilename: row.versionFilename,
+                  mimeType: row.versionMimeType,
+                  sizeBytes: row.versionSizeBytes,
+                  uploadedAt: row.versionUploadedAt,
+                }
+              : null,
+        };
+      });
+
+      const last = items[items.length - 1];
+      const nextCursor =
+        hasMore && last
+          ? encodeEvidenceSearchCursor({
+              updatedAt: last.updatedAt,
+              id: last.id,
+            })
+          : null;
+
+      return { items, nextCursor, hasMore };
     },
 
     async update(projectId, evidenceId, input: UpdateEvidenceInput) {

@@ -10,6 +10,7 @@ import type { NotificationRepository } from "./notification-repository";
 import type { ProjectRepository } from "./repository";
 import type { WorkflowRepository } from "./workflow-repository";
 import type { EvidenceService } from "./evidence-service";
+import type { EvidenceVersionService } from "./evidence-version-service";
 import { getDb } from "./postgres/client";
 import { createPostgresAssignmentRepository } from "./postgres/assignment-repository";
 import { createPostgresCommentRepository } from "./postgres/comment-repository";
@@ -18,9 +19,11 @@ import { createPostgresControlRecordRepository } from "./postgres/control-record
 import { createPostgresControlRecordService } from "./postgres/control-record-service";
 import { createPostgresDiscussionService } from "./postgres/discussion-service";
 import { createPostgresEvidenceService } from "./postgres/evidence-service";
+import { createPostgresEvidenceVersionService } from "./postgres/evidence-version-service";
 import { createPostgresNotificationRepository } from "./postgres/notification-repository";
 import { createPostgresProjectRepository } from "./postgres/project-repository";
 import { createPostgresWorkflowRepository } from "./postgres/workflow-repository";
+import { getObjectStorageProvider } from "@/storage";
 
 /** Default server-side repository bound to DATABASE_URL (PostgreSQL). */
 export async function getProjectRepository(): Promise<ProjectRepository> {
@@ -73,4 +76,10 @@ export async function getWorkflowRepository(): Promise<WorkflowRepository> {
 /** Evidence management (Milestone 03A). */
 export async function getEvidenceService(): Promise<EvidenceService> {
   return createPostgresEvidenceService(await getDb());
+}
+
+/** Evidence Versions + object storage (Milestone 03B). */
+export async function getEvidenceVersionService(): Promise<EvidenceVersionService> {
+  const { provider } = getObjectStorageProvider();
+  return createPostgresEvidenceVersionService(await getDb(), provider);
 }

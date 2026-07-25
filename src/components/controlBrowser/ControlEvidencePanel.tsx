@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useId, useState, useTransition } from "react";
 import {
   EVIDENCE_TYPES,
   evidenceStatusLabel,
@@ -14,6 +14,7 @@ import {
   dissociateEvidenceAction,
   listEvidenceAction,
 } from "@/app/actions/evidence";
+import { EvidencePicker } from "@/components/evidence/EvidencePicker";
 import {
   FormField,
   FormHint,
@@ -37,25 +38,23 @@ export function ControlEvidencePanel({
   onActivity,
 }: ControlEvidencePanelProps) {
   const [items, setItems] = useState<EvidenceWithControlIds[]>([]);
-  const [available, setAvailable] = useState<EvidenceWithControlIds[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState("");
   const [evidenceType, setEvidenceType] = useState<EvidenceType>("document");
-  const [linkEvidenceId, setLinkEvidenceId] = useState("");
+  const createHeadingId = useId();
 
   const reload = useCallback(() => {
     startTransition(() => {
       void (async () => {
-        const [linked, all] = await Promise.all([
-          listEvidenceAction(projectId, { controlId, includeArchived: false }),
-          listEvidenceAction(projectId, { includeArchived: false }),
-        ]);
+        const linked = await listEvidenceAction(projectId, {
+          controlId,
+          includeArchived: false,
+        });
         setItems(linked);
-        setAvailable(
-          all.filter((item) => !item.controlIds.includes(controlId)),
-        );
       })();
     });
   }, [projectId, controlId]);
@@ -64,8 +63,31 @@ export function ControlEvidencePanel({
     reload();
   }, [reload, refreshToken]);
 
+  function handleSelect(evidenceId: string) {
+    setError(null);
+    setSuccess(null);
+    startTransition(() => {
+      void (async () => {
+        const result = await associateEvidenceAction({
+          projectId,
+          evidenceId,
+          controlId,
+        });
+        if (!result.ok) {
+          setError(result.message);
+          return;
+        }
+        setPickerOpen(false);
+        setSuccess("Evidence linked.");
+        reload();
+        onActivity?.();
+      })();
+    });
+  }
+
   function handleCreate() {
     setError(null);
+    setSuccess(null);
     startTransition(() => {
       void (async () => {
         const result = await createEvidenceAction({
@@ -81,29 +103,8 @@ export function ControlEvidencePanel({
         }
         setTitle("");
         setShowCreate(false);
-        reload();
-        onActivity?.();
-      })();
-    });
-  }
-
-  function handleAssociate() {
-    if (!linkEvidenceId) {
-      return;
-    }
-    setError(null);
-    startTransition(() => {
-      void (async () => {
-        const result = await associateEvidenceAction({
-          projectId,
-          evidenceId: linkEvidenceId,
-          controlId,
-        });
-        if (!result.ok) {
-          setError(result.message);
-          return;
-        }
-        setLinkEvidenceId("");
+        setPickerOpen(false);
+        setSuccess("Evidence created and linked.");
         reload();
         onActivity?.();
       })();
@@ -112,6 +113,7 @@ export function ControlEvidencePanel({
 
   function handleDissociate(evidenceId: string) {
     setError(null);
+    setSuccess(null);
     startTransition(() => {
       void (async () => {
         const result = await dissociateEvidenceAction({
@@ -141,13 +143,18 @@ export function ControlEvidencePanel({
         Evidence
       </h3>
       <p className="mt-1 text-xs text-text-muted">
-        Logical evidence records linked to this control. File uploads come in a
-        later release.
+        Logical evidence records linked to this control. Manage file versions
+        from the project Evidence tab.
       </p>
 
       {error ? (
         <p className="mt-2 text-xs text-danger" role="alert">
           {error}
+        </p>
+      ) : null}
+      {success ? (
+        <p className="mt-2 text-xs text-text-secondary" role="status">
+          {success}
         </p>
       ) : null}
 
@@ -168,6 +175,9 @@ export function ControlEvidencePanel({
                   {evidenceTypeLabel(item.evidenceType)} ·{" "}
                   {evidenceStatusLabel(item.status)}
                   {item.owner.trim() ? ` · ${item.owner}` : ""}
+                  {item.currentVersionId
+                    ? " · file attached"
+                    : " · no file yet"}
                 </p>
               </div>
               {canEdit ? (
@@ -187,105 +197,105 @@ export function ControlEvidencePanel({
 
       {canEdit ? (
         <Stack gap="sm" className="mt-3">
-          {available.length > 0 ? (
-            <div className="flex flex-wrap items-end gap-2">
-              <FormField className="min-w-[12rem] flex-1">
-                <FormLabel htmlFor={`link-evidence-${controlId}`}>
-                  Link existing evidence
-                </FormLabel>
-                <select
-                  id={`link-evidence-${controlId}`}
-                  className="field mt-1"
-                  value={linkEvidenceId}
-                  onChange={(event) => setLinkEvidenceId(event.target.value)}
-                  disabled={pending}
-                >
-                  <option value="">Select evidence…</option>
-                  {available.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.title}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-              <button
-                type="button"
-                className="btn"
-                disabled={pending || !linkEvidenceId}
-                onClick={handleAssociate}
-              >
-                Link
-              </button>
-            </div>
-          ) : null}
+          <button
+            type="button"
+            className="btn"
+            disabled={pending}
+            onClick={() => {
+              setError(null);
+              setSuccess(null);
+              setPickerOpen(true);
+            }}
+          >
+            Link evidence
+          </button>
+          <FormHint>
+            Opens a searchable picker of eligible project evidence. Already
+            linked and archived records are excluded.
+          </FormHint>
+        </Stack>
+      ) : null}
 
-          {showCreate ? (
-            <div className="rounded-sm border border-border bg-surface p-3">
-              <FormField>
-                <FormLabel htmlFor={`new-evidence-title-${controlId}`}>
-                  Title
-                </FormLabel>
-                <input
-                  id={`new-evidence-title-${controlId}`}
-                  className="field mt-1"
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  disabled={pending}
-                />
-              </FormField>
-              <FormField className="mt-2">
-                <FormLabel htmlFor={`new-evidence-type-${controlId}`}>
-                  Type
-                </FormLabel>
-                <select
-                  id={`new-evidence-type-${controlId}`}
-                  className="field mt-1"
-                  value={evidenceType}
-                  onChange={(event) =>
-                    setEvidenceType(event.target.value as EvidenceType)
-                  }
-                  disabled={pending}
-                >
-                  {EVIDENCE_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {evidenceTypeLabel(type)}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={pending || title.trim() === ""}
-                  onClick={handleCreate}
-                >
-                  Create and link
-                </button>
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={pending}
-                  onClick={() => setShowCreate(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
+      <EvidencePicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        projectId={projectId}
+        excludeLinkedToControlId={controlId}
+        selecting={pending}
+        onSelect={handleSelect}
+        onCreateRequested={() => {
+          setShowCreate(true);
+          setPickerOpen(false);
+        }}
+      />
+
+      {showCreate && canEdit ? (
+        <div
+          className="mt-3 rounded-sm border border-border bg-surface p-3"
+          role="region"
+          aria-labelledby={createHeadingId}
+        >
+          <h4
+            id={createHeadingId}
+            className="text-sm font-medium text-foreground"
+          >
+            Create new evidence
+          </h4>
+          <FormField className="mt-2">
+            <FormLabel htmlFor={`new-evidence-title-${controlId}`}>
+              Title
+            </FormLabel>
+            <input
+              id={`new-evidence-title-${controlId}`}
+              className="field mt-1"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              disabled={pending}
+              autoFocus
+            />
+          </FormField>
+          <FormField className="mt-2">
+            <FormLabel htmlFor={`new-evidence-type-${controlId}`}>
+              Type
+            </FormLabel>
+            <select
+              id={`new-evidence-type-${controlId}`}
+              className="field mt-1"
+              value={evidenceType}
+              onChange={(event) =>
+                setEvidenceType(event.target.value as EvidenceType)
+              }
+              disabled={pending}
+            >
+              {EVIDENCE_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {evidenceTypeLabel(type)}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={pending || title.trim() === ""}
+              onClick={handleCreate}
+            >
+              Create and link
+            </button>
             <button
               type="button"
               className="btn"
               disabled={pending}
-              onClick={() => setShowCreate(true)}
+              onClick={() => setShowCreate(false)}
             >
-              Add evidence
+              Cancel
             </button>
-          )}
-          <FormHint>
-            Creating evidence here marks it active and links it to this control.
+          </div>
+          <FormHint className="mt-2">
+            Creates active evidence and links it to this control.
           </FormHint>
-        </Stack>
+        </div>
       ) : null}
     </section>
   );

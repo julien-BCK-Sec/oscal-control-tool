@@ -5,8 +5,10 @@ import { closeDb, openTestDb } from "@/persistence/postgres/client";
 import { createPostgresProjectRepository } from "@/persistence/postgres/project-repository";
 import { createPostgresOrganizationRepository } from "@/persistence/postgres/organization-repository";
 import { createPostgresEvidenceService } from "@/persistence/postgres/evidence-service";
+import { createPostgresEvidenceVersionService } from "@/persistence/postgres/evidence-version-service";
 import { createPostgresControlActivityRepository } from "@/persistence/postgres/control-activity-repository";
 import { createPostgresControlRecordRepository } from "@/persistence/postgres/control-record-repository";
+import { createFilesystemObjectStorage } from "@/storage/filesystem-provider";
 import { AuthorizationError } from "@/authz/authorize";
 import type { OrgContext } from "@/authz/authorize";
 import type { OrgRole } from "@/authz/permissions";
@@ -19,6 +21,9 @@ import {
   listEvidenceForOrg,
 } from "@/server/authorized-evidence";
 import { createProjectForOrg } from "@/server/authorized-projects";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 
 afterEach(async () => {
   await closeDb();
@@ -29,11 +34,26 @@ async function setup() {
   const projects = createPostgresProjectRepository(db);
   const orgs = createPostgresOrganizationRepository(db);
   const evidence = createPostgresEvidenceService(db);
+  const storageRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cf-ev-authz-"));
+  const versions = createPostgresEvidenceVersionService(
+    db,
+    createFilesystemObjectStorage(storageRoot),
+  );
   const activities = createPostgresControlActivityRepository(db);
   const controlRecords = createPostgresControlRecordRepository(db);
   const orgA = await orgs.createOrganization({ name: "Org A", slug: "org-a-ev" });
   const orgB = await orgs.createOrganization({ name: "Org B", slug: "org-b-ev" });
-  return { db, projects, evidence, activities, controlRecords, orgA, orgB };
+  return {
+    db,
+    projects,
+    evidence,
+    versions,
+    activities,
+    controlRecords,
+    orgA,
+    orgB,
+    storageRoot,
+  };
 }
 
 function ctx(organizationId: string, role: OrgRole, userId = "u"): OrgContext {
@@ -101,7 +121,7 @@ describe("evidence service and authorization", () => {
   });
 
   it("archives evidence and hard-deletes only eligible drafts", async () => {
-    const { projects, evidence, orgA } = await setup();
+    const { projects, evidence, versions, orgA } = await setup();
     const admin = ctx(orgA.id, "organization_admin");
     const project = await createProjectForOrg(projects, admin, projectInput);
 
@@ -125,6 +145,7 @@ describe("evidence service and authorization", () => {
     const deleted = await deleteDraftEvidenceForOrg(
       projects,
       evidence,
+      versions,
       admin,
       project.id,
       draft.evidence.id,
@@ -152,6 +173,7 @@ describe("evidence service and authorization", () => {
     const notDeletable = await deleteDraftEvidenceForOrg(
       projects,
       evidence,
+      versions,
       admin,
       project.id,
       active.evidence.id,
@@ -176,7 +198,7 @@ describe("evidence service and authorization", () => {
   });
 
   it("enforces tenant isolation and role permissions", async () => {
-    const { projects, evidence, orgA, orgB } = await setup();
+    const { projects, evidence, versions, orgA, orgB } = await setup();
     const adminA = ctx(orgA.id, "organization_admin");
     const adminB = ctx(orgB.id, "organization_admin");
     const viewer = ctx(orgA.id, "viewer");
@@ -239,6 +261,7 @@ describe("evidence service and authorization", () => {
         deleteDraftEvidenceForOrg(
           projects,
           evidence,
+          versions,
           author,
           project.id,
           created.evidence.id,

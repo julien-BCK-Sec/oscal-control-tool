@@ -38,8 +38,8 @@ export type EvidenceRequirement = (typeof EVIDENCE_REQUIREMENTS)[number];
 /**
  * Persisted Evidence row (application DTO, no Drizzle types).
  * Identity (`id`) is a stable UUID for the logical Evidence aggregate.
- * Future file uploads create Evidence Versions bound to this id — not new
- * Evidence rows (ADR-024).
+ * File uploads create Evidence Versions bound to this id — not new Evidence
+ * rows (ADR-024 / ADR-025).
  */
 export type Evidence = {
   id: string;
@@ -54,8 +54,39 @@ export type Evidence = {
   collectionDate: string | null;
   /** ISO date `YYYY-MM-DD`, or null when unset. */
   reviewDueDate: string | null;
+  /**
+   * Current Evidence Version id, or null when no artifact has been uploaded.
+   * Binary bytes live in object storage; this is a pointer only (ADR-025).
+   */
+  currentVersionId: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+/**
+ * Immutable snapshot of an uploaded evidence artifact (ADR-025).
+ * Does not duplicate Evidence title/description/type/status.
+ * `storageKey` is opaque and must never be exposed to clients.
+ */
+export type EvidenceVersion = {
+  id: string;
+  evidenceId: string;
+  projectId: string;
+  versionNumber: number;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  sha256: string;
+  uploadedByUserId: string;
+  uploadedAt: string;
+};
+
+/** Public DTO safe for API / UI (no storage key). */
+export type EvidenceVersionView = EvidenceVersion;
+
+export type EvidenceVersionWithStorageKey = EvidenceVersion & {
+  /** Opaque object-storage key — persistence layer only. */
+  storageKey: string;
 };
 
 /** Junction: Evidence ↔ framework control within a project. */

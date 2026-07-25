@@ -27,7 +27,9 @@ The application currently provides:
 - Workflow automation rules that subscribe to the Domain Event Bus
 - Workflow execution history / diagnostics (organization admin)
 - Project-scoped Evidence records with control associations and requirement
-  metadata on ControlRecord (ADR-024; no binary uploads yet)
+  metadata on ControlRecord (ADR-024)
+- Immutable Evidence Versions with app-proxied upload/download and
+  S3-compatible / filesystem object storage (ADR-025; Milestone 03B)
 - Operational metadata and activity history (including collaboration and
   evidence link/unlink events)
 - Version history
@@ -149,22 +151,30 @@ importer; projects use the pinned NIST Moderate baseline.
 - Priority/severity/tag catalog entries registered as unavailable extension
   points (no ControlRecord schema for those fields yet)
 
-## Evidence management (Milestone 03A)
+## Evidence management (Milestone 03A / 03B / 03C)
 
 - Aggregate: project-scoped Evidence with stable UUID (ADR-024)
 - Junction: `evidence_controls` (M:N to framework `control_id`)
 - ControlRecord.`evidenceRequirement`: `required` (default) | `optional` |
   `not_required`
 - Lifecycle: `draft` | `active` | `archived`; hard-delete only for unlinked
-  drafts (`evidence.delete` for managers)
+  drafts (`evidence.delete` for managers); new associations reject archived
+- Versions: immutable `evidence_versions` + `current_version_id`; binaries in
+  object storage via storage port (filesystem dev/test; S3-compatible
+  production, fail closed) — ADR-025
+- Upload/download: authorized Route Handlers; max size
+  `EVIDENCE_UPLOAD_MAX_BYTES` (default 25 MiB)
+- Search: project-scoped Server Action with keyset pagination and
+  `EvidenceSearchResult` DTO (optional current-version summary)
 - Audit: ControlActivity `evidence_added` / `evidence_removed` /
-  `evidence_requirement_changed`; domain events `EvidenceCreated` /
-  `EvidenceUpdated` / `EvidenceArchived` / `EvidenceLinked` /
-  `EvidenceUnlinked`
-- Permissions: `evidence.read|create|update|associate|archive|delete`
-- UI: workspace Evidence tab; control editor Evidence panel
-- Out of scope: binary upload, versions/object storage, approval, dashboards,
-  OSCAL export of evidence
+  `evidence_requirement_changed`; domain events including
+  `EvidenceVersionUploaded`
+- Permissions: `evidence.read|create|update|associate|archive|delete` (no new
+  picker permissions)
+- UI: workspace Evidence tab (metadata + version history); control editor
+  Evidence panel with reusable searchable Evidence Picker
+- Out of scope: org-wide library, approval, dashboards, OSCAL export of
+  evidence, virus scan
 
 ## Current standards position
 
@@ -213,7 +223,9 @@ Do not fetch standards files at runtime and do not use moving branches.
   are in `drizzle-pg/0003_demonic_moondragon.sql`; workflow tables in
   `drizzle-pg/0004_redundant_paibok.sql`; evidence tables +
   `control_records.evidence_requirement` in
-  `drizzle-pg/0005_happy_lethal_legion.sql`.
+  `drizzle-pg/0005_happy_lethal_legion.sql`; Evidence Versions +
+  `evidence.current_version_id` in `drizzle-pg/0006_happy_raza.sql`; Evidence
+  search keyset index in `drizzle-pg/0007_evidence_search_idx.sql`.
 - Routes: `/sign-in`, `/projects`, `/projects/[id]` (including `?view=evidence`),
   `/organizations/[orgId]/settings`, `/organizations/[orgId]/workflows`,
   `/invitations/[id]`
@@ -233,7 +245,7 @@ cutover only.
 - No portable OSCAL package
 - No OSCAL import (SSP → project)
 - Snapshot merge UX deferred (reload-latest on conflict)
-- Evidence binary upload / Evidence Versions / object storage not implemented
+- Searchable Evidence Picker implemented (org-wide library still deferred)
 - Evidence approval workflow and dashboards not implemented
 - Email / Slack / Teams notifications out of scope (in-app only)
 - ControlRecord priority, severity, and tags not modeled (workflow catalog
@@ -248,11 +260,12 @@ cutover only.
 
 ## Next approved milestone
 
+Evidence Picker (Milestone 03C) is implemented on `feat/evidence-picker-03c`.
+
+Likely follow-up: Evidence review/approval or org-wide library (see roadmap).
+
 Word/PDF export (and later framework expansions) remain later roadmap items.
 See `docs/roadmap.md`.
-
-Evidence Management Foundation (Milestone 03A) is implemented on
-`feat/evidence-management-03a`.
 
 ## Required verification for each milestone
 

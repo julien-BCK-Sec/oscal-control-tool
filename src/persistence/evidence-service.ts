@@ -4,6 +4,8 @@ import type {
   Evidence,
   EvidenceWithControlIds,
   ListEvidenceOptions,
+  SearchEvidenceInput,
+  SearchEvidencePage,
   UpdateEvidenceInput,
 } from "@/data/evidence";
 import type { ControlActivity } from "@/data/control-activity";
@@ -14,16 +16,24 @@ export type EvidenceMutationResult = {
 };
 
 export type EvidenceDeleteResult =
-  | { ok: true; deleted: true }
+  | { ok: true; deleted: true; storageKeys: string[] }
   | {
       ok: false;
       reason: "not-found" | "not-deletable";
       message: string;
     };
 
+export type EvidenceAssociateResult =
+  | { ok: true; evidence: EvidenceWithControlIds; activities: ControlActivity[] }
+  | {
+      ok: false;
+      reason: "not-found" | "archived";
+      message: string;
+    };
+
 /**
  * Coordinates Evidence CRUD, control associations, and ControlActivity
- * fan-out for link/unlink (Milestone 03A, ADR-024).
+ * fan-out for link/unlink (Milestone 03A/03C, ADR-024).
  */
 export interface EvidenceService {
   getById(
@@ -35,6 +45,8 @@ export interface EvidenceService {
     projectId: string,
     options?: ListEvidenceOptions,
   ): Promise<EvidenceWithControlIds[]>;
+
+  search(input: SearchEvidenceInput): Promise<SearchEvidencePage>;
 
   create(
     input: CreateEvidenceInput,
@@ -63,12 +75,16 @@ export interface EvidenceService {
     evidenceId: string,
   ): Promise<EvidenceDeleteResult>;
 
+  /**
+   * Link Evidence to a control. Idempotent when already linked.
+   * Rejects new associations when Evidence is archived.
+   */
   associate(
     projectId: string,
     evidenceId: string,
     controlId: string,
     actor: ActorIdentity,
-  ): Promise<EvidenceMutationResult | null>;
+  ): Promise<EvidenceAssociateResult>;
 
   dissociate(
     projectId: string,

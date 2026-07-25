@@ -18,6 +18,7 @@ import {
   listEvidenceAction,
   updateEvidenceAction,
 } from "@/app/actions/evidence";
+import { EvidenceVersionPanel } from "@/components/evidence/EvidenceVersionPanel";
 import {
   FormField,
   FormHint,
@@ -212,7 +213,7 @@ export function EvidenceBrowser({
       <SectionHeader
         title="Evidence"
         titleId="evidence-browser-heading"
-        description="Project-scoped evidence records. Attach file versions in a later milestone."
+        description="Project-scoped evidence records with immutable file versions."
       />
 
       {error ? (
@@ -425,6 +426,14 @@ export function EvidenceBrowser({
                   section.
                 </FormHint>
               </div>
+
+              <EvidenceVersionPanel
+                projectId={projectId}
+                evidenceId={selected.id}
+                currentVersionId={selected.currentVersionId}
+                canUpload={canEdit && selected.status !== "archived"}
+                onUploaded={reload}
+              />
             </Stack>
           ) : (
             <p className="text-sm text-text-muted">

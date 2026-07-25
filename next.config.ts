@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
  * (default 1MB; filled narratives can approach ~600KB).
  */
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["better-sqlite3"],
+  serverExternalPackages: ["better-sqlite3", "@aws-sdk/client-s3"],
   experimental: {
     serverActions: {
       bodySizeLimit: "2mb",

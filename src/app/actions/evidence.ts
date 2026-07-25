@@ -2,14 +2,21 @@
 
 import { roleHasPermission } from "@/authz/permissions";
 import type {
+  EvidenceVersion,
   EvidenceWithControlIds,
   ListEvidenceOptions,
+  SearchEvidenceInput,
+  SearchEvidencePage,
 } from "@/data/evidence";
 import {
   parseCreateEvidenceInput,
   parseUpdateEvidenceInput,
   toCreateEvidenceInput,
   toUpdateEvidenceInput,
+  EVIDENCE_SEARCH_DEFAULT_LIMIT,
+  EVIDENCE_SEARCH_MAX_LIMIT,
+  isEvidenceStatus,
+  isEvidenceType,
 } from "@/data/evidence";
 import type { OrgContext } from "@/authz/authorize";
 import { AuthorizationError } from "@/authz/authorize";
@@ -18,6 +25,7 @@ import { SYSTEM_ACTOR } from "@/persistence/actor";
 import type { ProjectRepository } from "@/persistence/repository";
 import {
   getEvidenceService,
+  getEvidenceVersionService,
   getProjectRepository,
 } from "@/persistence/server";
 import {
@@ -28,9 +36,12 @@ import {
   dissociateEvidenceForOrg,
   getEvidenceForOrg,
   listEvidenceForOrg,
+  listEvidenceVersionsForOrg,
+  searchEvidenceForOrg,
   updateEvidenceForOrg,
   type EvidenceActionResult,
 } from "@/server/authorized-evidence";
+import type { EvidenceVersion } from "@/data/evidence";
 
 function requireNonEmptyString(value: unknown, field: string): string {
   if (typeof value !== "string" || value.trim() === "") {
@@ -87,6 +98,121 @@ export async function listEvidenceAction(
   } catch (error) {
     if (error instanceof AuthorizationError) {
       return [];
+    }
+    throw error;
+  }
+}
+
+export async function searchEvidenceAction(
+  input: unknown,
+): Promise<
+  | { ok: true; page: SearchEvidencePage }
+  | { ok: false; reason: "not-found" | "validation"; message: string }
+> {
+  if (!input || typeof input !== "object") {
+    return {
+      ok: false,
+      reason: "validation",
+      message: "Invalid search input.",
+    };
+  }
+  const raw = input as Record<string, unknown>;
+  if (typeof raw.projectId !== "string" || raw.projectId.trim() === "") {
+    return {
+      ok: false,
+      reason: "validation",
+      message: "projectId is required.",
+    };
+  }
+  const projectId = raw.projectId.trim();
+  const query =
+    typeof raw.query === "string" ? raw.query : undefined;
+  const cursor =
+    typeof raw.cursor === "string"
+      ? raw.cursor
+      : raw.cursor === null
+        ? null
+        : undefined;
+  let limit: number | undefined;
+  if (raw.limit !== undefined) {
+    if (typeof raw.limit !== "number" || !Number.isFinite(raw.limit)) {
+      return {
+        ok: false,
+        reason: "validation",
+        message: "limit must be a number.",
+      };
+    }
+    limit = Math.min(
+      Math.max(1, Math.floor(raw.limit)),
+      EVIDENCE_SEARCH_MAX_LIMIT,
+    );
+  }
+  if (
+    raw.status !== undefined &&
+    raw.status !== null &&
+    !isEvidenceStatus(raw.status)
+  ) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: "Invalid status filter.",
+    };
+  }
+  if (
+    raw.evidenceType !== undefined &&
+    raw.evidenceType !== null &&
+    !isEvidenceType(raw.evidenceType)
+  ) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: "Invalid evidence type filter.",
+    };
+  }
+
+  const searchInput: SearchEvidenceInput = {
+    projectId,
+    query,
+    cursor: cursor ?? null,
+    limit: limit ?? EVIDENCE_SEARCH_DEFAULT_LIMIT,
+    status: isEvidenceStatus(raw.status) ? raw.status : undefined,
+    evidenceType: isEvidenceType(raw.evidenceType)
+      ? raw.evidenceType
+      : undefined,
+    excludeLinkedToControlId:
+      typeof raw.excludeLinkedToControlId === "string"
+        ? raw.excludeLinkedToControlId.trim()
+        : undefined,
+    excludeArchived:
+      typeof raw.excludeArchived === "boolean"
+        ? raw.excludeArchived
+        : undefined,
+  };
+
+  const projectRepo = await getProjectRepository();
+  const resolved = await resolveProjectContext(projectRepo, projectId);
+  if (!resolved) {
+    return { ok: false, reason: "not-found", message: "Project not found." };
+  }
+  try {
+    const service = await getEvidenceService();
+    const page = await searchEvidenceForOrg(
+      projectRepo,
+      service,
+      resolved.ctx,
+      searchInput,
+    );
+    return { ok: true, page };
+  } catch (error) {
+    if (error instanceof AuthorizationError) {
+      return { ok: false, reason: "not-found", message: error.message };
+    }
+    if (error instanceof Error && /Invalid search cursor/.test(error.message)) {
+      return {
+        ok: false,
+        reason: "validation",
+        message: "Invalid or stale search cursor.",
+      };
     }
     throw error;
   }
@@ -232,9 +358,11 @@ export async function deleteDraftEvidenceAction(input: {
   }
   try {
     const service = await getEvidenceService();
+    const versionService = await getEvidenceVersionService();
     return await deleteDraftEvidenceForOrg(
       projectRepo,
       service,
+      versionService,
       resolved.ctx,
       projectId,
       evidenceId,
@@ -340,4 +468,32 @@ export async function getEvidenceCapabilitiesAction(
     canArchive: roleHasPermission(role, "evidence.archive"),
     canDelete: roleHasPermission(role, "evidence.delete"),
   };
+}
+
+export async function listEvidenceVersionsAction(
+  projectId: string,
+  evidenceId: string,
+): Promise<EvidenceVersion[]> {
+  const pid = requireNonEmptyString(projectId, "projectId");
+  const eid = requireNonEmptyString(evidenceId, "evidenceId");
+  const projectRepo = await getProjectRepository();
+  const resolved = await resolveProjectContext(projectRepo, pid);
+  if (!resolved) {
+    return [];
+  }
+  try {
+    const versionService = await getEvidenceVersionService();
+    return await listEvidenceVersionsForOrg(
+      projectRepo,
+      versionService,
+      resolved.ctx,
+      pid,
+      eid,
+    );
+  } catch (error) {
+    if (error instanceof AuthorizationError) {
+      return [];
+    }
+    throw error;
+  }
 }
