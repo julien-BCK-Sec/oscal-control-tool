@@ -40,7 +40,7 @@ export type EvidencePickerSearchFn = (input: {
 
 async function defaultSearch(
   input: Parameters<EvidencePickerSearchFn>[0],
-): Promise<ReturnType<EvidencePickerSearchFn>> {
+): ReturnType<EvidencePickerSearchFn> {
   const result = await searchEvidenceAction({
     projectId: input.projectId,
     query: input.query,
@@ -178,11 +178,29 @@ export function EvidencePicker({
     ],
   );
 
+  function resetPickerUiState() {
+    setQuery("");
+    setDebouncedQuery("");
+    setTypeFilter("");
+    setItems([]);
+    setNextCursor(null);
+    setHasMore(false);
+    setError(null);
+    setActiveIndex(0);
+    setLoading(false);
+    setLoadingMore(false);
+    requestIdRef.current += 1;
+  }
+
   useEffect(() => {
     if (!open) {
       return;
     }
-    void runSearch("replace", null);
+    // Defer so loading setState is not synchronous inside the effect body.
+    const handle = window.setTimeout(() => {
+      void runSearch("replace", null);
+    }, 0);
+    return () => window.clearTimeout(handle);
   }, [open, debouncedQuery, typeFilter, runSearch]);
 
   useEffect(() => {
@@ -212,6 +230,7 @@ export function EvidencePicker({
       return;
     }
     function handleClose() {
+      resetPickerUiState();
       onClose();
       const prior = previouslyFocused.current;
       if (prior && typeof prior.focus === "function") {
@@ -221,20 +240,6 @@ export function EvidencePicker({
     dialog.addEventListener("close", handleClose);
     return () => dialog.removeEventListener("close", handleClose);
   }, [onClose]);
-
-  useEffect(() => {
-    if (!open) {
-      setQuery("");
-      setDebouncedQuery("");
-      setTypeFilter("");
-      setItems([]);
-      setNextCursor(null);
-      setHasMore(false);
-      setError(null);
-      setActiveIndex(0);
-      requestIdRef.current += 1;
-    }
-  }, [open]);
 
   function handleDialogKeyDown(event: KeyboardEvent<HTMLDialogElement>) {
     if (event.key === "Escape") {

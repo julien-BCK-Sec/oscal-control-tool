@@ -109,6 +109,28 @@ describe("evidence search and archived associate", () => {
       return;
     }
 
+    await new Promise((resolve) => setTimeout(resolve, 5));
+
+    // Fourth eligible row so limit=2 yields hasMore + a one-item page 2
+    // (linked first + archived are excluded → three searchable).
+    const fourth = await createEvidenceForOrg(
+      projects,
+      evidence,
+      admin,
+      {
+        projectId: project.id,
+        title: "Delta interview notes",
+        evidenceType: "attestation",
+        status: "active",
+        owner: "Dana",
+      },
+      SYSTEM_ACTOR,
+    );
+    assert.equal(fourth.ok, true);
+    if (!fourth.ok) {
+      return;
+    }
+
     const archived = await createEvidenceForOrg(
       projects,
       evidence,
@@ -271,9 +293,11 @@ describe("evidence search and archived associate", () => {
       /Invalid search cursor/,
     );
 
+    // Keyset is updatedAt DESC, id DESC: a cursor older than all rows
+    // (not newer) yields an empty next page.
     const encoded = encodeEvidenceSearchCursor({
-      updatedAt: "2099-01-01T00:00:00.000Z",
-      id: "ffffffff-ffff-ffff-ffff-ffffffffffff",
+      updatedAt: "1970-01-01T00:00:00.000Z",
+      id: "00000000-0000-0000-0000-000000000000",
     });
     const emptyPage = await searchEvidenceForOrg(projects, evidence, admin, {
       projectId: project.id,

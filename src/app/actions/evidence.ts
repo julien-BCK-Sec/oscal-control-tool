@@ -41,7 +41,6 @@ import {
   updateEvidenceForOrg,
   type EvidenceActionResult,
 } from "@/server/authorized-evidence";
-import type { EvidenceVersion } from "@/data/evidence";
 
 function requireNonEmptyString(value: unknown, field: string): string {
   if (typeof value !== "string" || value.trim() === "") {
