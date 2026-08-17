@@ -200,14 +200,20 @@ export function createPostgresNotificationRepository(
 
     async markAllRead(
       recipientUserId: string,
+      organizationId: string,
       readAt: string = nowIso(),
     ): Promise<number> {
+      const orgId = organizationId.trim();
+      if (!orgId) {
+        return 0;
+      }
       const unread = await db
         .select({ id: notifications.id })
         .from(notifications)
         .where(
           and(
             eq(notifications.recipientUserId, recipientUserId.trim()),
+            eq(notifications.organizationId, orgId),
             isNull(notifications.deletedAt),
             isNull(notifications.readAt),
           ),
@@ -221,6 +227,7 @@ export function createPostgresNotificationRepository(
         .where(
           and(
             eq(notifications.recipientUserId, recipientUserId.trim()),
+            eq(notifications.organizationId, orgId),
             isNull(notifications.deletedAt),
             isNull(notifications.readAt),
           ),

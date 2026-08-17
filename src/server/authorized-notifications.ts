@@ -8,6 +8,8 @@ import {
 /**
  * Authorized notification center operations (Milestone 02A WP4).
  * Recipients may only read/manage their own notifications.
+ * By-ID mutations authorize against the notification's organization, not
+ * an unrelated membership (resource-derived org context).
  */
 
 export async function listNotificationsForUser(
@@ -35,7 +37,18 @@ export async function markNotificationReadForUser(
   ctx: OrgContext,
   notificationId: string,
 ): Promise<Notification | null> {
-  requirePermission(ctx, ctx.organizationId, "notification.manage_own");
+  const notification = await notificationService.getById(
+    ctx.userId,
+    notificationId,
+  );
+  if (!notification) {
+    return null;
+  }
+  requirePermission(
+    ctx,
+    notification.organizationId,
+    "notification.manage_own",
+  );
   return notificationService.markRead(ctx.userId, notificationId);
 }
 
@@ -44,7 +57,7 @@ export async function markAllNotificationsReadForUser(
   ctx: OrgContext,
 ): Promise<number> {
   requirePermission(ctx, ctx.organizationId, "notification.manage_own");
-  return notificationService.markAllRead(ctx.userId);
+  return notificationService.markAllRead(ctx.userId, ctx.organizationId);
 }
 
 export async function deleteNotificationForUser(
@@ -52,6 +65,17 @@ export async function deleteNotificationForUser(
   ctx: OrgContext,
   notificationId: string,
 ): Promise<Notification | null> {
-  requirePermission(ctx, ctx.organizationId, "notification.manage_own");
+  const notification = await notificationService.getById(
+    ctx.userId,
+    notificationId,
+  );
+  if (!notification) {
+    return null;
+  }
+  requirePermission(
+    ctx,
+    notification.organizationId,
+    "notification.manage_own",
+  );
   return notificationService.softDelete(ctx.userId, notificationId);
 }

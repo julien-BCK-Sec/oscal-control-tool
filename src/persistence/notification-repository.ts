@@ -39,6 +39,7 @@ export interface NotificationRepository {
   ): Promise<Notification | null>;
   markAllRead(
     recipientUserId: string,
+    organizationId: string,
     readAt?: string,
   ): Promise<number>;
   softDelete(

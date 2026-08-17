@@ -48,6 +48,18 @@ const COLUMNS = [
   "Linked Control Count",
 ] as const;
 
+/**
+ * Neutralize spreadsheet formula injection. Prefix values that would be
+ * interpreted as formulas or control sequences when opened in Excel/Sheets.
+ * Applied before RFC-style quoting so escaping remains correct.
+ */
+export function neutralizeCsvFormulaPrefix(value: string): string {
+  if (/^[=+\-@\t\r]/.test(value)) {
+    return `'${value}`;
+  }
+  return value;
+}
+
 export function escapeCsvField(value: string): string {
   if (/[",\r\n]/.test(value)) {
     return `"${value.replaceAll('"', '""')}"`;
@@ -59,7 +71,7 @@ function cell(value: string | number | null | undefined): string {
   if (value === null || value === undefined) {
     return "";
   }
-  return escapeCsvField(String(value));
+  return escapeCsvField(neutralizeCsvFormulaPrefix(String(value)));
 }
 
 export function formatEvidenceInventoryCsv(

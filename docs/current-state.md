@@ -120,7 +120,8 @@ baseline. New projects may select Low, Moderate, or High.
 - Discussions: unlimited parent-child depth; soft delete; resolution
 - Mentions: `@token` resolved to organization members only
 - Notifications: in-app only; retained until explicitly deleted; active-row
-  duplicate prevention
+  duplicate prevention; by-ID mutations authorize against the notification's
+  organization, not membership order
 - Assignments: one primary assignee per assignment record (`owner` | `reviewer`)
 - Activity: collaboration events append to the existing ControlActivity stream
   with newest-first pagination
@@ -189,7 +190,9 @@ baseline. New projects may select Low, Moderate, or High.
   30 days (`EVIDENCE_DUE_SOON_DAYS`); no scheduled jobs
 - Export: authorized CSV inventory
   (`GET /api/projects/{id}/evidence/inventory`); one row per Evidence–control
-  pair; unlinked Evidence has empty control fields; no binaries or storage keys
+  pair; unlinked Evidence has empty control fields; no binaries or storage keys;
+  CSV cells neutralize spreadsheet formula prefixes (`= + - @` tab CR) before
+  RFC quoting
 - Out of scope: org-wide library, approval, assessment, OSCAL export of
   evidence, virus scan, compliance scores
 

@@ -11,6 +11,10 @@ import type { NotificationRepository } from "./notification-repository";
 export interface NotificationService {
   notify(input: CreateNotificationInput): Promise<Notification>;
   notifyMany(inputs: CreateNotificationInput[]): Promise<Notification[]>;
+  getById(
+    recipientUserId: string,
+    notificationId: string,
+  ): Promise<Notification | null>;
   listForRecipient(
     recipientUserId: string,
     options?: { unreadOnly?: boolean; limit?: number; beforeCreatedAt?: string },
@@ -20,7 +24,10 @@ export interface NotificationService {
     recipientUserId: string,
     notificationId: string,
   ): Promise<Notification | null>;
-  markAllRead(recipientUserId: string): Promise<number>;
+  markAllRead(
+    recipientUserId: string,
+    organizationId: string,
+  ): Promise<number>;
   softDelete(
     recipientUserId: string,
     notificationId: string,
@@ -41,6 +48,9 @@ export function createNotificationService(
       }
       return created;
     },
+    getById(recipientUserId, notificationId) {
+      return repo.getById(recipientUserId, notificationId);
+    },
     listForRecipient(recipientUserId, options) {
       return repo.listForRecipient(recipientUserId, options);
     },
@@ -50,8 +60,8 @@ export function createNotificationService(
     markRead(recipientUserId, notificationId) {
       return repo.markRead(recipientUserId, notificationId);
     },
-    markAllRead(recipientUserId) {
-      return repo.markAllRead(recipientUserId);
+    markAllRead(recipientUserId, organizationId) {
+      return repo.markAllRead(recipientUserId, organizationId);
     },
     softDelete(recipientUserId, notificationId) {
       return repo.softDelete(recipientUserId, notificationId);
