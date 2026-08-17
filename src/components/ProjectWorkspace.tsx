@@ -192,23 +192,24 @@ export function ProjectWorkspace({
     }
   }, [projectId]);
 
-  const refreshEvidenceCoverage = useCallback(async () => {
-    setEvidenceCoverageLoading(true);
-    const [caps, nextCoverage] = await Promise.all([
-      getEvidenceCapabilitiesAction(projectId),
-      getProjectEvidenceCoverageAction(projectId),
-    ]);
-    if (!mountedRef.current) {
-      return;
-    }
-    setEvidenceCaps(caps);
-    setEvidenceCoverage(nextCoverage);
-    setEvidenceCoverageLoading(false);
-  }, [projectId]);
-
   useEffect(() => {
-    void refreshEvidenceCoverage();
-  }, [refreshEvidenceCoverage, activityRefreshToken]);
+    let cancelled = false;
+    void (async () => {
+      const [caps, nextCoverage] = await Promise.all([
+        getEvidenceCapabilitiesAction(projectId),
+        getProjectEvidenceCoverageAction(projectId),
+      ]);
+      if (cancelled) {
+        return;
+      }
+      setEvidenceCaps(caps);
+      setEvidenceCoverage(nextCoverage);
+      setEvidenceCoverageLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, activityRefreshToken]);
 
   function readLatestWorkingCopy(): EditorWorkingCopy {
     return cloneWorkingCopy(workingCopyRef.current);

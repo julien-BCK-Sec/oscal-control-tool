@@ -108,7 +108,8 @@ export function EvidenceBrowser({
     "any",
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selected, setSelected] = useState<EvidenceWithControlIds | null>(null);
+  const [selectedDetail, setSelectedDetail] =
+    useState<EvidenceWithControlIds | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [creating, setCreating] = useState(false);
@@ -205,16 +206,27 @@ export function EvidenceBrowser({
 
   useEffect(() => {
     if (!selectedId || creating) {
-      setSelected(null);
       return;
     }
+    const id = selectedId;
+    let cancelled = false;
     startTransition(() => {
       void (async () => {
-        const loaded = await getEvidenceAction(projectId, selectedId);
-        setSelected(loaded);
+        const loaded = await getEvidenceAction(projectId, id);
+        if (!cancelled) {
+          setSelectedDetail(loaded);
+        }
       })();
     });
+    return () => {
+      cancelled = true;
+    };
   }, [creating, projectId, selectedId]);
+
+  const selected =
+    creating || !selectedId || selectedDetail?.id !== selectedId
+      ? null
+      : selectedDetail;
 
   function notifyChanged() {
     onEvidenceChanged?.();
@@ -274,7 +286,7 @@ export function EvidenceBrowser({
           setError(result.message);
           return;
         }
-        setSelected(result.evidence);
+        setSelectedDetail(result.evidence);
         notifyChanged();
       })();
     });
@@ -322,7 +334,9 @@ export function EvidenceBrowser({
   }
 
   function patchSelected(patch: Partial<EvidenceWithControlIds>) {
-    setSelected((current) => (current ? { ...current, ...patch } : current));
+    setSelectedDetail((current) =>
+      current ? { ...current, ...patch } : current,
+    );
   }
 
   if (!canRead) {

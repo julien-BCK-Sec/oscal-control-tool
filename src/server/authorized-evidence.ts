@@ -397,12 +397,12 @@ export async function downloadEvidenceVersionForOrg(
 export async function getProjectEvidenceCoverageForOrg(
   projectRepo: ProjectRepository,
   coverageQuery: EvidenceCoverageQuery,
-  ctx: OrgContext,
+  ctx: OrgContext | null | undefined,
   projectId: string,
   controlIds: readonly string[],
   asOfDate: string,
 ): Promise<ProjectEvidenceCoverageResult | null> {
-  requirePermission(ctx, ctx.organizationId, "evidence.read");
+  requirePermission(ctx, ctx?.organizationId ?? "", "evidence.read");
   if (!(await projectBelongsToOrg(projectRepo, ctx, projectId))) {
     return null;
   }
@@ -416,12 +416,12 @@ export async function getProjectEvidenceCoverageForOrg(
 export async function getEvidenceInventoryForOrg(
   projectRepo: ProjectRepository,
   coverageQuery: EvidenceCoverageQuery,
-  ctx: OrgContext,
+  ctx: OrgContext | null | undefined,
   projectId: string,
   controlIds: readonly string[],
   asOfDate: string,
 ): Promise<EvidenceInventoryQueryResult | null> {
-  requirePermission(ctx, ctx.organizationId, "evidence.read");
+  requirePermission(ctx, ctx?.organizationId ?? "", "evidence.read");
   if (!(await projectBelongsToOrg(projectRepo, ctx, projectId))) {
     return null;
   }

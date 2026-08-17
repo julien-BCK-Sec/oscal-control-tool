@@ -346,7 +346,7 @@ describe("evidence service and authorization", () => {
         getProjectEvidenceCoverageForOrg(
           projects,
           coverageQuery,
-          null as unknown as OrgContext,
+          null,
           "project-x",
           ["ac-1"],
           "2026-06-01",

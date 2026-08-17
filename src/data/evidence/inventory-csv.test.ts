@@ -64,9 +64,7 @@ describe("evidence inventory CSV", () => {
     assert.doesNotMatch(csv, /bucket/i);
     const lines = csv.trimEnd().split("\r\n");
     assert.equal(lines.length, 3);
-    const unlinked = lines[2]?.split(",") ?? [];
-    assert.equal(unlinked[2], "");
-    assert.equal(unlinked[3], "");
+    assert.match(lines[2] ?? "", /p1,,,e2,/);
   });
 
   it("builds a safe download filename", () => {
