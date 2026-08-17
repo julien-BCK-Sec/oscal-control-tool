@@ -13,6 +13,7 @@ import { ControlActivityHistory } from "@/components/controlBrowser/ControlActiv
 import { ControlEditorHeader } from "@/components/controlBrowser/ControlEditorHeader";
 import { CollapsibleRequirement } from "@/components/controlBrowser/CollapsibleRequirement";
 import { ControlEvidencePanel } from "@/components/controlBrowser/ControlEvidencePanel";
+import type { ControlEvidenceCoverage } from "@/data/evidence";
 import { DiscussionPanel } from "@/components/collaboration/DiscussionPanel";
 import { AssignmentControls } from "@/components/collaboration/AssignmentControls";
 import { useControlReviewTransition } from "@/components/controlBrowser/useControlReviewTransition";
@@ -48,6 +49,8 @@ export type ControlEditorWorkspaceProps = {
   onUpdateFields: (patch: Partial<ControlRecordFields>) => void;
   onReviewStatusChange: (next: ControlReviewStatus) => void;
   onTransitionSuccess: () => void;
+  evidenceCoverage?: ControlEvidenceCoverage | null;
+  canEditEvidence?: boolean;
 };
 
 /**
@@ -68,6 +71,8 @@ export function ControlEditorWorkspace({
   onUpdateFields,
   onReviewStatusChange,
   onTransitionSuccess,
+  evidenceCoverage = null,
+  canEditEvidence = false,
 }: ControlEditorWorkspaceProps) {
   const reviewTransition = useControlReviewTransition({
     projectId,
@@ -150,7 +155,8 @@ export function ControlEditorWorkspace({
         projectId={projectId}
         controlId={control.id}
         refreshToken={activityRefreshToken}
-        canEdit
+        canEdit={canEditEvidence}
+        coverage={evidenceCoverage}
         onActivity={onTransitionSuccess}
       />
     </>

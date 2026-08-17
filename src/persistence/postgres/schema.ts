@@ -374,6 +374,11 @@ export const evidence = pgTable(
       table.updatedAt,
       table.id,
     ),
+    /** Due-soon / overdue freshness queries (Milestone 03D). */
+    index("evidence_project_review_due_idx").on(
+      table.projectId,
+      table.reviewDueDate,
+    ),
   ],
 );
 

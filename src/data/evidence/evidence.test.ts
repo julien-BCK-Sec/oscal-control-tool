@@ -19,7 +19,7 @@ describe("evidence domain", () => {
     assert.equal(isEvidenceRequirement("maybe"), false);
   });
 
-  it("treats only required + zero non-archived links as missing", () => {
+  it("treats only required + zero active links as missing", () => {
     assert.equal(isEvidenceMissing("required", 0), true);
     assert.equal(isEvidenceMissing("required", 1), false);
     assert.equal(isEvidenceMissing("optional", 0), false);

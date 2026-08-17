@@ -1,15 +1,21 @@
 import "server-only";
 
-import { and, asc, desc, eq, exists, ilike, inArray, lt, ne, not, or } from "drizzle-orm";
+import { and, asc, desc, eq, exists, gt, gte, ilike, inArray, isNotNull, isNull, lt, lte, ne, not, or } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
   decodeEvidenceSearchCursor,
   encodeEvidenceSearchCursor,
   escapeIlikePattern,
+  EVIDENCE_DUE_SOON_DAYS,
   EVIDENCE_SEARCH_DEFAULT_LIMIT,
   EVIDENCE_SEARCH_MAX_LIMIT,
+  addUtcDays,
+  deriveEvidenceFreshness,
+  isEvidenceFreshness,
   isEvidenceStatus,
   isEvidenceType,
+  parseEvidenceDate,
+  utcTodayIsoDate,
   type CreateEvidenceInput,
   type Evidence,
   type EvidenceControlLink,
@@ -281,6 +287,90 @@ export function createPostgresEvidenceRepository(
         );
       }
 
+      const owner = input.owner?.trim() ?? "";
+      if (owner) {
+        conditions.push(ilike(evidence.owner, `%${escapeIlikePattern(owner)}%`));
+      }
+
+      if (input.hasCurrentVersion === true) {
+        conditions.push(isNotNull(evidence.currentVersionId));
+      } else if (input.hasCurrentVersion === false) {
+        conditions.push(isNull(evidence.currentVersionId));
+      }
+
+      if (input.linked === true) {
+        conditions.push(
+          exists(
+            db
+              .select({ id: evidenceControls.id })
+              .from(evidenceControls)
+              .where(
+                and(
+                  eq(evidenceControls.projectId, projectId),
+                  eq(evidenceControls.evidenceId, evidence.id),
+                ),
+              ),
+          ),
+        );
+      } else if (input.linked === false) {
+        conditions.push(
+          not(
+            exists(
+              db
+                .select({ id: evidenceControls.id })
+                .from(evidenceControls)
+                .where(
+                  and(
+                    eq(evidenceControls.projectId, projectId),
+                    eq(evidenceControls.evidenceId, evidence.id),
+                  ),
+                ),
+            ),
+          ),
+        );
+      }
+
+      const asOfParsed = parseEvidenceDate(input.asOfDate ?? utcTodayIsoDate());
+      if (asOfParsed === null || asOfParsed === undefined) {
+        throw new Error("Invalid asOfDate.");
+      }
+      const asOfDate = asOfParsed;
+      const dueSoonEnd = addUtcDays(asOfDate, EVIDENCE_DUE_SOON_DAYS);
+      if (dueSoonEnd === null) {
+        throw new Error("Invalid asOfDate.");
+      }
+
+      if (input.freshness) {
+        if (!isEvidenceFreshness(input.freshness)) {
+          throw new Error("Invalid freshness filter.");
+        }
+        if (input.freshness === "no_review_date") {
+          conditions.push(isNull(evidence.reviewDueDate));
+        } else if (input.freshness === "overdue") {
+          conditions.push(
+            and(
+              isNotNull(evidence.reviewDueDate),
+              lt(evidence.reviewDueDate, asOfDate),
+            )!,
+          );
+        } else if (input.freshness === "due_soon") {
+          conditions.push(
+            and(
+              isNotNull(evidence.reviewDueDate),
+              gte(evidence.reviewDueDate, asOfDate),
+              lte(evidence.reviewDueDate, dueSoonEnd),
+            )!,
+          );
+        } else {
+          conditions.push(
+            and(
+              isNotNull(evidence.reviewDueDate),
+              gt(evidence.reviewDueDate, dueSoonEnd),
+            )!,
+          );
+        }
+      }
+
       const query = input.query?.trim() ?? "";
       if (query) {
         const pattern = `%${escapeIlikePattern(query)}%`;
@@ -318,6 +408,8 @@ export function createPostgresEvidenceRepository(
           owner: evidence.owner,
           status: evidence.status,
           updatedAt: evidence.updatedAt,
+          collectionDate: evidence.collectionDate,
+          reviewDueDate: evidence.reviewDueDate,
           versionFilename: evidenceVersions.originalFilename,
           versionMimeType: evidenceVersions.mimeType,
           versionSizeBytes: evidenceVersions.sizeBytes,
@@ -334,6 +426,28 @@ export function createPostgresEvidenceRepository(
 
       const hasMore = rows.length > limit;
       const pageRows = hasMore ? rows.slice(0, limit) : rows;
+      const pageIds = pageRows.map((row) => row.id);
+      const linkCounts = new Map<string, number>();
+      if (pageIds.length > 0) {
+        const linkRows = await db
+          .select({
+            evidenceId: evidenceControls.evidenceId,
+            controlId: evidenceControls.controlId,
+          })
+          .from(evidenceControls)
+          .where(
+            and(
+              eq(evidenceControls.projectId, projectId),
+              inArray(evidenceControls.evidenceId, pageIds),
+            ),
+          );
+        for (const link of linkRows) {
+          linkCounts.set(
+            link.evidenceId,
+            (linkCounts.get(link.evidenceId) ?? 0) + 1,
+          );
+        }
+      }
       const items: EvidenceSearchResult[] = pageRows.map((row) => {
         const evidenceType: EvidenceType = isEvidenceType(row.evidenceType)
           ? row.evidenceType
@@ -348,6 +462,10 @@ export function createPostgresEvidenceRepository(
           owner: row.owner,
           status,
           updatedAt: row.updatedAt,
+          collectionDate: row.collectionDate,
+          reviewDueDate: row.reviewDueDate,
+          freshness: deriveEvidenceFreshness(row.reviewDueDate, asOfDate),
+          linkedControlCount: linkCounts.get(row.id) ?? 0,
           currentVersion:
             row.versionFilename &&
             row.versionMimeType &&

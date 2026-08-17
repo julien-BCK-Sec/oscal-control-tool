@@ -57,6 +57,13 @@
       "when": 1784938000000,
       "tag": "0007_evidence_search_idx",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784960000000,
+      "tag": "0008_evidence_review_due_idx",
+      "breakpoints": true
     }
   ]
 }
