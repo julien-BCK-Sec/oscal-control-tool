@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { FRAMEWORK, FRAMEWORK_CONTROLS } from "@/data/framework";
+import type { Framework } from "@/data/framework";
 import {
   DEFAULT_CONTROL_IMPLEMENTATION,
   type ControlImplementation,
@@ -65,6 +65,7 @@ function toggleId(set: Set<string>, id: string): Set<string> {
 
 export type ControlBrowserProps = {
   projectId: string;
+  framework: Framework;
   implementations: Record<string, ControlImplementation>;
   onImplementationsChange: (
     next: Record<string, ControlImplementation>,
@@ -89,6 +90,7 @@ export type ControlBrowserProps = {
 
 export function ControlBrowser({
   projectId,
+  framework,
   implementations,
   onImplementationsChange,
   controlRecords,
@@ -102,7 +104,8 @@ export function ControlBrowser({
   evidenceCoverageByControlId,
   canEditEvidence = false,
 }: ControlBrowserProps) {
-  const fullTree = useMemo(() => buildControlTree(FRAMEWORK_CONTROLS), []);
+  const controls = framework.controls;
+  const fullTree = useMemo(() => buildControlTree(controls), [controls]);
   const defaultCollapsedParents = useMemo(
     () => new Set(parentIdsWithEnhancements(fullTree)),
     [fullTree],
@@ -112,7 +115,7 @@ export function ControlBrowser({
     [fullTree],
   );
 
-  const [selectedId, setSelectedId] = useState(FRAMEWORK_CONTROLS[0].id);
+  const [selectedId, setSelectedId] = useState(controls[0]?.id ?? "");
   const [searchQuery, setSearchQuery] = useState("");
   const [collapsedFamilies, setCollapsedFamilies] = useState(
     () => new Set<string>(),
@@ -159,12 +162,12 @@ export function ControlBrowser({
   );
 
   const overall = useMemo(
-    () => computeOverallCompletion(FRAMEWORK_CONTROLS, implementations),
-    [implementations],
+    () => computeOverallCompletion(controls, implementations),
+    [controls, implementations],
   );
   const familyProgress = useMemo(
-    () => computeFamilyCompletion(FRAMEWORK_CONTROLS, implementations),
-    [implementations],
+    () => computeFamilyCompletion(controls, implementations),
+    [controls, implementations],
   );
   const familyProgressByName = useMemo(() => {
     const map = new Map(
@@ -176,8 +179,7 @@ export function ControlBrowser({
   const isSearching = searchQuery.trim().length > 0;
 
   const selected =
-    FRAMEWORK_CONTROLS.find((control) => control.id === selectedId) ??
-    FRAMEWORK_CONTROLS[0];
+    controls.find((control) => control.id === selectedId) ?? controls[0]!;
   const implementation = getImplementation(implementations, selected.id);
   const selectedComplete = isImplementationComplete(implementation);
   const selectedRecord = resolveControlRecordFields(
@@ -335,7 +337,7 @@ export function ControlBrowser({
             <h2 className="text-sm font-semibold tracking-tight text-foreground">
               Controls
             </h2>
-            <p className="mt-0.5 text-xs text-text-muted">{FRAMEWORK.title}</p>
+            <p className="mt-0.5 text-xs text-text-muted">{framework.title}</p>
             <div className="mt-2">
               <div className="flex items-baseline justify-between gap-2 text-xs">
                 <span className="text-text-secondary">

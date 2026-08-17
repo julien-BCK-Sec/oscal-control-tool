@@ -1,6 +1,6 @@
 "use server";
 
-import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
+import { DEFAULT_FRAMEWORK_ID, isRegisteredFrameworkId } from "@/data/framework";
 import { isControlImplementation } from "@/data/implementation";
 import { isProjectMetadata } from "@/data/project";
 import { getProjectRepository } from "@/persistence/server";
@@ -113,12 +113,20 @@ export async function listProjectsAction(): Promise<ProjectSummary[]> {
 
 export async function createProjectAction(input: {
   name: string;
+  frameworkId?: string;
   organizationName?: string;
   metadata?: unknown;
   implementations?: unknown;
 }): Promise<StoredProject> {
   const ctx = await requireDefaultOrgContext();
   const name = requireNonEmptyString(input.name, "name");
+  const frameworkId =
+    typeof input.frameworkId === "string" && input.frameworkId.trim() !== ""
+      ? input.frameworkId.trim()
+      : DEFAULT_FRAMEWORK_ID;
+  if (!isRegisteredFrameworkId(frameworkId)) {
+    throw new Error("Unknown framework.");
+  }
   const metadata =
     input.metadata === undefined
       ? undefined
@@ -134,7 +142,7 @@ export async function createProjectAction(input: {
       typeof input.organizationName === "string"
         ? input.organizationName
         : undefined,
-    frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+    frameworkId,
     metadata,
     implementations: parseImplementations(input.implementations),
   });

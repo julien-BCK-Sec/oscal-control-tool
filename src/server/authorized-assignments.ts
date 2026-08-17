@@ -17,6 +17,11 @@ import {
   notificationCreatedEvent,
 } from "@/domain/events";
 import { publishDomainEvent, publishDomainEvents } from "./publish-domain-event";
+import {
+  UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+  controlBelongsToProjectFramework,
+  loadOwnedProject,
+} from "./project-control-identity";
 
 async function projectBelongsToOrg(
   projectRepo: ProjectRepository,
@@ -116,8 +121,16 @@ export async function createAssignmentForOrg(
   actor: ActorIdentity,
 ): Promise<AssignmentActionResult> {
   requirePermission(ctx, ctx.organizationId, "assignment.manage");
-  if (!(await projectBelongsToOrg(projectRepo, ctx, input.projectId))) {
+  const project = await loadOwnedProject(projectRepo, ctx, input.projectId);
+  if (!project) {
     return { ok: false, reason: "not-found", message: "Project not found." };
+  }
+  if (!controlBelongsToProjectFramework(project.frameworkId, input.controlId)) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+    };
   }
   if (!isAssignmentRole(input.assignmentRole)) {
     return {

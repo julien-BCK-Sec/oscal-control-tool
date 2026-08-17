@@ -9,6 +9,7 @@ import {
 } from "@/components/collaboration/notification-presentation";
 import { listNotificationsForUser } from "@/server/authorized-notifications";
 import { requirePermission, type OrgContext } from "@/authz/authorize";
+import { resolveFrameworkControls } from "@/data/framework";
 
 /**
  * Enrich notifications for the notification center without N+1 UI queries.
@@ -38,7 +39,7 @@ export async function enrichNotifications(
 ): Promise<NotificationView[]> {
   const projectMetaById = new Map<
     string,
-    { name: string; organizationId: string }
+    { name: string; organizationId: string; frameworkId: string }
   >();
   const uniqueProjectIds = [
     ...new Set(
@@ -54,6 +55,7 @@ export async function enrichNotifications(
         projectMetaById.set(projectId, {
           name: loaded.project.name,
           organizationId: loaded.project.organizationId,
+          frameworkId: loaded.project.frameworkId,
         });
       }
     }),
@@ -113,6 +115,12 @@ export async function enrichNotifications(
           ) ?? null)
         : null;
 
-    return toNotificationView(notification, { projectName, preview });
+    return toNotificationView(notification, {
+      projectName,
+      preview,
+      frameworkControls: meta
+        ? resolveFrameworkControls(meta.frameworkId)
+        : [],
+    });
   });
 }

@@ -25,6 +25,10 @@ import type {
   StoredProjectDocument,
 } from "../types";
 import { DEFAULT_PROJECT_METADATA } from "@/data/project";
+import {
+  parseRegisteredFrameworkId,
+  rejectFrameworkIdentityChange,
+} from "../framework-identity";
 import type { AppDatabase } from "./client";
 import { projectSnapshots, projects } from "./schema";
 import {
@@ -83,10 +87,7 @@ export function createPostgresProjectRepository(
       if (!name) {
         throw new Error("Project name is required.");
       }
-      const frameworkId = input.frameworkId.trim();
-      if (!frameworkId) {
-        throw new Error("frameworkId is required.");
-      }
+      const frameworkId = parseRegisteredFrameworkId(input.frameworkId);
       const organizationId = input.organizationId?.trim();
       if (!organizationId) {
         throw new Error(
@@ -333,7 +334,7 @@ export function createPostgresProjectRepository(
       const saveResult = await saveProject({
         id: loaded.project.id,
         name: restoredName,
-        frameworkId: snapshot.document.project.frameworkId,
+        frameworkId: loaded.project.frameworkId,
         metadata: snapshot.document.project.metadata,
         implementations: snapshot.document.project.implementations,
         expectedRevision: loaded.project.revision,
@@ -409,18 +410,36 @@ export function createPostgresProjectRepository(
         message: "Project name is required.",
       };
     }
-    if (!input.frameworkId.trim()) {
+    const existing = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, input.id))
+      .limit(1);
+    const row = existing[0];
+    if (!row) {
+      return {
+        ok: false,
+        reason: "not-found",
+        message: "Project not found.",
+      };
+    }
+
+    const identity = rejectFrameworkIdentityChange(
+      row.frameworkId,
+      input.frameworkId,
+    );
+    if (!identity.ok) {
       return {
         ok: false,
         reason: "validation",
-        message: "frameworkId is required.",
+        message: identity.message,
       };
     }
 
     const document = buildStoredProjectDocumentV1({
       id: input.id,
       name,
-      frameworkId: input.frameworkId.trim(),
+      frameworkId: identity.frameworkId,
       metadata: input.metadata,
       implementations: input.implementations,
     });
@@ -436,20 +455,6 @@ export function createPostgresProjectRepository(
           validated.error.kind === "unsupported-schema"
             ? `Unsupported schema version ${validated.error.schemaVersion}.`
             : validated.error.message,
-      };
-    }
-
-    const existing = await db
-      .select()
-      .from(projects)
-      .where(eq(projects.id, input.id))
-      .limit(1);
-    const row = existing[0];
-    if (!row) {
-      return {
-        ok: false,
-        reason: "not-found",
-        message: "Project not found.",
       };
     }
 

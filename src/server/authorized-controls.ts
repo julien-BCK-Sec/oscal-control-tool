@@ -19,6 +19,11 @@ import {
   controlUpdatedEvent,
 } from "@/domain/events";
 import { publishDomainEvents } from "./publish-domain-event";
+import {
+  UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+  invalidProjectControlIds,
+  loadOwnedProject,
+} from "./project-control-identity";
 
 /**
  * Authorized, tenant-scoped control-record and review-workflow operations
@@ -60,11 +65,23 @@ export async function upsertControlRecordsForOrg(
   actor: ActorIdentity,
 ): Promise<
   | { ok: true; records: ControlRecord[] }
-  | { ok: false; reason: "not-found"; message: string }
+  | { ok: false; reason: "not-found" | "validation"; message: string }
 > {
   requirePermission(ctx, ctx.organizationId, "control.edit_metadata");
-  if (!(await projectBelongsToOrg(projectRepo, ctx, projectId))) {
+  const project = await loadOwnedProject(projectRepo, ctx, projectId);
+  if (!project) {
     return { ok: false, reason: "not-found", message: "Project not found." };
+  }
+  const invalid = invalidProjectControlIds(
+    project.frameworkId,
+    inputs.map((input) => input.controlId),
+  );
+  if (invalid.length > 0) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+    };
   }
   const results = await service.upsertManyWithActivity(projectId, inputs, actor);
   await publishDomainEvents(

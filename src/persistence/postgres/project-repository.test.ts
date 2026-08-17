@@ -2,6 +2,12 @@ import assert from "node:assert/strict";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, it } from "node:test";
 import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
+import {
+  NIST_HIGH_FRAMEWORK_ID,
+  NIST_LOW_FRAMEWORK_ID,
+} from "@/framework/nist-sp-800-53-rev5/identities";
+import { FRAMEWORK_IDENTITY_IMMUTABLE_MESSAGE } from "@/persistence/framework-identity";
+import { serializeProjectDocument } from "@/persistence/document";
 import { closeDb, openTestDb } from "@/persistence/postgres/client";
 import { createTestProjectRepository } from "@/persistence/postgres/testing";
 import { projectSnapshots, projects } from "@/persistence/postgres/schema";
@@ -379,5 +385,100 @@ describe("snapshots and versions", () => {
       listB.some((row) => row.id === autoA.id),
       false,
     );
+  });
+
+  it("creates Low, Moderate, and High projects and rejects unknown IDs", async () => {
+    const { repo } = await tempRepo();
+    const low = await repo.create({
+      name: "Low",
+      frameworkId: NIST_LOW_FRAMEWORK_ID,
+    });
+    const moderate = await repo.create({
+      name: "Moderate",
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+    });
+    const high = await repo.create({
+      name: "High",
+      frameworkId: NIST_HIGH_FRAMEWORK_ID,
+    });
+    assert.equal(low.frameworkId, NIST_LOW_FRAMEWORK_ID);
+    assert.equal(moderate.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
+    assert.equal(high.frameworkId, NIST_HIGH_FRAMEWORK_ID);
+    await assert.rejects(
+      () => repo.create({ name: "Nope", frameworkId: "not-a-framework" }),
+      /Unknown framework/,
+    );
+  });
+
+  it("rejects save attempts that change framework identity", async () => {
+    const { repo } = await tempRepo();
+    const created = await repo.create({
+      name: "Immutable",
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+    });
+    const saved = await repo.save({
+      id: created.id,
+      name: created.name,
+      frameworkId: NIST_HIGH_FRAMEWORK_ID,
+      metadata: created.metadata,
+      implementations: created.implementations,
+      expectedRevision: created.revision,
+    });
+    assert.equal(saved.ok, false);
+    if (saved.ok) {
+      return;
+    }
+    assert.equal(saved.reason, "validation");
+    assert.equal(saved.message, FRAMEWORK_IDENTITY_IMMUTABLE_MESSAGE);
+    const loaded = await repo.load(created.id);
+    assert.equal(loaded.ok, true);
+    if (loaded.ok) {
+      assert.equal(loaded.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
+    }
+  });
+
+  it("restore keeps the live project framework even if the snapshot document differs", async () => {
+    const { repo, db } = await tempRepo();
+    const created = await repo.create({
+      name: "Restore identity",
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+      implementations: {
+        "ac-1": { status: "not-started", narrative: "before" },
+      },
+    });
+    const version = await repo.createNamedVersion({
+      projectId: created.id,
+      name: "Checkpoint",
+      expectedRevision: 1,
+    });
+    assert.ok(version.ok);
+    if (!version.ok) {
+      return;
+    }
+
+    const snapshot = await repo.getSnapshot(created.id, version.snapshot.id);
+    assert.ok(snapshot);
+    const tampered = {
+      ...snapshot.document,
+      project: {
+        ...snapshot.document.project,
+        frameworkId: NIST_HIGH_FRAMEWORK_ID,
+      },
+    };
+    await db
+      .update(projectSnapshots)
+      .set({ projectJson: serializeProjectDocument(tampered) })
+      .where(eq(projectSnapshots.id, version.snapshot.id));
+
+    const restored = await repo.restoreSnapshot({
+      projectId: created.id,
+      snapshotId: version.snapshot.id,
+      expectedRevision: 1,
+    });
+    assert.ok(restored.ok);
+    if (!restored.ok) {
+      return;
+    }
+    assert.equal(restored.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
   });
 });

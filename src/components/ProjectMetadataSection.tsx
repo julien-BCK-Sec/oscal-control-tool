@@ -1,10 +1,12 @@
 "use client";
 
 import { ExportOscalButton } from "@/components/ExportOscalButton";
+import type { Framework } from "@/data/framework";
 import type { ControlImplementation } from "@/data/implementation";
 import type { ProjectMetadata } from "@/data/project";
 
 export type ProjectMetadataSectionProps = {
+  framework: Framework;
   metadata: ProjectMetadata;
   onMetadataChange: (next: ProjectMetadata) => void;
   implementations: Record<string, ControlImplementation>;
@@ -12,6 +14,7 @@ export type ProjectMetadataSectionProps = {
 };
 
 export function ProjectMetadataSection({
+  framework,
   metadata,
   onMetadataChange,
   implementations,
@@ -41,6 +44,7 @@ export function ProjectMetadataSection({
           </p>
         </div>
         <ExportOscalButton
+          framework={framework}
           metadata={metadata}
           implementations={implementations}
         />

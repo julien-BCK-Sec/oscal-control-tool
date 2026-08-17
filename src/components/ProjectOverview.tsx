@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FRAMEWORK, FRAMEWORK_CONTROLS } from "@/data/framework";
+import type { Framework } from "@/data/framework";
 import type { ControlImplementation } from "@/data/implementation";
 import type { ProjectMetadata } from "@/data/project";
 import {
@@ -35,6 +35,7 @@ import { formatControlIdDisplay } from "@/components/controlBrowser/presentation
 import { formatProjectRevisionLabel } from "@/components/projectHistory/presentation";
 
 export type ProjectOverviewProps = {
+  framework: Framework;
   metadata: ProjectMetadata;
   implementations: Record<string, ControlImplementation>;
   revision: number;
@@ -50,6 +51,7 @@ export type ProjectOverviewProps = {
 };
 
 export function ProjectOverview({
+  framework,
   metadata,
   implementations,
   revision,
@@ -61,21 +63,21 @@ export function ProjectOverview({
   onNavigateEvidence,
 }: ProjectOverviewProps) {
   const overall = useMemo(
-    () => computeOverallCompletion(FRAMEWORK_CONTROLS, implementations),
-    [implementations],
+    () => computeOverallCompletion(framework.controls, implementations),
+    [framework.controls, implementations],
   );
   const families = useMemo(
-    () => computeFamilyCompletion(FRAMEWORK_CONTROLS, implementations),
-    [implementations],
+    () => computeFamilyCompletion(framework.controls, implementations),
+    [framework.controls, implementations],
   );
   const domainChecks = useMemo(
     () =>
       buildDomainValidationChecks({
-        frameworkControls: FRAMEWORK_CONTROLS,
+        frameworkControls: framework.controls,
         metadata,
         implementations,
       }),
-    [metadata, implementations],
+    [framework.controls, metadata, implementations],
   );
 
   const [oscalState, setOscalState] = useState<OscalValidationState>({
@@ -88,7 +90,7 @@ export function ProjectOverview({
     : domainChecks;
 
   const firstIncomplete = firstIncompleteControlId(
-    FRAMEWORK_CONTROLS,
+    framework.controls,
     implementations,
   );
   const weakestFamily = lowestCompletionFamily(families);
@@ -114,7 +116,8 @@ export function ProjectOverview({
     try {
       const project = assembleProject({
         metadata,
-        frameworkControls: FRAMEWORK_CONTROLS,
+        frameworkId: framework.id,
+        frameworkControls: framework.controls,
         implementations,
       });
       const document = projectToOscalSsp(project);
@@ -159,7 +162,7 @@ export function ProjectOverview({
             </div>
             <div>
               <dt className="text-text-muted">Framework</dt>
-              <dd className="text-text-secondary">{FRAMEWORK.title}</dd>
+              <dd className="text-text-secondary">{framework.title}</dd>
             </div>
             <div>
               <dt className="text-text-muted">Revision</dt>

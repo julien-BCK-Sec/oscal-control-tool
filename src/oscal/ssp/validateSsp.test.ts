@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { FRAMEWORK_CONTROLS } from "@/data/framework";
+import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
 import { assembleProject } from "@/domain";
 import { projectToOscalSsp } from "@/oscal/ssp/exportSsp";
 import { validateOscalSspDocument } from "@/oscal/ssp/validateSsp";
@@ -21,6 +22,7 @@ function buildValidSsp(): OscalSspDocument {
       organizationName: "Example Organization",
       systemDescription: "System used for schema validation tests.",
     },
+    frameworkId: NIST_MODERATE_FRAMEWORK_ID,
     frameworkControls: FRAMEWORK_CONTROLS,
     implementations: {
       "ac-1": {

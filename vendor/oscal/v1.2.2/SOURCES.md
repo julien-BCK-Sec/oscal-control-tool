@@ -27,17 +27,23 @@ Path prefix: `nist.gov/SP800-53/rev5/json/`
 | File | Upstream path |
 | --- | --- |
 | `catalogs/NIST_SP-800-53_rev5_catalog.json` | `nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json` |
+| `profiles/NIST_SP-800-53_rev5_LOW-baseline_profile.json` | `nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_LOW-baseline_profile.json` |
 | `profiles/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json` | `nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json` |
+| `profiles/NIST_SP-800-53_rev5_HIGH-baseline_profile.json` | `nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline_profile.json` |
 
-Both content files declare `metadata.oscal-version: "1.2.2"` and catalog/profile
-`metadata.version: "5.2.0"`.
+The catalog and all three baseline profiles declare
+`metadata.oscal-version: "1.2.2"` and `metadata.version: "5.2.0"`. The High
+profile's metadata *title* string still says "Revision 5.1.1"; the pin remains
+the 5.2.0 artifacts from this commit.
 
 Raw URLs at the pinned commit:
 
 - https://raw.githubusercontent.com/usnistgov/oscal-content/78650f02ad9321bb7b817846f8fbd4f2bcd620de/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json
+- https://raw.githubusercontent.com/usnistgov/oscal-content/78650f02ad9321bb7b817846f8fbd4f2bcd620de/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_LOW-baseline_profile.json
 - https://raw.githubusercontent.com/usnistgov/oscal-content/78650f02ad9321bb7b817846f8fbd4f2bcd620de/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json
+- https://raw.githubusercontent.com/usnistgov/oscal-content/78650f02ad9321bb7b817846f8fbd4f2bcd620de/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_HIGH-baseline_profile.json
 
-The SSP exporter references the Moderate profile URI above from back-matter
+The SSP exporter references the project's selected profile URI from back-matter
 `rlinks` (single-file export). A future portable package should include the
 profile and catalog locally instead of relying on that external URI.
 
@@ -58,6 +64,8 @@ profile and catalog locally instead of relying on that external URI.
 d7f9bf67101829083472a8f058a5b5ef078e09b3f699ac0c4dbe33a5b0671b6a  schema/oscal_ssp_schema.json
 04329bd68032f48825f712f79576b3fd00e129e59d3597beb56ed72c17277f66  schema/oscal_profile_schema.json
 fdc559f5dff6848b1ebbe1898a69cc08263479f7c796e2f056412059e7489d0c  schema/oscal_catalog_schema.json
+8fd206017c8d718b44bdef612c2ff321a9fd84d97a515c8ec33c4619accbef6e  profiles/NIST_SP-800-53_rev5_LOW-baseline_profile.json
 9030dbf1f13169947eb97eb101b4bd2f00d3c151b100455a923ac75803f00ea1  profiles/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json
+60576970caef91b2cba56d46e5948b72e3b879434fc2a4840bc4179e5e75cfd7  profiles/NIST_SP-800-53_rev5_HIGH-baseline_profile.json
 01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062  catalogs/NIST_SP-800-53_rev5_catalog.json
 ```

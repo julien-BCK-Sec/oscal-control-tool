@@ -1,12 +1,7 @@
 import { DEFAULT_CONTROL_IMPLEMENTATION } from "@/data/implementation";
 import type { Project } from "@/domain";
-import {
-  NIST_SP80053_REV5_MODERATE_PROFILE_MEDIA_TYPE,
-  NIST_SP80053_REV5_MODERATE_PROFILE_TITLE,
-  NIST_SP80053_REV5_MODERATE_PROFILE_URI,
-  OSCAL_VERSION,
-  SSP_DOCUMENT_VERSION,
-} from "./constants";
+import { requireFrameworkIdentity } from "@/framework/nist-sp-800-53-rev5/identities";
+import { OSCAL_VERSION, SSP_DOCUMENT_VERSION } from "./constants";
 import { mapImplementationStatusToOscal } from "./mapStatus";
 import type { OscalSspDocument } from "./types";
 
@@ -25,9 +20,12 @@ function defaultCreateUuid(): string {
  * Pure mapping from the internal Project domain model to a minimal OSCAL SSP
  * JSON document. Side-effectful defaults (time/UUID) are injectable.
  *
- * import-profile references the pinned NIST SP 800-53 Rev. 5 Moderate profile
- * via back-matter + commit-pinned upstream URI (see constants / SOURCES.md).
- * A future portable package should embed profile and catalog locally instead.
+ * import-profile references the project's selected NIST SP 800-53 Rev. 5
+ * profile via back-matter + commit-pinned upstream URI (see identities /
+ * SOURCES.md). Profile metadata is resolved from the NIST identity table
+ * rather than FrameworkRegistry so client-side export does not bundle
+ * generated catalog JSON. A future portable package should embed profile
+ * and catalog locally instead.
  */
 export function projectToOscalSsp(
   project: Project,
@@ -35,6 +33,7 @@ export function projectToOscalSsp(
 ): OscalSspDocument {
   const createUuid = options.createUuid ?? defaultCreateUuid;
   const lastModified = options.lastModified ?? new Date().toISOString();
+  const profile = requireFrameworkIdentity(project.frameworkId);
 
   const systemName =
     project.metadata.systemName.trim() || "Untitled System";
@@ -155,21 +154,19 @@ export function projectToOscalSsp(
         ],
       },
       "control-implementation": {
-        description:
-          "Control implementation narratives for the NIST SP 800-53 Revision 5 Moderate baseline.",
+        description: `Control implementation narratives for the ${profile.title}.`,
         "implemented-requirements": implementedRequirements,
       },
       "back-matter": {
         resources: [
           {
             uuid: profileResourceUuid,
-            title: NIST_SP80053_REV5_MODERATE_PROFILE_TITLE,
-            description:
-              "Official NIST SP 800-53 Revision 5 Moderate baseline profile (pinned OSCAL content).",
+            title: profile.oscalProfileTitle,
+            description: `Official ${profile.oscalProfileTitle} (pinned OSCAL content).`,
             rlinks: [
               {
-                href: NIST_SP80053_REV5_MODERATE_PROFILE_URI,
-                "media-type": NIST_SP80053_REV5_MODERATE_PROFILE_MEDIA_TYPE,
+                href: profile.oscalProfileUri,
+                "media-type": profile.oscalProfileMediaType,
               },
             ],
           },

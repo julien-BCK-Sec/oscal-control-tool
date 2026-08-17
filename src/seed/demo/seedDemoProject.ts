@@ -1,4 +1,5 @@
-import { FRAMEWORK, FRAMEWORK_CONTROLS } from "@/data/framework";
+import { FRAMEWORK_CONTROLS } from "@/data/framework";
+import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
 import type { ControlImplementation } from "@/data/implementation";
 import type { ProjectMetadata } from "@/data/project";
 import { assembleProject } from "@/domain";
@@ -124,7 +125,7 @@ async function saveStage(
   const saved = await repository.save({
     id: project.id,
     name: DEMO_PROJECT_NAME,
-    frameworkId: FRAMEWORK.id,
+    frameworkId: NIST_MODERATE_FRAMEWORK_ID,
     metadata,
     implementations,
     expectedRevision: project.revision,
@@ -161,7 +162,7 @@ async function createCanonicalDemo(
   let project = await repository.create({
     name: DEMO_PROJECT_NAME,
     organizationId: options.organizationId,
-    frameworkId: FRAMEWORK.id,
+    frameworkId: NIST_MODERATE_FRAMEWORK_ID,
     metadata,
     implementations: stage0,
   });
@@ -209,6 +210,7 @@ async function createCanonicalDemo(
   if (options.validateOscal) {
     const domain = assembleProject({
       metadata: project.metadata,
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
       frameworkControls: FRAMEWORK_CONTROLS,
       implementations: project.implementations,
     });

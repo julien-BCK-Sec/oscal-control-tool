@@ -98,6 +98,7 @@ async function main(): Promise<void> {
 
   const domain = assembleProject({
     metadata: restored.project.metadata,
+    frameworkId: NIST_MODERATE_FRAMEWORK_ID,
     frameworkControls: FRAMEWORK_CONTROLS,
     implementations: restored.project.implementations,
   });

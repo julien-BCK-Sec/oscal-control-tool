@@ -1,8 +1,8 @@
 /**
  * Developer demo bootstrap constants (development only).
  *
- * Framework: NIST SP 800-53 Rev. 5 Moderate (the application's only pinned
- * baseline). The prompt's "FedRAMP Moderate" label maps to this framework
+ * Framework: NIST SP 800-53 Rev. 5 Moderate (explicit demo/bootstrap
+ * selection). The prompt's "FedRAMP Moderate" label maps to this framework
  * because no FedRAMP OSCAL profile is implemented (see ADR / standards docs).
  *
  * Olivia's "Contributor" role maps to `author` (fixed Milestone 1 role set).

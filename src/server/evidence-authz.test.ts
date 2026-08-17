@@ -300,7 +300,6 @@ describe("evidence service and authorization", () => {
       coverageQuery,
       viewer,
       project.id,
-      ["ac-2"],
       "2026-06-01",
     );
     assert.ok(viewerCoverage);
@@ -311,7 +310,6 @@ describe("evidence service and authorization", () => {
       coverageQuery,
       adminB,
       project.id,
-      ["ac-2"],
       "2026-06-01",
     );
     assert.equal(cross, null);
@@ -321,7 +319,6 @@ describe("evidence service and authorization", () => {
       coverageQuery,
       viewer,
       project.id,
-      ["ac-2"],
       "2026-06-01",
     );
     assert.ok(inventory);
@@ -332,7 +329,6 @@ describe("evidence service and authorization", () => {
       coverageQuery,
       adminB,
       project.id,
-      ["ac-2"],
       "2026-06-01",
     );
     assert.equal(crossInventory, null);
@@ -348,7 +344,6 @@ describe("evidence service and authorization", () => {
           coverageQuery,
           null,
           "project-x",
-          ["ac-1"],
           "2026-06-01",
         ),
       AuthorizationError,

@@ -1,12 +1,14 @@
 import type { Framework, FrameworkProvider } from "@/data/framework/types";
-import generated from "@/data/framework/generated/nist-sp-800-53-rev5-moderate.json";
+import generatedLow from "@/data/framework/generated/nist-sp-800-53-rev5-low.json";
+import generatedModerate from "@/data/framework/generated/nist-sp-800-53-rev5-moderate.json";
+import generatedHigh from "@/data/framework/generated/nist-sp-800-53-rev5-high.json";
 
 /**
- * FrameworkProvider backed by the build-time derived NIST Moderate control set.
+ * FrameworkProvider backed by a build-time derived application JSON document.
  * The browser never loads the raw OSCAL profile or catalog.
  */
-export function createNistModerateFrameworkProvider(
-  framework: Framework = generated as Framework,
+export function createGeneratedFrameworkProvider(
+  framework: Framework,
 ): FrameworkProvider {
   return {
     getFramework(): Framework {
@@ -15,6 +17,15 @@ export function createNistModerateFrameworkProvider(
   };
 }
 
-/** Default provider used by the application. */
+export const nistLowFrameworkProvider: FrameworkProvider =
+  createGeneratedFrameworkProvider(generatedLow as Framework);
+
 export const nistModerateFrameworkProvider: FrameworkProvider =
-  createNistModerateFrameworkProvider();
+  createGeneratedFrameworkProvider(generatedModerate as Framework);
+
+export const nistHighFrameworkProvider: FrameworkProvider =
+  createGeneratedFrameworkProvider(generatedHigh as Framework);
+
+/** @deprecated Use createGeneratedFrameworkProvider. */
+export const createNistModerateFrameworkProvider =
+  createGeneratedFrameworkProvider;

@@ -308,10 +308,9 @@ describe("collaboration security (WP8)", () => {
     if (!loaded.ok) return;
 
     const domain = assembleProject({
-      id: loaded.project.id,
-      name: loaded.project.name,
-      frameworkId: loaded.project.frameworkId,
       metadata: loaded.project.metadata,
+      frameworkId: loaded.project.frameworkId,
+      frameworkControls: FRAMEWORK_CONTROLS,
       implementations: {
         ...loaded.project.implementations,
         "ac-2": {
@@ -319,7 +318,6 @@ describe("collaboration security (WP8)", () => {
           narrative: "Implementation narrative without collaboration data.",
         },
       },
-      frameworkControls: FRAMEWORK_CONTROLS,
     });
     const ssp = projectToOscalSsp(domain, {
       lastModified: "2026-07-22T00:00:00.000Z",

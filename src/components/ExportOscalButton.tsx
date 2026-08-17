@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
+import type { Framework } from "@/data/framework";
 import type { ControlImplementation } from "@/data/implementation";
 import type { ProjectMetadata } from "@/data/project";
 import { assembleProject } from "@/domain";
@@ -13,11 +13,13 @@ import {
 } from "@/oscal";
 
 export type ExportOscalButtonProps = {
+  framework: Framework;
   metadata: ProjectMetadata;
   implementations: Record<string, ControlImplementation>;
 };
 
 export function ExportOscalButton({
+  framework,
   metadata,
   implementations,
 }: ExportOscalButtonProps) {
@@ -28,7 +30,8 @@ export function ExportOscalButton({
 
     const project = assembleProject({
       metadata,
-      frameworkControls: FRAMEWORK_CONTROLS,
+      frameworkId: framework.id,
+      frameworkControls: framework.controls,
       implementations,
     });
     const oscalDocument = projectToOscalSsp(project);

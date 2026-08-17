@@ -8,7 +8,6 @@ import {
   type Notification,
   type NotificationEventType,
 } from "@/data/collaboration";
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
 import { formatControlIdDisplay } from "@/components/controlBrowser/presentation";
 
 const EVENT_TYPE_LABELS: Record<NotificationEventType, string> = {
@@ -23,10 +22,6 @@ const EVENT_TYPE_LABELS: Record<NotificationEventType, string> = {
 };
 
 const PREVIEW_MAX_LENGTH = 140;
-
-const controlById = new Map(
-  FRAMEWORK_CONTROLS.map((control) => [control.id, control] as const),
-);
 
 export type NotificationView = Notification & {
   projectName: string | null;
@@ -43,11 +38,14 @@ export function formatNotificationEventType(
   return EVENT_TYPE_LABELS[eventType] ?? eventType;
 }
 
-export function resolveControlTitle(controlId: string | null): string | null {
+export function resolveControlTitle(
+  controlId: string | null,
+  controls: readonly { id: string; title: string }[] = [],
+): string | null {
   if (!controlId) {
     return null;
   }
-  return controlById.get(controlId)?.title ?? null;
+  return controls.find((control) => control.id === controlId)?.title ?? null;
 }
 
 export function resolveControlIdDisplay(
@@ -117,13 +115,20 @@ export function toNotificationView(
   enrichment: {
     projectName?: string | null;
     preview?: string | null;
+    controlTitle?: string | null;
+    frameworkControls?: readonly { id: string; title: string }[];
   } = {},
 ): NotificationView {
   return {
     ...notification,
     projectName: enrichment.projectName ?? null,
     controlIdDisplay: resolveControlIdDisplay(notification.controlId),
-    controlTitle: resolveControlTitle(notification.controlId),
+    controlTitle:
+      enrichment.controlTitle ??
+      resolveControlTitle(
+        notification.controlId,
+        enrichment.frameworkControls ?? [],
+      ),
     eventTypeLabel: formatNotificationEventType(notification.eventType),
     preview: enrichment.preview ?? null,
     href: buildNotificationHref(notification),

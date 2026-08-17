@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { Notification } from "@/data/collaboration";
+import { FRAMEWORK_CONTROLS } from "@/data/framework";
 import {
   buildNotificationHref,
   formatNotificationEventType,
@@ -53,7 +54,7 @@ describe("notification presentation", () => {
   it("resolves control identifier display and title", () => {
     assert.equal(resolveControlIdDisplay("ac-2"), "AC-2");
     assert.equal(resolveControlIdDisplay(null), null);
-    const title = resolveControlTitle("ac-2");
+    const title = resolveControlTitle("ac-2", FRAMEWORK_CONTROLS);
     assert.ok(title);
     assert.match(title, /account/i);
   });
@@ -98,6 +99,7 @@ describe("notification presentation", () => {
     const view = toNotificationView(sampleNotification(), {
       projectName: "Goose Flagship",
       preview: "Please review @bob",
+      frameworkControls: FRAMEWORK_CONTROLS,
     });
     assert.equal(view.projectName, "Goose Flagship");
     assert.equal(view.controlIdDisplay, "AC-2");

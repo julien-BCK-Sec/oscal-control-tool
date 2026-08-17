@@ -1,5 +1,4 @@
 import { AuthorizationError } from "@/authz/authorize";
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
 import {
   contentDispositionAttachment,
   evidenceInventoryFilename,
@@ -66,7 +65,6 @@ export async function GET(
       coverageQuery,
       auth.ctx,
       projectId,
-      FRAMEWORK_CONTROLS.map((control) => control.id),
       asOfDate,
     );
     if (!inventory) {

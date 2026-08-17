@@ -39,3 +39,35 @@ export type Framework = {
 export interface FrameworkProvider {
   getFramework(): Framework;
 }
+
+/**
+ * Registry metadata for a supported framework/profile.
+ * Durable identity is `id`; remaining fields are display/export metadata.
+ * OSCAL fields are present for NIST OSCAL-backed entries and omitted for
+ * future non-OSCAL providers.
+ */
+export type FrameworkDescriptor = {
+  id: string;
+  title: string;
+  catalog: string;
+  revision: string;
+  profile: string;
+  provider: string;
+  source: string;
+  oscalProfileTitle?: string;
+  oscalProfileUri?: string;
+  oscalProfileMediaType?: string;
+};
+
+/**
+ * In-process catalog of supported FrameworkProviders.
+ * Not a plugin system. Unknown IDs fail closed.
+ */
+export interface FrameworkRegistry {
+  list(): readonly FrameworkDescriptor[];
+  get(id: string): FrameworkProvider | undefined;
+  require(id: string): FrameworkProvider;
+  getDescriptor(id: string): FrameworkDescriptor | undefined;
+  requireDescriptor(id: string): FrameworkDescriptor;
+  has(id: string): boolean;
+}

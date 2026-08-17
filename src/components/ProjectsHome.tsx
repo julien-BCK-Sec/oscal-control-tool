@@ -21,7 +21,11 @@ import {
   Card,
   CardContent,
 } from "@/components/design-system/card/Card";
-import { FRAMEWORK } from "@/data/framework";
+import {
+  DEFAULT_FRAMEWORK_ID,
+  NIST_SP80053_REV5_IDENTITIES,
+  findFrameworkIdentity,
+} from "@/framework/nist-sp-800-53-rev5/identities";
 import { formatCompletionCount, type CompletionProgress } from "@/domain";
 import { formatSnapshotTimestamp } from "@/components/projectHistory/presentation";
 import type { ProjectSummary } from "@/persistence/types";
@@ -53,6 +57,7 @@ export function ProjectsHome({
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [name, setName] = useState("");
+  const [frameworkId, setFrameworkId] = useState(DEFAULT_FRAMEWORK_ID);
   const [showCreate, setShowCreate] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -67,8 +72,9 @@ export function ProjectsHome({
     event.preventDefault();
     setError(null);
     try {
-      const project = await createProjectAction({ name });
+      const project = await createProjectAction({ name, frameworkId });
       setName("");
+      setFrameworkId(DEFAULT_FRAMEWORK_ID);
       setShowCreate(false);
       router.push(`/projects/${project.id}`);
     } catch (err) {
@@ -128,8 +134,8 @@ export function ProjectsHome({
             Projects
           </h1>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-text-secondary">
-            Local NIST SP 800-53 Rev. 5 Moderate documentation projects stored in
-            SQLite on this machine.
+            Organization documentation projects. Choose NIST SP 800-53 Rev. 5
+            Low, Moderate, or High when creating a project.
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
@@ -168,6 +174,23 @@ export function ProjectsHome({
                 className="field mt-1.5"
               />
             </div>
+            <div className="min-w-[16rem] flex-1">
+              <label htmlFor="new-project-framework" className="label">
+                Framework
+              </label>
+              <select
+                id="new-project-framework"
+                value={frameworkId}
+                onChange={(event) => setFrameworkId(event.target.value)}
+                className="field mt-1.5"
+              >
+                {NIST_SP80053_REV5_IDENTITIES.map((identity) => (
+                  <option key={identity.id} value={identity.id}>
+                    {identity.source}
+                  </option>
+                ))}
+              </select>
+            </div>
             <Button
               type="submit"
               variant="primary"
@@ -180,6 +203,7 @@ export function ProjectsHome({
               onClick={() => {
                 setShowCreate(false);
                 setName("");
+                setFrameworkId(DEFAULT_FRAMEWORK_ID);
               }}
             >
               Cancel
@@ -287,7 +311,10 @@ function ProjectCard({
           <p className="mt-0.5 text-sm text-text-secondary">
             {project.organizationName.trim() || "No organization"}
           </p>
-          <p className="mt-1 text-xs text-text-muted">{FRAMEWORK.title}</p>
+          <p className="mt-1 text-xs text-text-muted">
+            {findFrameworkIdentity(project.frameworkId)?.source ??
+              project.frameworkId}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={`/projects/${project.id}`} className="btn btn-primary">

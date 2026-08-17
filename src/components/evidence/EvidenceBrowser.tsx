@@ -14,7 +14,7 @@ import {
   type EvidenceWithControlIds,
   type ProjectEvidenceCoverageResult,
 } from "@/data/evidence";
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
+import type { Framework } from "@/data/framework";
 import {
   archiveEvidenceAction,
   createEvidenceAction,
@@ -43,6 +43,7 @@ import type { EvidenceAttentionFilter } from "@/components/workspace/presentatio
 
 export type EvidenceBrowserProps = {
   projectId: string;
+  framework: Framework;
   canEdit: boolean;
   canDelete: boolean;
   canRead: boolean;
@@ -86,6 +87,7 @@ const ATTENTION_OPTIONS: {
 
 export function EvidenceBrowser({
   projectId,
+  framework,
   canEdit,
   canDelete,
   canRead,
@@ -117,11 +119,11 @@ export function EvidenceBrowser({
 
   const controlTitleById = useMemo(() => {
     const map = new Map<string, string>();
-    for (const control of FRAMEWORK_CONTROLS) {
+    for (const control of framework.controls) {
       map.set(control.id, control.title);
     }
     return map;
-  }, []);
+  }, [framework.controls]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {

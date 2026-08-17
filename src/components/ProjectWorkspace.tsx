@@ -40,7 +40,7 @@ import {
   type ControlReviewStatus,
 } from "@/data/control-record";
 import type { ProjectMetadata } from "@/data/project";
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
+import type { Framework } from "@/data/framework";
 import { computeOverallCompletion } from "@/domain";
 import {
   AUTOSAVE_DEBOUNCE_MS,
@@ -65,6 +65,7 @@ import type {
 
 export type ProjectWorkspaceProps = {
   initialProject: StoredProject;
+  framework: Framework;
   initialControlRecords: ControlRecord[];
   initialSnapshots: ProjectSnapshotSummary[];
   initialView?: WorkspaceTabId;
@@ -91,6 +92,7 @@ function initialWorkingCopy(
 
 export function ProjectWorkspace({
   initialProject,
+  framework,
   initialControlRecords,
   initialSnapshots,
   initialView = DEFAULT_WORKSPACE_TAB,
@@ -173,8 +175,8 @@ export function ProjectWorkspace({
   const mountedRef = useRef(true);
 
   const completion = useMemo(
-    () => computeOverallCompletion(FRAMEWORK_CONTROLS, implementations),
-    [implementations],
+    () => computeOverallCompletion(framework.controls, implementations),
+    [framework.controls, implementations],
   );
 
   const setStatus = useCallback((status: AutosaveStatus, message?: string | null) => {
@@ -791,6 +793,7 @@ export function ProjectWorkspace({
         >
           {activeTab === "overview" ? (
             <ProjectOverview
+              framework={framework}
               metadata={metadata}
               implementations={implementations}
               revision={revision}
@@ -817,6 +820,7 @@ export function ProjectWorkspace({
         >
           <ControlBrowser
             projectId={projectId}
+            framework={framework}
             implementations={implementations}
             onImplementationsChange={handleImplementationsChange}
             controlRecords={controlRecords}
@@ -859,6 +863,7 @@ export function ProjectWorkspace({
           {activeTab === "evidence" ? (
             <EvidenceBrowser
               projectId={projectId}
+              framework={framework}
               canEdit={evidenceCaps.canCreate || evidenceCaps.canUpdate}
               canDelete={evidenceCaps.canDelete}
               canRead={evidenceCaps.canRead}
@@ -886,6 +891,7 @@ export function ProjectWorkspace({
         >
           <div className="mx-auto max-w-3xl rounded-sm border border-border bg-surface p-4 sm:p-5">
             <ProjectMetadataSection
+              framework={framework}
               metadata={metadata}
               onMetadataChange={handleMetadataChange}
               implementations={implementations}

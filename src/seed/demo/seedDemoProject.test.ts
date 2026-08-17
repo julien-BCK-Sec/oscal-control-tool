@@ -321,6 +321,7 @@ describe("seedDemoProject", () => {
 
     const domain = assembleProject({
       metadata: result.project.metadata,
+      frameworkId: FRAMEWORK.id,
       frameworkControls: FRAMEWORK_CONTROLS,
       implementations: result.project.implementations,
     });

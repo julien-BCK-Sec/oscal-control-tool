@@ -65,6 +65,15 @@ scalable Evidence Browser filters, authorized CSV inventory. See
 `docs/milestones/03D-evidence-coverage-and-reporting.md` and ADR-024
 amendment. Evidence Coverage is not a compliance score.
 
+**Milestone 04A – Multi-Framework Foundation** (implemented)
+
+In-process `FrameworkRegistry`, durable project `frameworkId`, and pinned
+NIST SP 800-53 Rev. 5 Low / Moderate / High profiles. Existing projects
+remain Moderate. Coverage, control browsing, Evidence links, and OSCAL SSP
+export resolve the project's selected framework. See
+`docs/milestones/04A-multi-framework-foundation.md`, ADR-002 amendment, and
+ADR-026.
+
 ## Next
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
@@ -77,7 +86,8 @@ amendment. Evidence Coverage is not a compliance score.
 - Scheduled Evidence reminders (missing required, due soon, overdue)
 - Email / Slack / Teams notifications
 - Durable domain event store / outbox / external broker
-- Additional compliance frameworks
+- Additional compliance frameworks beyond the 04A NIST Rev. 5 Low / Moderate /
+  High registry (ISO, CIS, PCI DSS, CMMC, CSF, mappings)
 - AI-assisted authoring
 - Async / queued workflow execution, approvals, SLA timers
 - Horizontal scaling review beyond single-instance defaults

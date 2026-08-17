@@ -14,18 +14,28 @@ Date:
 ## ADR-002
 
 Decision:
-Introduce a small `FrameworkProvider` interface and derive the NIST Moderate
-framework at build time from the pinned profile and catalog into generated
-application JSON.
+Introduce a small `FrameworkProvider` interface and derive NIST SP 800-53
+Rev. 5 profile content at build time from pinned OSCAL profiles and catalog
+into generated application JSON.
 
 Reason:
 - Keeps the UI on application types (`Framework`, `FrameworkControl`).
 - Avoids shipping the full OSCAL catalog/profile to the browser.
 - Uses only local pinned artifacts (no runtime network fetch).
-- Limits profile support to features actually used by the Moderate baseline.
+- Limits profile support to features actually used by the pinned Rev. 5
+  baselines.
 
 Date:
 2026-07-21
+
+**Amendment (Milestone 04A, 2026-08-17):**
+
+Derivation and `FrameworkProvider` now support the pinned NIST SP 800-53
+Rev. 5 Low, Moderate, and High profiles from the same oscal-content commit,
+not only Moderate. An in-process `FrameworkRegistry` (ADR-026) selects the
+provider for a project's `frameworkId`. The resolver remains the existing
+narrow `with-ids` / `merge.as-is: true` implementation; it is not a general
+OSCAL profile engine.
 
 ## ADR-003
 
@@ -77,6 +87,13 @@ Reason:
 
 Date:
 2026-07-21
+
+**Amendment (Milestone 04A, 2026-08-17):**
+
+Named version restore restores the versioned project document (metadata and
+implementations) but preserves the live project's `frameworkId`. Framework
+identity is immutable project identity (ADR-026), not a snapshot field that
+can switch the project's framework.
 
 ## ADR-006
 
@@ -686,3 +703,57 @@ Reason:
 
 Date:
 2026-07-23
+
+## ADR-026
+
+Decision:
+Introduce an in-process `FrameworkRegistry` of `FrameworkProvider` entries and
+persist one opaque `frameworkId` on each Project. For 04A the supported IDs
+are:
+
+- `nist-sp-800-53-rev5-low`
+- `nist-sp-800-53-rev5-moderate`
+- `nist-sp-800-53-rev5-high`
+
+Catalog, revision, and profile labels are registry metadata, not extra
+persisted columns. `projects.framework_id` is authoritative. The existing
+`project_json.project.frameworkId` copy remains for compatibility without a
+document schema bump.
+
+A Project has exactly one framework/profile. Framework identity is immutable
+after creation: save/autosave must not change it, and named-version restore
+must keep the live project's `frameworkId`. There is no framework-switch
+operation in 04A.
+
+Operational control identity remains `(projectId, controlId)`. Do not
+duplicate `frameworkId` onto ControlRecord, Evidence association, discussion,
+assignment, or activity rows. `controlId` is meaningful only within the
+framework owned by its Project. Control-scoped writes validate `controlId`
+against that project's registered control set. Lazy ControlRecord creation
+is unchanged.
+
+The registry is not a plugin system. NIST Rev. 5 Low/Moderate/High are
+derived with the existing narrow OSCAL resolver from the same pinned
+oscal-content commit. Unknown `frameworkId` values fail closed. Reading the
+registry does not require a new permission.
+
+OSCAL SSP export resolves profile title/URI/media type from the project's
+`frameworkId`. The client exporter uses the small NIST identity table rather
+than importing `FrameworkRegistry`, so generated catalog JSON is not bundled
+into the browser. Coverage denominators and control browsers resolve the
+project's framework; they must not use a global Moderate singleton on
+project-scoped runtime paths.
+
+Reason:
+- Existing projects already store Moderate's `frameworkId`; no SQL backfill
+  is required.
+- One opaque ID keeps persistence stable while allowing future providers
+  without inventing a universal control ontology.
+- Immutability avoids ambiguous Evidence, ControlRecord, collaboration, and
+  export behavior that a later framework switch would create.
+- Keeping operational keys as `(projectId, controlId)` avoids redundant
+  columns while still preventing `ac-2` from being treated as globally unique.
+
+Date:
+2026-08-17
+

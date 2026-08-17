@@ -84,7 +84,8 @@ export type DemoProjectsResult = {
 };
 
 /**
- * Create the four demo projects with NIST Moderate implementations.
+ * Create the four demo projects with explicit NIST SP 800-53 Rev. 5 Moderate
+ * framework identity and implementations.
  * Goose uses the full curated demo baseline; others use thinner subsets.
  */
 export async function ensureDemoProjects(

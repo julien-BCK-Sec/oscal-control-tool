@@ -9,8 +9,13 @@ import type { ProjectMetadata } from "@/data/project";
 export type Project = {
   metadata: ProjectMetadata;
   /**
+   * Durable framework/profile identity (ADR-026).
+   * Operational control IDs are interpreted within this framework.
+   */
+  frameworkId: string;
+  /**
    * Application-facing framework controls included in the project.
-   * Sourced from FrameworkProvider (NIST Moderate), not raw OSCAL.
+   * Sourced from FrameworkRegistry for the project's frameworkId, not raw OSCAL.
    */
   frameworkControls: readonly FrameworkControl[];
   /** User-entered implementation data keyed by control ID. */
@@ -20,6 +25,7 @@ export type Project = {
 /** Inputs required to assemble a Project from current application state. */
 export type AssembleProjectInput = {
   metadata: ProjectMetadata;
+  frameworkId: string;
   frameworkControls: readonly FrameworkControl[];
   implementations: Readonly<Record<string, ControlImplementation>>;
 };
@@ -35,6 +41,7 @@ export function assembleProject(input: AssembleProjectInput): Project {
       organizationName: input.metadata.organizationName,
       systemDescription: input.metadata.systemDescription,
     },
+    frameworkId: input.frameworkId,
     frameworkControls: input.frameworkControls,
     implementations: { ...input.implementations },
   };

@@ -22,7 +22,6 @@ import {
   isEvidenceType,
   utcTodayIsoDate,
 } from "@/data/evidence";
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
 import type { OrgContext } from "@/authz/authorize";
 import { AuthorizationError } from "@/authz/authorize";
 import { getSessionUser, resolveOrgContext, sessionActor } from "@/auth/context";
@@ -554,7 +553,6 @@ export async function getProjectEvidenceCoverageAction(
       coverageQuery,
       resolved.ctx,
       pid,
-      FRAMEWORK_CONTROLS.map((control) => control.id),
       asOf,
     );
   } catch (error) {

@@ -3,7 +3,7 @@
  */
 
 import type { DomainEvent } from "@/domain/events";
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
+import { resolveFrameworkControls } from "@/data/framework";
 import type { AssignmentService } from "@/persistence/assignment-service";
 import type { ControlRecordRepository } from "@/persistence/control-record-repository";
 import type { ProjectRepository } from "@/persistence/repository";
@@ -52,8 +52,10 @@ export async function buildWorkflowEvaluationContext(
     }
   }
 
-  if (controlId) {
-    const control = FRAMEWORK_CONTROLS.find((c) => c.id === controlId);
+  if (controlId && frameworkId) {
+    const control = resolveFrameworkControls(frameworkId).find(
+      (c) => c.id === controlId,
+    );
     controlFamily = control?.family ?? null;
   }
 

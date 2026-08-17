@@ -5,6 +5,7 @@ import {
 } from "@/app/actions/projects";
 import { listControlRecordsAction } from "@/app/actions/control-records";
 import { ProjectWorkspace } from "@/components/ProjectWorkspace";
+import { resolveFramework } from "@/data/framework";
 import {
   parseCommentQueryParam,
   parseControlQueryParam,
@@ -77,6 +78,7 @@ export default async function ProjectPage({
     <ProjectWorkspace
       key={loaded.project.id}
       initialProject={loaded.project}
+      framework={resolveFramework(loaded.project.frameworkId)}
       initialControlRecords={controlRecords}
       initialSnapshots={snapshots}
       initialView={initialControlId ? "controls" : initialView}

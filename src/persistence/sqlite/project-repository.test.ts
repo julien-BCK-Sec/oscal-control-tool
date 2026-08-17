@@ -5,6 +5,11 @@ import { join } from "node:path";
 import { afterEach, describe, it } from "node:test";
 import Database from "better-sqlite3";
 import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
+import {
+  NIST_HIGH_FRAMEWORK_ID,
+  NIST_LOW_FRAMEWORK_ID,
+} from "@/framework/nist-sp-800-53-rev5/identities";
+import { FRAMEWORK_IDENTITY_IMMUTABLE_MESSAGE } from "@/persistence/framework-identity";
 import { closeDb, openDbAt } from "@/persistence/sqlite/client";
 import { createSqliteProjectRepository } from "@/persistence/sqlite/project-repository";
 
@@ -397,5 +402,50 @@ describe("snapshots and versions", () => {
       listB.some((row) => row.id === autoA.id),
       false,
     );
+  });
+
+  it("creates Low, Moderate, and High projects and rejects unknown IDs", async () => {
+    const { repo } = tempRepo();
+    const low = await repo.create({
+      name: "Low",
+      frameworkId: NIST_LOW_FRAMEWORK_ID,
+    });
+    const moderate = await repo.create({
+      name: "Moderate",
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+    });
+    const high = await repo.create({
+      name: "High",
+      frameworkId: NIST_HIGH_FRAMEWORK_ID,
+    });
+    assert.equal(low.frameworkId, NIST_LOW_FRAMEWORK_ID);
+    assert.equal(moderate.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
+    assert.equal(high.frameworkId, NIST_HIGH_FRAMEWORK_ID);
+    await assert.rejects(
+      () => repo.create({ name: "Nope", frameworkId: "not-a-framework" }),
+      /Unknown framework/,
+    );
+  });
+
+  it("rejects save attempts that change framework identity", async () => {
+    const { repo } = tempRepo();
+    const created = await repo.create({
+      name: "Immutable",
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+    });
+    const saved = await repo.save({
+      id: created.id,
+      name: created.name,
+      frameworkId: NIST_HIGH_FRAMEWORK_ID,
+      metadata: created.metadata,
+      implementations: created.implementations,
+      expectedRevision: created.revision,
+    });
+    assert.equal(saved.ok, false);
+    if (saved.ok) {
+      return;
+    }
+    assert.equal(saved.reason, "validation");
+    assert.equal(saved.message, FRAMEWORK_IDENTITY_IMMUTABLE_MESSAGE);
   });
 });

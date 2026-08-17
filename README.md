@@ -18,7 +18,7 @@ The current implementation includes:
 - Organization-owned collaborative compliance authoring
 - Better Auth email/password sessions with email verification
 - Role-based authorization and invitations
-- NIST SP 800-53 Rev. 5 Moderate support
+- NIST SP 800-53 Rev. 5 Low, Moderate, and High support
 - OSCAL System Security Plan (SSP) export
 - Review workflow
 - Operational metadata
@@ -95,8 +95,9 @@ Demo accounts (shared password `ControlFreakDemo123!`):
 | rachel@example.com | Reviewer | Contoso Industries |
 
 Projects: Goose Command Control Center (flagship), Customer A SSP, Internal Lab
-Environment (Acme), Contoso Cloud Platform (Contoso). Framework content uses the
-pinned NIST SP 800-53 Rev. 5 Moderate baseline (no FedRAMP profile is shipped).
+Environment (Acme), Contoso Cloud Platform (Contoso). Demo framework content
+uses the pinned NIST SP 800-53 Rev. 5 Moderate baseline explicitly (no FedRAMP
+profile is shipped). New projects can select Low, Moderate, or High.
 
 Migrations vs demo data: `npm run db:migrate` applies schema only.
 `bootstrap:demo` runs migrations, then seeds identity and demo content.

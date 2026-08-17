@@ -4,7 +4,7 @@ import {
   ProjectsHome,
   type ProjectListItem,
 } from "@/components/ProjectsHome";
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
+import { resolveFrameworkControls } from "@/data/framework";
 import { computeOverallCompletion } from "@/domain";
 import {
   getSessionUser,
@@ -51,10 +51,13 @@ export default async function ProjectsPage() {
     const loaded = await loadProjectAction(summary.id);
     const completion = loaded.ok
       ? computeOverallCompletion(
-          FRAMEWORK_CONTROLS,
+          resolveFrameworkControls(loaded.project.frameworkId),
           loaded.project.implementations,
         )
-      : computeOverallCompletion(FRAMEWORK_CONTROLS, {});
+      : computeOverallCompletion(
+          resolveFrameworkControls(summary.frameworkId),
+          {},
+        );
     projects.push({ ...summary, completion });
   }
 

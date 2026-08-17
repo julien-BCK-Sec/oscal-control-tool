@@ -5,9 +5,11 @@ Date: 2026-08-17
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application built around
-OSCAL. Milestone 03A (Evidence Management Foundation) adds project-scoped
-Evidence on top of Workflow Automation (02C), Domain Events (02B),
-Collaboration (02A), and Platform Foundation.
+OSCAL. Milestone 04A (Multi-Framework Foundation) adds a project-scoped
+framework registry and NIST SP 800-53 Rev. 5 Low / Moderate / High selection
+on top of Evidence Coverage (03D), Evidence Versions (03B), Workflow
+Automation (02C), Domain Events (02B), Collaboration (02A), and Platform
+Foundation.
 
 The application currently provides:
 
@@ -33,7 +35,8 @@ The application currently provides:
 - Operational metadata and activity history (including collaboration and
   evidence link/unlink events)
 - Version history
-- OSCAL SSP export and schema validation
+- OSCAL SSP export and schema validation (profile metadata from the selected
+  project framework)
 - Idempotent demo project seeding into a demo organization
 - Developer demo bootstrap (`npm run bootstrap:demo`) for a full local
   multi-tenant environment (Acme + Contoso, users, projects, collaboration)
@@ -57,8 +60,8 @@ Current stack:
 
 ## Architecture
 
-1. Pinned NIST OSCAL profile + catalog (vendor)
-2. `FrameworkProvider` → application-facing `Framework`
+1. Pinned NIST OSCAL profiles + catalog (vendor)
+2. `FrameworkRegistry` → `FrameworkProvider` → application-facing `Framework`
 3. Better Auth users / sessions / organizations / memberships / invitations
 4. User implementation data (persisted per organization-owned project)
 5. Project metadata (persisted per project)
@@ -101,13 +104,15 @@ Authorization is enforced server-side; UI hiding is not authorization.
 3. Runs `npm run db:migrate`
 4. Creates Acme Corporation and Contoso Industries with RBAC memberships
 5. Creates four NIST SP 800-53 Rev. 5 Moderate projects (Goose flagship plus
-   thinner Acme/Contoso projects)
+   thinner Acme/Contoso projects), each with an explicit Moderate
+   `frameworkId`
 6. Populates Milestone 02A collaboration via discussion/assignment services
    (markers keep seeds idempotent)
 
 Shared demo password: `ControlFreakDemo123!`. Olivia’s prompt label
 “Contributor” maps to the existing `author` role. There is no FedRAMP Moderate
-importer; projects use the pinned NIST Moderate baseline.
+importer; demo/bootstrap projects explicitly use the pinned NIST Moderate
+baseline. New projects may select Low, Moderate, or High.
 
 ## Collaboration (Milestone 02A)
 
@@ -178,7 +183,8 @@ importer; projects use the pinned NIST Moderate baseline.
   views; control-tree coverage indicators; control Evidence panel freshness
 - Coverage semantics: only `active` Evidence satisfies coverage; drafts are
   attention facts; archived is excluded; metadata-only active Evidence counts;
-  computed over the full framework control set (default `required`)
+  computed over the project's selected framework control set (default
+  `required`)
 - Freshness: derived from `reviewDueDate` vs UTC `asOfDate`; due-soon window
   30 days (`EVIDENCE_DUE_SOON_DAYS`); no scheduled jobs
 - Export: authorized CSV inventory
@@ -190,8 +196,12 @@ importer; projects use the pinned NIST Moderate baseline.
 ## Current standards position
 
 - OSCAL version: 1.2.2
-- Current framework: NIST SP 800-53 Rev. 5 Moderate (full baseline via profile)
-- Framework source of truth: pinned Moderate profile + SP 800-53 catalog
+- Supported frameworks: NIST SP 800-53 Rev. 5 Low, Moderate, and High
+  (opaque `frameworkId` values `nist-sp-800-53-rev5-low|moderate|high`)
+- Framework source of truth: pinned Low / Moderate / High profiles + SP 800-53
+  catalog, selected per project via `FrameworkRegistry` (ADR-026)
+- Demo/bootstrap projects remain Moderate with that `frameworkId` explicit
+- Existing projects continue as Moderate; no SQL backfill was required
 - Current product does not claim FedRAMP support
 - FedRAMP Rules are a separate future policy layer
 - Do not invent or substitute a FedRAMP OSCAL profile
@@ -207,7 +217,9 @@ Use:
 - `schema/oscal_ssp_schema.json`
 - `schema/oscal_profile_schema.json`
 - `schema/oscal_catalog_schema.json`
+- `profiles/NIST_SP-800-53_rev5_LOW-baseline_profile.json`
 - `profiles/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json`
+- `profiles/NIST_SP-800-53_rev5_HIGH-baseline_profile.json`
 - `catalogs/NIST_SP-800-53_rev5_catalog.json`
 
 Provenance and checksums are documented in:
@@ -268,14 +280,15 @@ cutover only.
 - Workflows do not cascade (documented limitation)
 - Durable domain event store / outbox / external broker not implemented
 - Named version restore does not roll back ControlRecord metadata, activity,
-  or collaboration rows
+  or collaboration rows; it also does not change the live project's
+  `frameworkId` (ADR-026)
 - Per-control UI action hiding is coarse; server authorization is authoritative
 - Favicon remains the light-mark asset (not theme-switched)
 
 ## Next approved milestone
 
-Word/PDF export remains the next roadmap item after Evidence Coverage
-(Milestone 03D). Assessment management, Evidence approval, and an
+Word/PDF export remains the next roadmap item after Multi-Framework Foundation
+(Milestone 04A). Assessment management, Evidence approval, and an
 organization-wide library are later. See `docs/roadmap.md`.
 
 ## Required verification for each milestone

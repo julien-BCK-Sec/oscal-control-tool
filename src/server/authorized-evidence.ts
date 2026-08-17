@@ -27,6 +27,13 @@ import {
   evidenceVersionUploadedEvent,
 } from "@/domain/events";
 import { publishDomainEvent, publishDomainEvents } from "./publish-domain-event";
+import {
+  UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+  controlBelongsToProjectFramework,
+  invalidProjectControlIds,
+  loadOwnedProject,
+  projectFrameworkControlIds,
+} from "./project-control-identity";
 import type {
   EvidenceVersionDownloadResult,
   EvidenceVersionUploadResult,
@@ -107,8 +114,20 @@ export async function createEvidenceForOrg(
   if (input.controlIds && input.controlIds.length > 0) {
     requirePermission(ctx, ctx.organizationId, "evidence.associate");
   }
-  if (!(await projectBelongsToOrg(projectRepo, ctx, input.projectId))) {
+  const project = await loadOwnedProject(projectRepo, ctx, input.projectId);
+  if (!project) {
     return { ok: false, reason: "not-found", message: "Project not found." };
+  }
+  const invalid = invalidProjectControlIds(
+    project.frameworkId,
+    input.controlIds ?? [],
+  );
+  if (invalid.length > 0) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+    };
   }
   const result = await service.create(input, actor);
   const events = [
@@ -243,8 +262,16 @@ export async function associateEvidenceForOrg(
   actor: ActorIdentity,
 ): Promise<EvidenceActionResult> {
   requirePermission(ctx, ctx.organizationId, "evidence.associate");
-  if (!(await projectBelongsToOrg(projectRepo, ctx, projectId))) {
+  const project = await loadOwnedProject(projectRepo, ctx, projectId);
+  if (!project) {
     return { ok: false, reason: "not-found", message: "Project not found." };
+  }
+  if (!controlBelongsToProjectFramework(project.frameworkId, controlId)) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+    };
   }
   const before = await service.getById(projectId, evidenceId);
   if (!before) {
@@ -399,16 +426,19 @@ export async function getProjectEvidenceCoverageForOrg(
   coverageQuery: EvidenceCoverageQuery,
   ctx: OrgContext | null | undefined,
   projectId: string,
-  controlIds: readonly string[],
   asOfDate: string,
 ): Promise<ProjectEvidenceCoverageResult | null> {
   requirePermission(ctx, ctx?.organizationId ?? "", "evidence.read");
-  if (!(await projectBelongsToOrg(projectRepo, ctx, projectId))) {
+  if (!ctx) {
+    return null;
+  }
+  const project = await loadOwnedProject(projectRepo, ctx, projectId);
+  if (!project) {
     return null;
   }
   return coverageQuery.getProjectCoverage({
     projectId,
-    controlIds,
+    controlIds: projectFrameworkControlIds(project.frameworkId),
     asOfDate,
   });
 }
@@ -418,16 +448,19 @@ export async function getEvidenceInventoryForOrg(
   coverageQuery: EvidenceCoverageQuery,
   ctx: OrgContext | null | undefined,
   projectId: string,
-  controlIds: readonly string[],
   asOfDate: string,
 ): Promise<EvidenceInventoryQueryResult | null> {
   requirePermission(ctx, ctx?.organizationId ?? "", "evidence.read");
-  if (!(await projectBelongsToOrg(projectRepo, ctx, projectId))) {
+  if (!ctx) {
+    return null;
+  }
+  const project = await loadOwnedProject(projectRepo, ctx, projectId);
+  if (!project) {
     return null;
   }
   return coverageQuery.getInventory({
     projectId,
-    controlIds,
+    controlIds: projectFrameworkControlIds(project.frameworkId),
     asOfDate,
   });
 }

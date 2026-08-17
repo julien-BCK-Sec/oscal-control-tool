@@ -1,7 +1,7 @@
 # OSCAL and FedRAMP Standards Alignment
 
-Date: 2026-07-21  
-Status: Active design guidance (NIST Moderate framework derivation complete; FedRAMP still not claimed).
+Date: 2026-08-17  
+Status: Active design guidance (NIST Rev. 5 Low / Moderate / High derivation complete; FedRAMP still not claimed).
 
 ## Official sources used
 
@@ -19,7 +19,7 @@ Status: Active design guidance (NIST Moderate framework derivation complete; Fed
 | --- | --- |
 | **OSCAL JSON Schema** (SSP / profile / catalog) | Validates **document structure** for a given OSCAL model version |
 | **OSCAL catalog** | Authoritative control definitions (e.g. NIST SP 800-53 Rev. 5) |
-| **OSCAL profile** | Selection/tailoring of controls from a catalog (e.g. NIST Moderate baseline) |
+| **OSCAL profile** | Selection/tailoring of controls from a catalog (e.g. NIST Low / Moderate / High baselines) |
 | **OSCAL SSP** | System-specific implementation of a selected profile |
 | **FedRAMP Consolidated Rules** | Machine-readable FedRAMP **policy/rules** (FRD/FRR/KSI/CTL); not a catalog or profile |
 
@@ -56,7 +56,9 @@ vendor/oscal/v1.2.2/
   catalogs/
     NIST_SP-800-53_rev5_catalog.json
   profiles/
+    NIST_SP-800-53_rev5_LOW-baseline_profile.json
     NIST_SP-800-53_rev5_MODERATE-baseline_profile.json
+    NIST_SP-800-53_rev5_HIGH-baseline_profile.json
 ```
 
 **Not pinned:** resolved profile catalogs, `-min` variants, any FedRAMP-labeled OSCAL baseline. Resolved profiles are derived convenience artifacts; the profile and catalog are the primary source artifacts used by this application.
@@ -67,24 +69,26 @@ The UI no longer uses a handwritten MVP control list.
 
 | Piece | Location |
 | --- | --- |
+| `FrameworkRegistry` | `src/data/framework/registry.ts` |
 | `FrameworkProvider` | `src/data/framework/types.ts` / `provider.ts` |
-| NIST Moderate derivation | `src/framework/nist-moderate/derive.ts` |
-| Generated app framework JSON | `src/data/framework/generated/nist-sp-800-53-rev5-moderate.json` |
-| Derive script | `scripts/derive-nist-moderate-framework.ts` (`npm run derive:framework`) |
+| NIST Rev. 5 identities | `src/framework/nist-sp-800-53-rev5/identities.ts` |
+| NIST Rev. 5 derivation | `src/framework/nist-sp-800-53-rev5/derive.ts` |
+| Generated app framework JSON | `src/data/framework/generated/nist-sp-800-53-rev5-{low,moderate,high}.json` |
+| Derive script | `scripts/derive-nist-sp-800-53-rev5-frameworks.ts` (`npm run derive:framework`) |
 
-**Source of truth for which controls appear:** the pinned Moderate profile `imports[].include-controls[].with-ids`.
+**Source of truth for which controls appear:** the pinned Low / Moderate / High profile `imports[].include-controls[].with-ids` for the project's `frameworkId`.
 
 **Source of truth for titles, families, and statements:** the pinned SP 800-53 Rev. 5 catalog.
 
-**Where derivation occurs:** build-time (and pretest) Node script. The browser loads only the generated application JSON.
+**Where derivation occurs:** build-time (and pretest) Node script. The browser loads only the generated application JSON for the project's selected framework (passed from the server). Client components must not import `FrameworkRegistry`, which would bundle all generated catalogs.
 
 ### Statement normalization
 
 Catalog `statement` parts (including nested `item` parts and label props) are flattened to a plain string. Parameter insert tokens such as `{{ insert: param, … }}` are preserved. Guidance and discussion parts are never used as the statement.
 
-### Profile features supported (pinned Moderate profile)
+### Profile features supported (pinned Low / Moderate / High profiles)
 
-Inspected on the pinned profile; only these selection-related features are used and supported:
+Inspected on each pinned Rev. 5 baseline profile; only these selection-related features are used and supported:
 
 - `imports[].href` (not followed; local catalog is paired explicitly)
 - `imports[].include-controls[].with-ids`
@@ -101,11 +105,11 @@ This is **not** a universal OSCAL profile engine. Derivation fails clearly if th
 - merge strategies other than `as-is: true`
 - other unrecognized profile keys that are not in the allow-list
 
-### NIST Moderate vs future FedRAMP
+### NIST Rev. 5 baselines vs future FedRAMP
 
-| | NIST Moderate (current) | FedRAMP (not claimed) |
+| | NIST Rev. 5 Low / Moderate / High (current) | FedRAMP (not claimed) |
 | --- | --- | --- |
-| Control selection | NIST Moderate OSCAL profile | Would require an official FedRAMP OSCAL profile (not located/approved) |
+| Control selection | Pinned NIST OSCAL baseline profile for the project's `frameworkId` | Would require an official FedRAMP OSCAL profile (not located/approved) |
 | Control definitions | NIST SP 800-53 catalog | Same catalog family; FedRAMP may tailor further |
 | Policy checks | None | FedRAMP Consolidated Rules (separate layer) |
 
@@ -121,7 +125,7 @@ The exporter emits:
 }
 ```
 
-with a matching `back-matter.resources[]` entry titled as the NIST SP 800-53 Rev. 5 Moderate profile and an `rlink` to the commit-pinned upstream URI in `SOURCES.md`.
+with a matching `back-matter.resources[]` entry titled as the project's selected NIST SP 800-53 Rev. 5 profile (Low, Moderate, or High) and an `rlink` to the commit-pinned upstream URI in `SOURCES.md`.
 
 Do **not** import the catalog directly, FedRAMP Rules, a fabricated FedRAMP profile, a local `vendor/...` path, or a made-up public URI.
 
@@ -129,14 +133,14 @@ Do **not** import the catalog directly, FedRAMP Rules, a fabricated FedRAMP prof
 
 ### Current export
 
-Single SSP JSON file. The SSP references a commit-pinned external NIST Moderate profile via back-matter `rlink`. Implemented requirements cover the full derived Moderate control set.
+Single SSP JSON file. The SSP references a commit-pinned external NIST profile via back-matter `rlink` for the project's selected Low, Moderate, or High baseline. Implemented requirements cover the full derived control set for that profile.
 
 ### Future target
 
 ```
 Portable OSCAL package
 ├── SSP JSON
-├── Moderate profile JSON
+├── Low / Moderate / High profile JSON
 ├── SP 800-53 catalog JSON
 └── provenance or manifest information
 ```
@@ -147,8 +151,9 @@ ZIP packaging is not implemented yet.
 
 ```
 vendor/oscal/v1.2.2/          # pinned NIST OSCAL schemas + NIST content
-src/data/framework/           # FrameworkProvider + generated app-facing framework
-src/framework/nist-moderate/  # build-time profile/catalog derivation (not UI)
+src/data/framework/           # FrameworkRegistry + FrameworkProvider + generated app-facing frameworks
+src/framework/nist-sp-800-53-rev5/  # identities + build-time profile/catalog derivation (not UI)
+src/framework/nist-moderate/  # compatibility re-exports for existing Moderate tests
 src/data/implementation/      # user implementation state
 src/data/project/             # project metadata
 src/domain/                   # assembled Project model (OSCAL-independent)
@@ -159,18 +164,18 @@ docs/                         # vision, architecture, this alignment note
 
 ## Application architecture
 
-1. **Domain model** — `Project` (metadata + framework controls + implementations); no OSCAL types.
-2. **FrameworkProvider** — application `Framework` derived from pinned NIST profile/catalog.
+1. **Domain model** — `Project` (metadata + `frameworkId` + framework controls + implementations); no OSCAL types.
+2. **FrameworkRegistry / FrameworkProvider** — application `Framework` derived from the pinned NIST profile/catalog selected by `frameworkId`.
 3. **User implementation** — status/narrative keyed by control ID.
 4. **OSCAL exporter** — pure `Project` → SSP JSON in `src/oscal/`.
 5. **Validation** — AJV against pinned SSP schema (structural only).
 6. **FedRAMP policy evaluation (later)** — Consolidated Rules; never replaces catalog/profile.
 
 ```text
-pinned profile + catalog
+pinned Low / Moderate / High profiles + catalog
         │
         ▼ (build-time derive)
-generated Framework JSON ──► FrameworkProvider ──► UI / domain Project
+generated Framework JSON ──► FrameworkRegistry ──► FrameworkProvider ──► UI / domain Project
                                                       │
                                                       ▼
                                                OSCAL SSP exporter

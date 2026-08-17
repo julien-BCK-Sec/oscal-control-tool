@@ -12,12 +12,15 @@ Provides read-only compliance framework information.
 
 Responsibilities:
 
+- FrameworkRegistry (in-process catalog of supported providers, ADR-026)
 - FrameworkProvider
 - FrameworkControl
-- Framework metadata
-- Framework derivation
+- Framework metadata (catalog, revision, profile, OSCAL export fields)
+- Framework derivation (pinned NIST SP 800-53 Rev. 5 Low / Moderate / High)
 
-Framework data is never persisted in application storage.
+Framework data is never persisted in application storage. Projects persist
+only an opaque `frameworkId`. Runtime views resolve that ID through the
+registry rather than a global Moderate singleton.
 
 ---
 
@@ -130,6 +133,16 @@ Milestone 03D capabilities:
 - Due-soon window is the application constant `EVIDENCE_DUE_SOON_DAYS = 30`
 - No scheduled jobs, workflow engine changes, or assessment semantics
 
+Milestone 04A capabilities:
+
+- In-process `FrameworkRegistry` of `FrameworkProvider` entries (ADR-026)
+- Durable project `frameworkId` (Low / Moderate / High NIST Rev. 5 profiles)
+- Framework identity immutable after create; restore preserves live identity
+- Control browsing, Evidence links, coverage, and OSCAL SSP export resolve
+  the project's selected framework
+- Control-scoped writes validate `controlId` against that framework
+- No plugin system, framework switching, or runtime standards downloads
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 
@@ -179,7 +192,8 @@ Transforms the domain model into standards-based exports.
 
 Examples:
 
-- OSCAL SSP
+- OSCAL SSP (profile metadata from the project's selected framework)
+
 - Word (future)
 - PDF (future)
 
@@ -250,7 +264,8 @@ invoked by business services (ADR-023).
 ## Architectural Principles
 
 - Keep standards separate from operational metadata.
-- Keep framework data read-only.
+- Keep framework data read-only and resolve it from the project's
+  `frameworkId` (ADR-026).
 - Keep the domain model independent of export formats.
 - Keep repositories database-specific.
 - Keep UI independent of persistence.

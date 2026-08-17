@@ -19,6 +19,11 @@ import {
 } from "@/domain/events";
 import { emitDiscussionNotifications } from "./discussion-notifications";
 import { publishDomainEvent } from "./publish-domain-event";
+import {
+  UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+  controlBelongsToProjectFramework,
+  loadOwnedProject,
+} from "./project-control-identity";
 
 /**
  * Authorized, tenant-scoped discussion operations (Milestone 02A WP2/WP8).
@@ -42,7 +47,7 @@ export type DiscussionMutationResult =
       activity: ControlActivity;
       mentionedUserIds: string[];
     }
-  | { ok: false; reason: "not-found" | "forbidden"; message: string };
+  | { ok: false; reason: "not-found" | "forbidden" | "validation"; message: string };
 
 async function resolveBodyMentions(
   orgRepo: OrganizationRepository,
@@ -107,8 +112,16 @@ export async function createDiscussionForOrg(
     ? "discussion.reply"
     : "discussion.create";
   requirePermission(ctx, ctx.organizationId, permission);
-  if (!(await projectBelongsToOrg(projectRepo, ctx, input.projectId))) {
+  const project = await loadOwnedProject(projectRepo, ctx, input.projectId);
+  if (!project) {
     return { ok: false, reason: "not-found", message: "Project not found." };
+  }
+  if (!controlBelongsToProjectFramework(project.frameworkId, input.controlId)) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+    };
   }
   const mentionedUserIds = await resolveBodyMentions(
     orgRepo,
