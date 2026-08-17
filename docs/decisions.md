@@ -554,11 +554,10 @@ Introduce project-scoped Evidence as a first-class operational aggregate
   identity convention as collaboration). Associations do not use
   `control_record_id` as the primary key.
 - **Evidence requirement** (`required` | `optional` | `not_required`) lives
-  on **ControlRecord**, defaulting to **`required`**. Absence of evidence is
-  “missing” only when requirement is `required` and no non-archived linked
-  Evidence exists. Optional / Not required explicitly clear the gap — this
-  satisfies “controls are not automatically incomplete when no evidence
-  exists” without defaulting every control to optional.
+  on **ControlRecord**, defaulting to **`required`**. Optional / Not required
+  explicitly clear the gap — this satisfies “controls are not automatically
+  incomplete when no evidence exists” without defaulting every control to
+  optional.
 - Evidence lifecycle status is `draft` | `active` | `archived`. Prefer
   archive over hard delete. Hard delete is allowed only for `draft` evidence
   with no control associations (manager-gated via `evidence.delete`).
@@ -580,6 +579,38 @@ Introduce project-scoped Evidence as a first-class operational aggregate
 - Historical versions remain browseable; replacing a file advances the
   current-version pointer only after a successful version insert.
 - Binary storage and provider selection are defined in **ADR-025**.
+
+**Amendment (Milestone 03D, 2026-08-17):**
+
+Evidence Coverage is a **derived read model**, not a persisted status and not
+compliance. It is computed over the complete framework control set (lazy
+ControlRecords default to `required`).
+
+Eligibility for coverage (tightens the earlier “non-archived link” gap rule
+for reporting only; the Evidence aggregate is unchanged):
+
+- **`active` Evidence counts** toward Evidence Coverage, including
+  metadata-only records with no current Evidence Version.
+- **`draft` Evidence does not satisfy coverage.** It remains visible as an
+  in-progress attention fact (for example “Required — missing evidence — 1
+  draft”).
+- **`archived` Evidence does not satisfy coverage** and cannot be newly
+  linked.
+- Evidence remains a logical aggregate independent of files. Absence of a
+  current Version does not make active Evidence missing.
+
+Coverage states stay separate from freshness:
+
+- `not_required` | `optional_absent` | `optional_present` |
+  `required_missing` | `required_present`
+
+Freshness is derived only from `reviewDueDate` versus an explicit UTC
+`asOfDate` (`overdue` | `due_soon` | `current` | `no_review_date`). Do not
+mutate Evidence lifecycle because time passes. The due-soon window is the
+application constant `EVIDENCE_DUE_SOON_DAYS = 30`.
+
+Do not label Evidence Coverage as a compliance, audit-readiness, or
+assessment score.
 
 This decision supersedes the ADR-009 implication that Evidence would be a
 child of a single ControlRecord. ControlRecord remains the hub for

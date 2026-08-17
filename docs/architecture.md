@@ -120,6 +120,16 @@ Milestone 03C capabilities:
 - Control panel owns associate/create; picker emits selection callbacks
 - Associate rejects archived Evidence for new links
 
+Milestone 03D capabilities:
+
+- Derived Evidence Coverage and freshness read models (ADR-024 amendment)
+- Dedicated coverage/inventory query boundary (not a new aggregate)
+- Project Overview coverage counts; Evidence Browser search/filter/attention
+  views; control-tree coverage indicators
+- Authorized CSV inventory download (no PDF, no binaries, no storage keys)
+- Due-soon window is the application constant `EVIDENCE_DUE_SOON_DAYS = 30`
+- No scheduled jobs, workflow engine changes, or assessment semantics
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 
@@ -130,6 +140,7 @@ Later capabilities remain independent of UI and persistence:
 - Evidence processing (virus scan, OCR, preview)
 - Durable event store / outbox / external broker
 - Async / queued workflow execution, approvals, SLA timers
+- Scheduled Evidence reminders (due soon / overdue / missing required)
 
 ---
 
@@ -149,6 +160,7 @@ Examples:
 - WorkflowRepository
 - EvidenceRepository / EvidenceService (including search)
 - EvidenceVersionRepository / EvidenceVersionService
+- EvidenceCoverageQuery (derived coverage + inventory; Milestone 03D)
 - ObjectStorageProvider (filesystem | S3-compatible)
 
 Repositories isolate the database from business logic.

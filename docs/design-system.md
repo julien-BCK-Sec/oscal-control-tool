@@ -134,9 +134,19 @@ review → assignments → discussions → history.
 | Review under review | Under Review | warning |
 | Review changes requested | Changes Requested | attention |
 | Review approved | Approved | success |
+| Evidence required missing | Missing evidence | danger |
+| Evidence required present | Evidence present | success |
+| Evidence optional | Optional — no/present evidence | info |
+| Evidence not required | Not required | neutral |
+| Evidence overdue | Overdue | danger |
+| Evidence due soon | Due soon | warning |
+| Evidence current | Current | success |
+| Evidence no review date | No review date | neutral |
 
-Use `ImplementationStatusBadge` / `ReviewStatusBadge` — do not copy badge CSS
-into pages.
+Use `ImplementationStatusBadge` / `ReviewStatusBadge` /
+`EvidenceCoverageBadge` / `EvidenceFreshnessBadge` — do not copy badge CSS
+into pages. Never communicate Evidence Coverage as a compliance score or
+percentage bar.
 
 ## Layout patterns
 

@@ -82,15 +82,16 @@ export function isEvidenceRequirement(
 }
 
 /**
- * Required + no non-archived linked evidence → missing.
+ * Required + no eligible (`active`) linked evidence → missing.
+ * Draft and archived Evidence do not satisfy coverage (Milestone 03D).
  * Optional / Not required → not missing even with zero evidence.
  */
 export function isEvidenceMissing(
   requirement: EvidenceRequirement,
-  nonArchivedLinkedCount: number,
+  activeLinkedCount: number,
 ): boolean {
   if (requirement !== "required") {
     return false;
   }
-  return nonArchivedLinkedCount <= 0;
+  return activeLinkedCount <= 0;
 }

@@ -11,6 +11,7 @@ import type { ProjectRepository } from "./repository";
 import type { WorkflowRepository } from "./workflow-repository";
 import type { EvidenceService } from "./evidence-service";
 import type { EvidenceVersionService } from "./evidence-version-service";
+import type { EvidenceCoverageQuery } from "./evidence-coverage-query";
 import { getDb } from "./postgres/client";
 import { createPostgresAssignmentRepository } from "./postgres/assignment-repository";
 import { createPostgresCommentRepository } from "./postgres/comment-repository";
@@ -18,6 +19,7 @@ import { createPostgresControlActivityRepository } from "./postgres/control-acti
 import { createPostgresControlRecordRepository } from "./postgres/control-record-repository";
 import { createPostgresControlRecordService } from "./postgres/control-record-service";
 import { createPostgresDiscussionService } from "./postgres/discussion-service";
+import { createPostgresEvidenceCoverageQuery } from "./postgres/evidence-coverage-query";
 import { createPostgresEvidenceService } from "./postgres/evidence-service";
 import { createPostgresEvidenceVersionService } from "./postgres/evidence-version-service";
 import { createPostgresNotificationRepository } from "./postgres/notification-repository";
@@ -82,4 +84,9 @@ export async function getEvidenceService(): Promise<EvidenceService> {
 export async function getEvidenceVersionService(): Promise<EvidenceVersionService> {
   const { provider } = getObjectStorageProvider();
   return createPostgresEvidenceVersionService(await getDb(), provider);
+}
+
+/** Evidence coverage / inventory read model (Milestone 03D). */
+export async function getEvidenceCoverageQuery(): Promise<EvidenceCoverageQuery> {
+  return createPostgresEvidenceCoverageQuery(await getDb());
 }

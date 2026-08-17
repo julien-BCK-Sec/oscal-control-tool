@@ -5,25 +5,31 @@ import type {
   EvidenceVersion,
   EvidenceWithControlIds,
   ListEvidenceOptions,
+  ProjectEvidenceCoverageResult,
   SearchEvidenceInput,
   SearchEvidencePage,
 } from "@/data/evidence";
 import {
   parseCreateEvidenceInput,
+  parseEvidenceDate,
   parseUpdateEvidenceInput,
   toCreateEvidenceInput,
   toUpdateEvidenceInput,
   EVIDENCE_SEARCH_DEFAULT_LIMIT,
   EVIDENCE_SEARCH_MAX_LIMIT,
+  isEvidenceFreshness,
   isEvidenceStatus,
   isEvidenceType,
+  utcTodayIsoDate,
 } from "@/data/evidence";
+import { FRAMEWORK_CONTROLS } from "@/data/framework";
 import type { OrgContext } from "@/authz/authorize";
 import { AuthorizationError } from "@/authz/authorize";
 import { getSessionUser, resolveOrgContext, sessionActor } from "@/auth/context";
 import { SYSTEM_ACTOR } from "@/persistence/actor";
 import type { ProjectRepository } from "@/persistence/repository";
 import {
+  getEvidenceCoverageQuery,
   getEvidenceService,
   getEvidenceVersionService,
   getProjectRepository,
@@ -35,6 +41,7 @@ import {
   deleteDraftEvidenceForOrg,
   dissociateEvidenceForOrg,
   getEvidenceForOrg,
+  getProjectEvidenceCoverageForOrg,
   listEvidenceForOrg,
   listEvidenceVersionsForOrg,
   searchEvidenceForOrg,
@@ -168,6 +175,51 @@ export async function searchEvidenceAction(
       message: "Invalid evidence type filter.",
     };
   }
+  if (
+    raw.freshness !== undefined &&
+    raw.freshness !== null &&
+    !isEvidenceFreshness(raw.freshness)
+  ) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: "Invalid freshness filter.",
+    };
+  }
+  let asOfDate: string | undefined;
+  if (raw.asOfDate !== undefined && raw.asOfDate !== null) {
+    const parsedAsOf = parseEvidenceDate(raw.asOfDate);
+    if (parsedAsOf === null || parsedAsOf === undefined) {
+      return {
+        ok: false,
+        reason: "validation",
+        message: "asOfDate must be YYYY-MM-DD.",
+      };
+    }
+    asOfDate = parsedAsOf;
+  }
+  if (
+    raw.hasCurrentVersion !== undefined &&
+    raw.hasCurrentVersion !== null &&
+    typeof raw.hasCurrentVersion !== "boolean"
+  ) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: "hasCurrentVersion must be a boolean.",
+    };
+  }
+  if (
+    raw.linked !== undefined &&
+    raw.linked !== null &&
+    typeof raw.linked !== "boolean"
+  ) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: "linked must be a boolean.",
+    };
+  }
 
   const searchInput: SearchEvidenceInput = {
     projectId,
@@ -178,6 +230,14 @@ export async function searchEvidenceAction(
     evidenceType: isEvidenceType(raw.evidenceType)
       ? raw.evidenceType
       : undefined,
+    owner: typeof raw.owner === "string" ? raw.owner : undefined,
+    freshness: isEvidenceFreshness(raw.freshness) ? raw.freshness : undefined,
+    hasCurrentVersion:
+      typeof raw.hasCurrentVersion === "boolean"
+        ? raw.hasCurrentVersion
+        : undefined,
+    linked: typeof raw.linked === "boolean" ? raw.linked : undefined,
+    asOfDate,
     excludeLinkedToControlId:
       typeof raw.excludeLinkedToControlId === "string"
         ? raw.excludeLinkedToControlId.trim()
@@ -467,6 +527,42 @@ export async function getEvidenceCapabilitiesAction(
     canArchive: roleHasPermission(role, "evidence.archive"),
     canDelete: roleHasPermission(role, "evidence.delete"),
   };
+}
+
+export async function getProjectEvidenceCoverageAction(
+  projectId: string,
+  asOfDate?: string,
+): Promise<ProjectEvidenceCoverageResult | null> {
+  const pid = requireNonEmptyString(projectId, "projectId");
+  let asOf = utcTodayIsoDate();
+  if (asOfDate !== undefined) {
+    const parsed = parseEvidenceDate(asOfDate);
+    if (parsed === null || parsed === undefined) {
+      return null;
+    }
+    asOf = parsed;
+  }
+  const projectRepo = await getProjectRepository();
+  const resolved = await resolveProjectContext(projectRepo, pid);
+  if (!resolved) {
+    return null;
+  }
+  try {
+    const coverageQuery = await getEvidenceCoverageQuery();
+    return await getProjectEvidenceCoverageForOrg(
+      projectRepo,
+      coverageQuery,
+      resolved.ctx,
+      pid,
+      FRAMEWORK_CONTROLS.map((control) => control.id),
+      asOf,
+    );
+  } catch (error) {
+    if (error instanceof AuthorizationError) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function listEvidenceVersionsAction(

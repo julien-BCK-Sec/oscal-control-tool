@@ -18,8 +18,11 @@ import {
   associateEvidenceForOrg,
   createEvidenceForOrg,
   deleteDraftEvidenceForOrg,
+  getEvidenceInventoryForOrg,
+  getProjectEvidenceCoverageForOrg,
   listEvidenceForOrg,
 } from "@/server/authorized-evidence";
+import { createPostgresEvidenceCoverageQuery } from "@/persistence/postgres/evidence-coverage-query";
 import { createProjectForOrg } from "@/server/authorized-projects";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -265,6 +268,88 @@ describe("evidence service and authorization", () => {
           author,
           project.id,
           created.evidence.id,
+        ),
+      AuthorizationError,
+    );
+  });
+
+  it("allows viewers to read coverage and denies cross-tenant reporting", async () => {
+    const { db, projects, evidence, orgA, orgB } = await setup();
+    const coverageQuery = createPostgresEvidenceCoverageQuery(db);
+    const adminA = ctx(orgA.id, "organization_admin");
+    const adminB = ctx(orgB.id, "organization_admin");
+    const viewer = ctx(orgA.id, "viewer");
+    const project = await createProjectForOrg(projects, adminA, projectInput);
+
+    await createEvidenceForOrg(
+      projects,
+      evidence,
+      adminA,
+      {
+        projectId: project.id,
+        title: "Active attestation",
+        evidenceType: "attestation",
+        status: "active",
+        controlIds: ["ac-2"],
+      },
+      SYSTEM_ACTOR,
+    );
+
+    const viewerCoverage = await getProjectEvidenceCoverageForOrg(
+      projects,
+      coverageQuery,
+      viewer,
+      project.id,
+      ["ac-2"],
+      "2026-06-01",
+    );
+    assert.ok(viewerCoverage);
+    assert.equal(viewerCoverage?.summary.requiredWithEvidence, 1);
+
+    const cross = await getProjectEvidenceCoverageForOrg(
+      projects,
+      coverageQuery,
+      adminB,
+      project.id,
+      ["ac-2"],
+      "2026-06-01",
+    );
+    assert.equal(cross, null);
+
+    const inventory = await getEvidenceInventoryForOrg(
+      projects,
+      coverageQuery,
+      viewer,
+      project.id,
+      ["ac-2"],
+      "2026-06-01",
+    );
+    assert.ok(inventory);
+    assert.equal(inventory?.rows.length, 1);
+
+    const crossInventory = await getEvidenceInventoryForOrg(
+      projects,
+      coverageQuery,
+      adminB,
+      project.id,
+      ["ac-2"],
+      "2026-06-01",
+    );
+    assert.equal(crossInventory, null);
+  });
+
+  it("fails closed when organization context is missing", async () => {
+    const { db, projects } = await setup();
+    const coverageQuery = createPostgresEvidenceCoverageQuery(db);
+    await assert.rejects(
+      () =>
+        getProjectEvidenceCoverageForOrg(
+          projects,
+          coverageQuery,
+          null,
+          "project-x",
+          ["ac-1"],
+          "2026-06-01",
         ),
       AuthorizationError,
     );

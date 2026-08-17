@@ -23,6 +23,12 @@ import {
   saveProjectAction,
 } from "@/app/actions/projects";
 import { upsertControlRecordsAction, listControlRecordsAction } from "@/app/actions/control-records";
+import {
+  getEvidenceCapabilitiesAction,
+  getProjectEvidenceCoverageAction,
+  type EvidenceCapabilities,
+} from "@/app/actions/evidence";
+import type { ProjectEvidenceCoverageResult } from "@/data/evidence";
 import { notifyNotificationsChanged } from "@/components/collaboration/notifications-changed";
 import type { ControlImplementation } from "@/data/implementation";
 import {
@@ -49,6 +55,7 @@ import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import {
   DEFAULT_WORKSPACE_TAB,
   type ControlsFocusRequest,
+  type EvidenceAttentionFilter,
   type WorkspaceTabId,
 } from "@/components/workspace/presentation";
 import type {
@@ -63,6 +70,7 @@ export type ProjectWorkspaceProps = {
   initialView?: WorkspaceTabId;
   /** Deep-link focus into Controls (notification / overview navigation). */
   initialFocus?: ControlsFocusRequest;
+  initialEvidenceAttention?: EvidenceAttentionFilter;
 };
 
 type FlushSaveResult =
@@ -87,6 +95,7 @@ export function ProjectWorkspace({
   initialSnapshots,
   initialView = DEFAULT_WORKSPACE_TAB,
   initialFocus,
+  initialEvidenceAttention = "all",
 }: ProjectWorkspaceProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -129,6 +138,19 @@ export function ProjectWorkspace({
   );
   const [controlsFocus, setControlsFocus] =
     useState<ControlsFocusRequest | null>(initialFocus ?? null);
+  const [evidenceAttention, setEvidenceAttention] =
+    useState<EvidenceAttentionFilter>(initialEvidenceAttention);
+  const [evidenceCoverage, setEvidenceCoverage] =
+    useState<ProjectEvidenceCoverageResult | null>(null);
+  const [evidenceCoverageLoading, setEvidenceCoverageLoading] = useState(true);
+  const [evidenceCaps, setEvidenceCaps] = useState<EvidenceCapabilities>({
+    canRead: false,
+    canCreate: false,
+    canUpdate: false,
+    canAssociate: false,
+    canArchive: false,
+    canDelete: false,
+  });
 
   const historyRef = useRef(
     new EditorHistory(initialWorkingCopy(initialProject, initialRecordsMap)),
@@ -170,6 +192,25 @@ export function ProjectWorkspace({
     }
   }, [projectId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const [caps, nextCoverage] = await Promise.all([
+        getEvidenceCapabilitiesAction(projectId),
+        getProjectEvidenceCoverageAction(projectId),
+      ]);
+      if (cancelled) {
+        return;
+      }
+      setEvidenceCaps(caps);
+      setEvidenceCoverage(nextCoverage);
+      setEvidenceCoverageLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, activityRefreshToken]);
+
   function readLatestWorkingCopy(): EditorWorkingCopy {
     return cloneWorkingCopy(workingCopyRef.current);
   }
@@ -191,10 +232,21 @@ export function ProjectWorkspace({
     setControlRecords(copy.controlRecords);
   }
 
-  function selectTab(tab: WorkspaceTabId) {
+  function selectTab(tab: WorkspaceTabId, attention?: EvidenceAttentionFilter) {
     setActiveTab(tab);
-    const href =
-      tab === DEFAULT_WORKSPACE_TAB ? pathname : `${pathname}?view=${tab}`;
+    const params = new URLSearchParams();
+    if (tab !== DEFAULT_WORKSPACE_TAB) {
+      params.set("view", tab);
+    }
+    if (tab === "evidence") {
+      const nextAttention = attention ?? "all";
+      setEvidenceAttention(nextAttention);
+      if (nextAttention !== "all") {
+        params.set("attention", nextAttention);
+      }
+    }
+    const query = params.toString();
+    const href = query.length > 0 ? `${pathname}?${query}` : pathname;
     router.replace(href, { scroll: false });
   }
 
@@ -206,6 +258,15 @@ export function ProjectWorkspace({
       setControlsFocus(focus);
     }
     selectTab(view);
+  }
+
+  function navigateToEvidence(attention: EvidenceAttentionFilter) {
+    selectTab("evidence", attention);
+  }
+
+  function navigateToControl(controlId: string) {
+    setControlsFocus({ controlId });
+    selectTab("controls");
   }
 
   async function flushSave(): Promise<FlushSaveResult> {
@@ -735,7 +796,10 @@ export function ProjectWorkspace({
               revision={revision}
               updatedAt={updatedAt}
               snapshots={snapshots}
+              evidenceSummary={evidenceCoverage?.summary ?? null}
+              evidenceSummaryLoading={evidenceCoverageLoading}
               onNavigate={navigateFromOverview}
+              onNavigateEvidence={navigateToEvidence}
             />
           ) : null}
         </div>
@@ -767,6 +831,17 @@ export function ProjectWorkspace({
             }}
             focusRequest={controlsFocus}
             onFocusRequestHandled={() => setControlsFocus(null)}
+            evidenceCoverageByControlId={
+              evidenceCoverage
+                ? Object.fromEntries(
+                    evidenceCoverage.controls.map((row) => [
+                      row.controlId,
+                      row,
+                    ]),
+                  )
+                : undefined
+            }
+            canEditEvidence={evidenceCaps.canAssociate}
           />
         </div>
 
@@ -784,8 +859,16 @@ export function ProjectWorkspace({
           {activeTab === "evidence" ? (
             <EvidenceBrowser
               projectId={projectId}
-              canEdit
-              canDelete
+              canEdit={evidenceCaps.canCreate || evidenceCaps.canUpdate}
+              canDelete={evidenceCaps.canDelete}
+              canRead={evidenceCaps.canRead}
+              attention={evidenceAttention}
+              coverage={evidenceCoverage}
+              onAttentionChange={(next) => selectTab("evidence", next)}
+              onEvidenceChanged={() => {
+                setActivityRefreshToken((token) => token + 1);
+              }}
+              onOpenControl={navigateToControl}
             />
           ) : null}
         </div>

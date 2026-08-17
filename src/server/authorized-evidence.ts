@@ -3,10 +3,15 @@ import type { ProjectRepository } from "@/persistence/repository";
 import type { EvidenceService } from "@/persistence/evidence-service";
 import type { EvidenceVersionService } from "@/persistence/evidence-version-service";
 import type {
+  EvidenceCoverageQuery,
+  EvidenceInventoryQueryResult,
+} from "@/persistence/evidence-coverage-query";
+import type {
   CreateEvidenceInput,
   EvidenceVersion,
   EvidenceWithControlIds,
   ListEvidenceOptions,
+  ProjectEvidenceCoverageResult,
   SearchEvidenceInput,
   SearchEvidencePage,
   UpdateEvidenceInput,
@@ -388,3 +393,42 @@ export async function downloadEvidenceVersionForOrg(
   }
   return versionService.downloadVersion(projectId, evidenceId, versionId);
 }
+
+export async function getProjectEvidenceCoverageForOrg(
+  projectRepo: ProjectRepository,
+  coverageQuery: EvidenceCoverageQuery,
+  ctx: OrgContext | null | undefined,
+  projectId: string,
+  controlIds: readonly string[],
+  asOfDate: string,
+): Promise<ProjectEvidenceCoverageResult | null> {
+  requirePermission(ctx, ctx?.organizationId ?? "", "evidence.read");
+  if (!(await projectBelongsToOrg(projectRepo, ctx, projectId))) {
+    return null;
+  }
+  return coverageQuery.getProjectCoverage({
+    projectId,
+    controlIds,
+    asOfDate,
+  });
+}
+
+export async function getEvidenceInventoryForOrg(
+  projectRepo: ProjectRepository,
+  coverageQuery: EvidenceCoverageQuery,
+  ctx: OrgContext | null | undefined,
+  projectId: string,
+  controlIds: readonly string[],
+  asOfDate: string,
+): Promise<EvidenceInventoryQueryResult | null> {
+  requirePermission(ctx, ctx?.organizationId ?? "", "evidence.read");
+  if (!(await projectBelongsToOrg(projectRepo, ctx, projectId))) {
+    return null;
+  }
+  return coverageQuery.getInventory({
+    projectId,
+    controlIds,
+    asOfDate,
+  });
+}
+

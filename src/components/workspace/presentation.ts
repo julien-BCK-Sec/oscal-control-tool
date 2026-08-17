@@ -110,3 +110,29 @@ export function parseCommentQueryParam(
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
 }
+
+export const EVIDENCE_ATTENTION_FILTERS = [
+  "all",
+  "missing",
+  "due_soon",
+  "overdue",
+  "unlinked",
+] as const;
+
+export type EvidenceAttentionFilter =
+  (typeof EVIDENCE_ATTENTION_FILTERS)[number];
+
+export function isEvidenceAttentionFilter(
+  value: string,
+): value is EvidenceAttentionFilter {
+  return (EVIDENCE_ATTENTION_FILTERS as readonly string[]).includes(value);
+}
+
+export function parseEvidenceAttentionParam(
+  value: string | null | undefined,
+): EvidenceAttentionFilter {
+  if (typeof value === "string" && isEvidenceAttentionFilter(value)) {
+    return value;
+  }
+  return "all";
+}

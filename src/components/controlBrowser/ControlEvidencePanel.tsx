@@ -3,8 +3,12 @@
 import { useCallback, useEffect, useId, useState, useTransition } from "react";
 import {
   EVIDENCE_TYPES,
+  deriveEvidenceFreshness,
   evidenceStatusLabel,
   evidenceTypeLabel,
+  formatControlEvidenceCoverageCaption,
+  utcTodayIsoDate,
+  type ControlEvidenceCoverage,
   type EvidenceType,
   type EvidenceWithControlIds,
 } from "@/data/evidence";
@@ -15,6 +19,10 @@ import {
   listEvidenceAction,
 } from "@/app/actions/evidence";
 import { EvidencePicker } from "@/components/evidence/EvidencePicker";
+import {
+  EvidenceCoverageBadge,
+  EvidenceFreshnessBadge,
+} from "@/components/design-system/badge/statusMaps";
 import {
   FormField,
   FormHint,
@@ -27,6 +35,7 @@ export type ControlEvidencePanelProps = {
   controlId: string;
   refreshToken: number;
   canEdit: boolean;
+  coverage?: ControlEvidenceCoverage | null;
   onActivity?: () => void;
 };
 
@@ -35,6 +44,7 @@ export function ControlEvidencePanel({
   controlId,
   refreshToken,
   canEdit,
+  coverage = null,
   onActivity,
 }: ControlEvidencePanelProps) {
   const [items, setItems] = useState<EvidenceWithControlIds[]>([]);
@@ -144,8 +154,17 @@ export function ControlEvidencePanel({
       </h3>
       <p className="mt-1 text-xs text-text-muted">
         Logical evidence records linked to this control. Manage file versions
-        from the project Evidence tab.
+        from the project Evidence tab. Draft Evidence does not satisfy
+        coverage; active Evidence without a file still does.
       </p>
+      {coverage ? (
+        <div className="mt-2">
+          <EvidenceCoverageBadge
+            state={coverage.coverageState}
+            label={formatControlEvidenceCoverageCaption(coverage)}
+          />
+        </div>
+      ) : null}
 
       {error ? (
         <p className="mt-2 text-xs text-danger" role="alert">
@@ -171,13 +190,21 @@ export function ControlEvidencePanel({
                 <p className="text-sm font-medium text-foreground">
                   {item.title}
                 </p>
-                <p className="mt-0.5 text-xs text-text-muted">
-                  {evidenceTypeLabel(item.evidenceType)} ·{" "}
-                  {evidenceStatusLabel(item.status)}
-                  {item.owner.trim() ? ` · ${item.owner}` : ""}
-                  {item.currentVersionId
-                    ? " · file attached"
-                    : " · no file yet"}
+                <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
+                  <span>
+                    {evidenceTypeLabel(item.evidenceType)} ·{" "}
+                    {evidenceStatusLabel(item.status)}
+                    {item.owner.trim() ? ` · ${item.owner}` : ""}
+                    {item.currentVersionId
+                      ? " · file attached"
+                      : " · no file yet"}
+                  </span>
+                  <EvidenceFreshnessBadge
+                    freshness={deriveEvidenceFreshness(
+                      item.reviewDueDate,
+                      utcTodayIsoDate(),
+                    )}
+                  />
                 </p>
               </div>
               {canEdit ? (

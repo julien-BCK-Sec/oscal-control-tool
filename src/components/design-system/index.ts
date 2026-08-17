@@ -15,10 +15,14 @@ export type {
 export {
   ImplementationStatusBadge,
   ReviewStatusBadge,
+  EvidenceCoverageBadge,
+  EvidenceFreshnessBadge,
 } from "./badge/statusMaps";
 export type {
   ImplementationStatusBadgeProps,
   ReviewStatusBadgeProps,
+  EvidenceCoverageBadgeProps,
+  EvidenceFreshnessBadgeProps,
 } from "./badge/statusMaps";
 
 export {

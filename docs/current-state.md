@@ -1,6 +1,6 @@
 # Current Project State
 
-Date: 2026-07-23
+Date: 2026-08-17
 
 ## Product Position
 
@@ -151,7 +151,7 @@ importer; projects use the pinned NIST Moderate baseline.
 - Priority/severity/tag catalog entries registered as unavailable extension
   points (no ControlRecord schema for those fields yet)
 
-## Evidence management (Milestone 03A / 03B / 03C)
+## Evidence management (Milestone 03A / 03B / 03C / 03D)
 
 - Aggregate: project-scoped Evidence with stable UUID (ADR-024)
 - Junction: `evidence_controls` (M:N to framework `control_id`)
@@ -166,15 +166,26 @@ importer; projects use the pinned NIST Moderate baseline.
   `EVIDENCE_UPLOAD_MAX_BYTES` (default 25 MiB)
 - Search: project-scoped Server Action with keyset pagination and
   `EvidenceSearchResult` DTO (optional current-version summary)
+- Derived Evidence Coverage and freshness (Milestone 03D): control and
+  project read models, Evidence Browser filters, inventory CSV; not a
+  compliance score (ADR-024 amendment)
 - Audit: ControlActivity `evidence_added` / `evidence_removed` /
   `evidence_requirement_changed`; domain events including
   `EvidenceVersionUploaded`
 - Permissions: `evidence.read|create|update|associate|archive|delete` (no new
-  picker permissions)
-- UI: workspace Evidence tab (metadata + version history); control editor
-  Evidence panel with reusable searchable Evidence Picker
-- Out of scope: org-wide library, approval, dashboards, OSCAL export of
-  evidence, virus scan
+  reporting permission; inventory CSV uses `evidence.read`)
+- UI: Overview coverage counts; scalable Evidence tab search/filters/attention
+  views; control-tree coverage indicators; control Evidence panel freshness
+- Coverage semantics: only `active` Evidence satisfies coverage; drafts are
+  attention facts; archived is excluded; metadata-only active Evidence counts;
+  computed over the full framework control set (default `required`)
+- Freshness: derived from `reviewDueDate` vs UTC `asOfDate`; due-soon window
+  30 days (`EVIDENCE_DUE_SOON_DAYS`); no scheduled jobs
+- Export: authorized CSV inventory
+  (`GET /api/projects/{id}/evidence/inventory`); one row per Evidence–control
+  pair; unlinked Evidence has empty control fields; no binaries or storage keys
+- Out of scope: org-wide library, approval, assessment, OSCAL export of
+  evidence, virus scan, compliance scores
 
 ## Current standards position
 
@@ -225,7 +236,8 @@ Do not fetch standards files at runtime and do not use moving branches.
   `control_records.evidence_requirement` in
   `drizzle-pg/0005_happy_lethal_legion.sql`; Evidence Versions +
   `evidence.current_version_id` in `drizzle-pg/0006_happy_raza.sql`; Evidence
-  search keyset index in `drizzle-pg/0007_evidence_search_idx.sql`.
+  search keyset index in `drizzle-pg/0007_evidence_search_idx.sql`; Evidence
+  review-due index in `drizzle-pg/0008_evidence_review_due_idx.sql`.
 - Routes: `/sign-in`, `/projects`, `/projects/[id]` (including `?view=evidence`),
   `/organizations/[orgId]/settings`, `/organizations/[orgId]/workflows`,
   `/invitations/[id]`
@@ -246,7 +258,9 @@ cutover only.
 - No OSCAL import (SSP → project)
 - Snapshot merge UX deferred (reload-latest on conflict)
 - Searchable Evidence Picker implemented (org-wide library still deferred)
-- Evidence approval workflow and dashboards not implemented
+- Evidence approval workflow not implemented
+- Evidence Coverage is derived program management, not assessment or
+  compliance scoring
 - Email / Slack / Teams notifications out of scope (in-app only)
 - ControlRecord priority, severity, and tags not modeled (workflow catalog
   entries exist but are unavailable)
@@ -260,12 +274,9 @@ cutover only.
 
 ## Next approved milestone
 
-Evidence Picker (Milestone 03C) is implemented on `feat/evidence-picker-03c`.
-
-Likely follow-up: Evidence review/approval or org-wide library (see roadmap).
-
-Word/PDF export (and later framework expansions) remain later roadmap items.
-See `docs/roadmap.md`.
+Word/PDF export remains the next roadmap item after Evidence Coverage
+(Milestone 03D). Assessment management, Evidence approval, and an
+organization-wide library are later. See `docs/roadmap.md`.
 
 ## Required verification for each milestone
 

@@ -23,6 +23,9 @@ import {
 } from "@/components/projectHistory/presentation";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { ControlsFocusRequest } from "@/components/workspace/presentation";
+import { EvidenceOverviewCards } from "@/components/evidence/EvidenceOverviewCards";
+import type { EvidenceAttentionFilter } from "@/components/workspace/presentation";
+import type { ProjectEvidenceSummary } from "@/data/evidence";
 import {
   projectToOscalSsp,
   validateOscalSspDocument,
@@ -37,10 +40,13 @@ export type ProjectOverviewProps = {
   revision: number;
   updatedAt: string;
   snapshots: ProjectSnapshotSummary[];
+  evidenceSummary: ProjectEvidenceSummary | null;
+  evidenceSummaryLoading?: boolean;
   onNavigate: (
     view: "controls" | "details" | "history",
     focus?: ControlsFocusRequest,
   ) => void;
+  onNavigateEvidence: (attention: EvidenceAttentionFilter) => void;
 };
 
 export function ProjectOverview({
@@ -49,7 +55,10 @@ export function ProjectOverview({
   revision,
   updatedAt,
   snapshots,
+  evidenceSummary,
+  evidenceSummaryLoading = false,
   onNavigate,
+  onNavigateEvidence,
 }: ProjectOverviewProps) {
   const overall = useMemo(
     () => computeOverallCompletion(FRAMEWORK_CONTROLS, implementations),
@@ -183,6 +192,12 @@ export function ProjectOverview({
             />
           </div>
         </header>
+
+        <EvidenceOverviewCards
+          summary={evidenceSummary}
+          loading={evidenceSummaryLoading}
+          onSelectAttention={onNavigateEvidence}
+        />
 
         <div className="grid gap-8 lg:grid-cols-2">
           <section aria-labelledby="family-progress-heading">

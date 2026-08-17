@@ -58,6 +58,13 @@ Reusable presentational Evidence Picker, project-scoped server search with
 keyset pagination, control linking integration. See
 `docs/milestones/03C-evidence-picker.md`.
 
+**Milestone 03D – Evidence Coverage, Freshness & Reporting** (implemented)
+
+Derived control/project Evidence Coverage, freshness from review due date,
+scalable Evidence Browser filters, authorized CSV inventory. See
+`docs/milestones/03D-evidence-coverage-and-reporting.md` and ADR-024
+amendment. Evidence Coverage is not a compliance score.
+
 ## Next
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
@@ -65,8 +72,9 @@ keyset pagination, control linking integration. See
 ## Later
 
 - Organization-wide Evidence library (reuse picker + new search scope)
-- Evidence review / approval workflow (Milestone 03D candidate)
-- Evidence dashboards and reporting
+- Evidence review / approval workflow
+- Assessment management (Milestone 04)
+- Scheduled Evidence reminders (missing required, due soon, overdue)
 - Email / Slack / Teams notifications
 - Durable domain event store / outbox / external broker
 - Additional compliance frameworks

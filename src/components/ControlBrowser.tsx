@@ -37,9 +37,14 @@ import { ControlEditorWorkspace } from "@/components/controlBrowser/ControlEdito
 import {
   ImplementationStatusBadge,
   ReviewStatusBadge,
+  EvidenceCoverageBadge,
 } from "@/components/design-system/badge/statusMaps";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { ControlsFocusRequest } from "@/components/workspace/presentation";
+import {
+  deriveControlCoverageState,
+  type ControlEvidenceCoverage,
+} from "@/data/evidence";
 
 function getImplementation(
   implementations: Record<string, ControlImplementation>,
@@ -76,6 +81,10 @@ export type ControlBrowserProps = {
   /** Optional focus when navigating from Overview. */
   focusRequest?: ControlsFocusRequest | null;
   onFocusRequestHandled?: () => void;
+  evidenceCoverageByControlId?: Readonly<
+    Record<string, ControlEvidenceCoverage>
+  >;
+  canEditEvidence?: boolean;
 };
 
 export function ControlBrowser({
@@ -90,6 +99,8 @@ export function ControlBrowser({
   onActivityRefresh,
   focusRequest = null,
   onFocusRequestHandled,
+  evidenceCoverageByControlId,
+  canEditEvidence = false,
 }: ControlBrowserProps) {
   const fullTree = useMemo(() => buildControlTree(FRAMEWORK_CONTROLS), []);
   const defaultCollapsedParents = useMemo(
@@ -257,6 +268,22 @@ export function ControlBrowser({
     );
   }
 
+  function coverageForControl(controlId: string): ControlEvidenceCoverage | null {
+    const record = resolveControlRecordFields(controlRecords, controlId);
+    const server = evidenceCoverageByControlId?.[controlId];
+    if (!server) {
+      return null;
+    }
+    return {
+      ...server,
+      evidenceRequirement: record.evidenceRequirement,
+      coverageState: deriveControlCoverageState(
+        record.evidenceRequirement,
+        server.activeEvidenceCount,
+      ),
+    };
+  }
+
   function renderListMeta(controlId: string) {
     const record = resolveControlRecordFields(controlRecords, controlId);
     const reviewStatus = resolveControlReviewStatus(
@@ -264,6 +291,7 @@ export function ControlBrowser({
       controlId,
     );
     const unassigned = isControlOwnerUnassigned(record.owner);
+    const coverage = coverageForControl(controlId);
     return (
       <span className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
         <ImplementationStatusBadge
@@ -271,6 +299,20 @@ export function ControlBrowser({
           className="shrink-0"
         />
         <ReviewStatusBadge status={reviewStatus} className="shrink-0" />
+        {coverage ? (
+          <EvidenceCoverageBadge
+            state={coverage.coverageState}
+            label={
+              coverage.coverageState === "required_missing" &&
+              coverage.draftEvidenceCount > 0
+                ? `Missing evidence — ${coverage.draftEvidenceCount} draft${
+                    coverage.draftEvidenceCount === 1 ? "" : "s"
+                  }`
+                : undefined
+            }
+            className="min-w-0 max-w-[11rem] shrink"
+          />
+        ) : null}
         {!unassigned ? (
           <span className="min-w-0 truncate text-[11px] text-text-muted">
             {displayControlOwner(record.owner)}
@@ -574,6 +616,8 @@ export function ControlBrowser({
         activityRefreshToken={activityRefreshToken}
         focusCommentId={pendingCommentId}
         onFocusCommentHandled={() => setPendingCommentId(null)}
+        evidenceCoverage={coverageForControl(selected.id)}
+        canEditEvidence={canEditEvidence}
         onUpdateImplementation={(patch) =>
           updateImplementation(selected.id, patch)
         }

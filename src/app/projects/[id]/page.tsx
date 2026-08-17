@@ -8,6 +8,7 @@ import { ProjectWorkspace } from "@/components/ProjectWorkspace";
 import {
   parseCommentQueryParam,
   parseControlQueryParam,
+  parseEvidenceAttentionParam,
   parseWorkspaceViewParam,
 } from "@/components/workspace/presentation";
 
@@ -19,6 +20,7 @@ type ProjectPageProps = {
     view?: string | string[];
     control?: string | string[];
     comment?: string | string[];
+    attention?: string | string[];
   }>;
 };
 
@@ -35,9 +37,13 @@ export default async function ProjectPage({
   const commentParam = Array.isArray(query.comment)
     ? query.comment[0]
     : query.comment;
+  const attentionParam = Array.isArray(query.attention)
+    ? query.attention[0]
+    : query.attention;
   const initialView = parseWorkspaceViewParam(viewParam);
   const initialControlId = parseControlQueryParam(controlParam);
   const initialCommentId = parseCommentQueryParam(commentParam);
+  const initialEvidenceAttention = parseEvidenceAttentionParam(attentionParam);
   const initialFocus =
     initialControlId || initialCommentId
       ? {
@@ -75,6 +81,7 @@ export default async function ProjectPage({
       initialSnapshots={snapshots}
       initialView={initialControlId ? "controls" : initialView}
       initialFocus={initialFocus}
+      initialEvidenceAttention={initialEvidenceAttention}
     />
   );
 }
