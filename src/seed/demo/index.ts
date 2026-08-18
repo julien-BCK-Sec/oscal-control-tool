@@ -1,4 +1,11 @@
 export {
+  CANONICAL_ORGS,
+  CANONICAL_PROJECTS,
+  CGDS_PROJECT_KEYS,
+  SUPPORTING_PROJECT_KEYS,
+  canonicalProjectName,
+} from "./catalog";
+export {
   DEMO_CONTROL_IDS,
   DEMO_PROJECT_NAME,
   DEMO_SNAPSHOT_NAMES,
@@ -36,3 +43,13 @@ export {
   DEMO_TEAMS,
   DEMO_TERMS,
 } from "./world";
+export {
+  buildCmmcImplementations,
+  buildEarlyImplementations,
+  buildEvidenceGapImplementations,
+  buildHighImplementations,
+  cmmcAddressedCount,
+  CMMC_LEVEL_2_REQUIREMENT_COUNT,
+} from "./supporting";
+export { demoSeedMarker, hasDemoSeedMarker } from "./markers";
+export { flagshipEvidenceSpecs } from "./evidence-seed";

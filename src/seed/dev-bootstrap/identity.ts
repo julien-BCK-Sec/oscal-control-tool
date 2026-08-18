@@ -9,11 +9,11 @@ import {
   type OrganizationRepository,
 } from "@/persistence/postgres/organization-repository";
 import {
-  DEMO_PASSWORD,
   DEMO_USERS,
   ORGS,
   type DemoUserSpec,
 } from "./constants";
+import { resolveDemoBootstrapPassword } from "./password";
 
 export type EnsuredUser = {
   id: string;
@@ -26,7 +26,7 @@ export type EnsuredOrg = OrganizationDto & { created: boolean };
 
 export type BootstrapIdentityResult = {
   orgs: {
-    acme: EnsuredOrg;
+    cgds: EnsuredOrg;
     contoso: EnsuredOrg;
   };
   users: Record<string, EnsuredUser>;
@@ -42,7 +42,6 @@ async function ensureUser(
     await db.select().from(user).where(eq(user.email, email)).limit(1)
   )[0];
   if (existing) {
-    // Keep verified for demo login without email delivery.
     if (!existing.emailVerified) {
       await db
         .update(user)
@@ -92,19 +91,39 @@ async function ensureOrganization(
   return { ...created, created: true };
 }
 
+async function ensureMembership(
+  orgRepo: OrganizationRepository,
+  organizationId: string,
+  userId: string,
+  role: DemoUserSpec["role"],
+): Promise<void> {
+  const members = await orgRepo.listMembers(organizationId);
+  const existing = members.find((member) => member.userId === userId);
+  if (existing) {
+    return;
+  }
+  await orgRepo.upsertMembership({
+    organizationId,
+    userId,
+    role,
+  });
+}
+
 /**
- * Create demo organizations, users (Better Auth credential accounts), and
- * memberships. Idempotent by org slug and user email.
+ * Create canonical demo organizations, users, and memberships.
+ * Idempotent by org slug and user email. Does not overwrite existing roles.
  */
 export async function ensureDemoIdentity(
   db: AppDatabase,
+  env: NodeJS.ProcessEnv = process.env,
 ): Promise<BootstrapIdentityResult> {
   const orgRepo = createPostgresOrganizationRepository(db);
+  const password = resolveDemoBootstrapPassword(env);
 
-  const acme = await ensureOrganization(
+  const cgds = await ensureOrganization(
     orgRepo,
-    ORGS.acme.name,
-    ORGS.acme.slug,
+    ORGS.cgds.name,
+    ORGS.cgds.slug,
   );
   const contoso = await ensureOrganization(
     orgRepo,
@@ -114,21 +133,14 @@ export async function ensureDemoIdentity(
 
   const users: Record<string, EnsuredUser> = {};
   for (const spec of DEMO_USERS) {
-    const ensured = await ensureUser(db, spec, DEMO_PASSWORD);
+    const ensured = await ensureUser(db, spec, password);
     users[spec.email.toLowerCase()] = ensured;
-    const organizationId = spec.org === "acme" ? acme.id : contoso.id;
-    await orgRepo.upsertMembership({
-      organizationId,
-      userId: ensured.id,
-      role: spec.role,
-    });
+    const organizationId = spec.org === "cgds" ? cgds.id : contoso.id;
+    await ensureMembership(orgRepo, organizationId, ensured.id, spec.role);
   }
 
-  // Tenant isolation: never add Acme users to Contoso or vice versa.
-  // upsertMembership only for each user's home org (already done).
-
   return {
-    orgs: { acme, contoso },
+    orgs: { cgds, contoso },
     users,
   };
 }

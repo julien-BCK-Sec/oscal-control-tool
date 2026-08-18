@@ -75,9 +75,11 @@ Milestone 1 capabilities:
 - Centralized Control Freak RBAC over organization roles (ADR-017)
 - Organization invitations (ADR-018)
 - Authenticated invite-only demo bootstrap (ADR-019)
-- Development-only full demo bootstrap (`npm run bootstrap:demo` under
-  `src/seed/dev-bootstrap/`) — env ensure, migrate, identity, projects,
-  collaboration; not a production seed path
+- Canonical demo bootstrap (`npm run bootstrap:demo` under
+  `src/seed/dev-bootstrap/` and shared `src/seed/demo/`) — env ensure,
+  migrate, identity, canonical projects, collaboration, evidence; local
+  orchestrator only. Idempotent dataset seeding may use
+  `DEPLOYMENT_MODE=demo` later; this is not a Render deployment path.
 
 Milestone 02A capabilities:
 

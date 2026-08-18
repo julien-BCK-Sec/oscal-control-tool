@@ -6,12 +6,10 @@ import { createPostgresAssignmentService } from "@/persistence/postgres/assignme
 import { createPostgresControlRecordService } from "@/persistence/postgres/control-record-service";
 import { createPostgresNotificationRepository } from "@/persistence/postgres/notification-repository";
 import { createNotificationService } from "@/persistence/notification-service";
-import {
-  demoSeedMarker,
-  hasDemoSeedMarker,
-  GOOSE_FEATURED_CONTROLS,
-} from "./constants";
+import type { UpsertControlRecordInput } from "@/data/control-record";
+import { demoSeedMarker, hasDemoSeedMarker } from "./constants";
 import type { EnsuredUser } from "./identity";
+import { DEMO_PEOPLE } from "@/seed/demo/world";
 
 function actor(user: EnsuredUser): ActorIdentity {
   return { actorId: user.id, actorDisplayName: user.name };
@@ -102,26 +100,10 @@ async function ensureAssignment(input: {
     input.projectId,
     input.controlId,
   );
-  // One primary assignee per role per control for demo seed idempotency.
   const existing = listed.find(
     (row) => row.assignmentRole === input.assignmentRole,
   );
   if (existing) {
-    if (existing.assigneeUserId !== input.assigneeUserId) {
-      await input.assignments.reassign(
-        input.organizationId,
-        existing.id,
-        input.assigneeUserId,
-        actor(input.assignedBy),
-      );
-    }
-    if (input.complete && !existing.completedAt) {
-      await input.assignments.complete(
-        input.organizationId,
-        existing.id,
-        actor(input.assignedBy),
-      );
-    }
     return { id: existing.id, created: false };
   }
   const created = await input.assignments.assign(
@@ -145,20 +127,142 @@ async function ensureAssignment(input: {
   return { id: created.assignment.id, created: true };
 }
 
+const FLAGSHIP_CONTROL_RECORDS: readonly UpsertControlRecordInput[] = [
+  {
+    controlId: "ac-2",
+    owner: DEMO_PEOPLE.priyaSharma.name,
+    coOwner: DEMO_PEOPLE.garyMercer.name,
+    businessUnit: "Avian Cybersecurity Unit",
+    implementationStatus: "in_review",
+    reviewDueDate: "2026-09-15",
+    evidenceRequirement: "required",
+  },
+  {
+    controlId: "ia-2",
+    owner: DEMO_PEOPLE.priyaSharma.name,
+    coOwner: DEMO_PEOPLE.steveKowalski.name,
+    businessUnit: "Avian Cybersecurity Unit",
+    implementationStatus: "in_review",
+    reviewDueDate: "2026-09-15",
+    evidenceRequirement: "required",
+  },
+  {
+    controlId: "ia-5",
+    owner: DEMO_PEOPLE.priyaSharma.name,
+    coOwner: "",
+    businessUnit: "Avian Cybersecurity Unit",
+    implementationStatus: "implemented",
+    reviewDueDate: "2026-10-01",
+    evidenceRequirement: "required",
+  },
+  {
+    controlId: "au-2",
+    owner: DEMO_PEOPLE.caseyTremblay.name,
+    coOwner: DEMO_PEOPLE.priyaSharma.name,
+    businessUnit: "National Honk Operations Centre",
+    implementationStatus: "approved",
+    reviewDueDate: null,
+    evidenceRequirement: "required",
+  },
+  {
+    controlId: "au-6",
+    owner: DEMO_PEOPLE.caseyTremblay.name,
+    coOwner: "",
+    businessUnit: "National Honk Operations Centre",
+    implementationStatus: "implemented",
+    reviewDueDate: "2026-11-01",
+    evidenceRequirement: "required",
+  },
+  {
+    controlId: "sc-7",
+    owner: DEMO_PEOPLE.caseyTremblay.name,
+    coOwner: DEMO_PEOPLE.steveKowalski.name,
+    businessUnit: "HonkNet",
+    implementationStatus: "draft",
+    reviewDueDate: "2026-12-01",
+    evidenceRequirement: "required",
+  },
+  {
+    controlId: "si-4",
+    owner: DEMO_PEOPLE.caseyTremblay.name,
+    coOwner: "",
+    businessUnit: "HonkNet",
+    implementationStatus: "implemented",
+    reviewDueDate: "2026-09-20",
+    evidenceRequirement: "required",
+  },
+  {
+    controlId: "cm-2",
+    owner: DEMO_PEOPLE.rileyNguyen.name,
+    coOwner: DEMO_PEOPLE.samOkonkwo.name,
+    businessUnit: "Configuration Management",
+    implementationStatus: "approved",
+    reviewDueDate: null,
+    evidenceRequirement: "required",
+  },
+  {
+    controlId: "pl-2",
+    owner: DEMO_PEOPLE.priyaSharma.name,
+    coOwner: DEMO_PEOPLE.garyMercer.name,
+    businessUnit: "Strategic Goose Operations Command",
+    implementationStatus: "implemented",
+    reviewDueDate: null,
+    evidenceRequirement: "optional",
+  },
+  {
+    controlId: "pe-3",
+    owner: DEMO_PEOPLE.dougBillings.name,
+    coOwner: DEMO_PEOPLE.taylorReid.name,
+    businessUnit: "Facilities",
+    implementationStatus: "implemented",
+    reviewDueDate: "2026-08-30",
+    evidenceRequirement: "required",
+  },
+];
+
+async function ensureControlRecords(input: {
+  controlRecords: ReturnType<typeof createPostgresControlRecordService>;
+  projectId: string;
+  records: readonly UpsertControlRecordInput[];
+  actor: ActorIdentity;
+}): Promise<number> {
+  const existing = await input.controlRecords.listByProject(input.projectId);
+  const have = new Set(existing.map((row) => row.controlId));
+  let created = 0;
+  for (const record of input.records) {
+    if (have.has(record.controlId)) {
+      continue;
+    }
+    const result = await input.controlRecords.upsertWithActivity(
+      input.projectId,
+      record,
+      input.actor,
+    );
+    if (result.created) {
+      created += 1;
+    }
+    have.add(record.controlId);
+  }
+  return created;
+}
+
 type UsersByEmail = Record<string, EnsuredUser>;
 
 /**
- * Populate Milestone 02A collaboration data via discussion/assignment services.
- * Idempotent via demo-seed markers in comment bodies and assignment matching.
+ * Populate collaboration and ControlRecord metadata.
+ * Idempotent via demo-seed markers and create-if-missing records.
+ * Does not overwrite user-edited assignees, comment bodies, or ControlRecords.
  */
 export async function ensureDemoCollaboration(input: {
   db: AppDatabase;
   users: UsersByEmail;
-  acmeOrgId: string;
+  cgdsOrgId: string;
   contosoOrgId: string;
-  goose: StoredProject;
-  customerA: StoredProject;
-  lab: StoredProject;
+  flagship: StoredProject;
+  cmmc: StoredProject;
+  early: StoredProject;
+  evidenceGap: StoredProject;
+  high: StoredProject;
   contosoCloud: StoredProject;
 }): Promise<{ commentsCreated: number; assignmentsCreated: number }> {
   const discussions = createPostgresDiscussionService(input.db);
@@ -179,31 +283,19 @@ export async function ensureDemoCollaboration(input: {
   let commentsCreated = 0;
   let assignmentsCreated = 0;
 
-  // Control records / ownership metadata for featured Goose controls.
-  for (const controlId of GOOSE_FEATURED_CONTROLS) {
-    await controlRecords.upsertWithActivity(
-      input.goose.id,
-      {
-        controlId,
-        owner: carol.name,
-        coOwner: bob.name,
-        businessUnit: "Security Engineering",
-        implementationStatus:
-          controlId === "ac-2" || controlId === "ia-2" ? "in_review" : "draft",
-        reviewDueDate: "2026-09-15",
-        evidenceRequirement: "required",
-      },
-      actor(bob),
-    );
-  }
+  await ensureControlRecords({
+    controlRecords,
+    projectId: input.flagship.id,
+    records: FLAGSHIP_CONTROL_RECORDS,
+    actor: actor(bob),
+  });
 
-  // --- Goose AC-2 rich thread ---
   const ac2Root = await ensureRootComment({
     discussions,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "ac-2",
-    body: "Dave, can you verify the implementation evidence before we submit this?",
+    body: "Dave, can you verify the FeatherAuth account-review evidence before we submit AC-2?",
     marker: "goose-ac-2-root",
     author: carol,
   });
@@ -211,11 +303,11 @@ export async function ensureDemoCollaboration(input: {
 
   const ac2Reply1 = await ensureReply({
     discussions,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "ac-2",
     parentCommentId: ac2Root.id,
-    body: "@carol Engineering confirmed MFA rollout yesterday.",
+    body: "@carol Engineering confirmed MFA rollout on Goose Operations Portal yesterday.",
     marker: "goose-ac-2-reply-bob",
     author: bob,
     mentionedUserIds: [carol.id],
@@ -224,8 +316,8 @@ export async function ensureDemoCollaboration(input: {
 
   const ac2Reply2 = await ensureReply({
     discussions,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "ac-2",
     parentCommentId: ac2Root.id,
     body: "This implementation looks good. Resolving.",
@@ -234,29 +326,27 @@ export async function ensureDemoCollaboration(input: {
   });
   if (ac2Reply2.created) commentsCreated += 1;
 
-  // Resolve root once.
   const ac2Comments = await discussions.listComments(
-    input.acmeOrgId,
-    input.goose.id,
+    input.cgdsOrgId,
+    input.flagship.id,
     "ac-2",
     { includeDeleted: true },
   );
   const ac2RootRow = ac2Comments.find((c) => c.id === ac2Root.id);
   if (ac2RootRow && !ac2RootRow.resolved) {
     await discussions.resolveDiscussion(
-      input.acmeOrgId,
+      input.cgdsOrgId,
       ac2Root.id,
       actor(dave),
     );
   }
 
-  // Alice follow-up on IA-2
   const ia2Root = await ensureRootComment({
     discussions,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "ia-2",
-    body: "Please ensure this control is complete before the next review.",
+    body: "Please ensure this control is complete before Gary's Annual Performance Review.",
     marker: "goose-ia-2-root",
     author: alice,
   });
@@ -264,8 +354,8 @@ export async function ensureDemoCollaboration(input: {
 
   const ia2Reply = await ensureReply({
     discussions,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "ia-2",
     parentCommentId: ia2Root.id,
     body: "Working through authenticator policy updates with Olivia this week.",
@@ -275,11 +365,10 @@ export async function ensureDemoCollaboration(input: {
   });
   if (ia2Reply.created) commentsCreated += 1;
 
-  // Soft-deleted comment on AU-2
   const au2Trash = await ensureRootComment({
     discussions,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "au-2",
     body: "Draft note — ignore, wrong control context.",
     marker: "goose-au-2-deleted",
@@ -288,17 +377,16 @@ export async function ensureDemoCollaboration(input: {
   if (au2Trash.created) {
     commentsCreated += 1;
     await discussions.softDeleteComment(
-      input.acmeOrgId,
+      input.cgdsOrgId,
       au2Trash.id,
       actor(olivia),
     );
   }
 
-  // Edited comment on SI-4
   const si4 = await ensureRootComment({
     discussions,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "si-4",
     body: "Monitoring coverage looks incomplete for NestWatch sensors — updated after ops review.",
     marker: "goose-si-4-edited",
@@ -307,7 +395,7 @@ export async function ensureDemoCollaboration(input: {
   if (si4.created) {
     commentsCreated += 1;
     await discussions.editComment(
-      input.acmeOrgId,
+      input.cgdsOrgId,
       si4.id,
       `Monitoring coverage looks incomplete for NestWatch sensors — updated after ops review.${demoSeedMarker("goose-si-4-edited")}`,
       actor(bob),
@@ -315,12 +403,11 @@ export async function ensureDemoCollaboration(input: {
     );
   }
 
-  // More featured control discussions
   for (const controlId of ["ia-5", "au-6", "sc-7", "cm-2"] as const) {
     const root = await ensureRootComment({
       discussions,
-      organizationId: input.acmeOrgId,
-      projectId: input.goose.id,
+      organizationId: input.cgdsOrgId,
+      projectId: input.flagship.id,
       controlId,
       body: `Status check on ${controlId.toUpperCase()}: please confirm owners and evidence path.`,
       marker: `goose-${controlId}-root`,
@@ -329,8 +416,8 @@ export async function ensureDemoCollaboration(input: {
     if (root.created) commentsCreated += 1;
     const reply = await ensureReply({
       discussions,
-      organizationId: input.acmeOrgId,
-      projectId: input.goose.id,
+      organizationId: input.cgdsOrgId,
+      projectId: input.flagship.id,
       controlId,
       parentCommentId: root.id,
       body: `Acknowledged — ${controlId.toUpperCase()} is on Carol's queue.`,
@@ -340,11 +427,10 @@ export async function ensureDemoCollaboration(input: {
     if (reply.created) commentsCreated += 1;
   }
 
-  // Goose assignments: mix of outstanding + completed + reassignment
   const a1 = await ensureAssignment({
     assignments,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "ac-2",
     assigneeUserId: carol.id,
     assignmentRole: "owner",
@@ -354,8 +440,8 @@ export async function ensureDemoCollaboration(input: {
 
   const a2 = await ensureAssignment({
     assignments,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "ac-2",
     assigneeUserId: dave.id,
     assignmentRole: "reviewer",
@@ -364,31 +450,24 @@ export async function ensureDemoCollaboration(input: {
   });
   if (a2.created) assignmentsCreated += 1;
 
-  // Seed Olivia as owner, then reassign to Carol (assignment matching is by role).
   const a3 = await ensureAssignment({
     assignments,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "ia-2",
     assigneeUserId: olivia.id,
     assignmentRole: "owner",
     assignedBy: alice,
   });
-  if (a3.created) assignmentsCreated += 1;
-  const a3Current = await assignments.getById(input.acmeOrgId, a3.id);
-  if (a3Current && a3Current.assigneeUserId === olivia.id) {
-    await assignments.reassign(
-      input.acmeOrgId,
-      a3.id,
-      carol.id,
-      actor(alice),
-    );
+  if (a3.created) {
+    assignmentsCreated += 1;
+    await assignments.reassign(input.cgdsOrgId, a3.id, carol.id, actor(alice));
   }
 
   const a4 = await ensureAssignment({
     assignments,
-    organizationId: input.acmeOrgId,
-    projectId: input.goose.id,
+    organizationId: input.cgdsOrgId,
+    projectId: input.flagship.id,
     controlId: "si-4",
     assigneeUserId: bob.id,
     assignmentRole: "owner",
@@ -396,19 +475,17 @@ export async function ensureDemoCollaboration(input: {
   });
   if (a4.created) assignmentsCreated += 1;
 
-  // Notify Dave about mention-style alert (deduped if exists)
   await notifications.notify({
-    organizationId: input.acmeOrgId,
+    organizationId: input.cgdsOrgId,
     recipientUserId: dave.id,
     actorUserId: carol.id,
     eventType: "comment_mention",
     relatedObjectType: "comment",
     relatedObjectId: `demo-seed:goose-ac-2-mention`,
-    projectId: input.goose.id,
+    projectId: input.flagship.id,
     controlId: "ac-2",
     summary: "You were mentioned on control ac-2",
   });
-  // Mark one read, leave others unread
   const daveNotes = await notifications.listForRecipient(dave.id, {
     limit: 20,
   });
@@ -416,31 +493,51 @@ export async function ensureDemoCollaboration(input: {
     await notifications.markRead(dave.id, daveNotes[0].id);
   }
 
-  // Customer A — one discussion + one assignment
-  const custRoot = await ensureRootComment({
+  const cmmcRoot = await ensureRootComment({
     discussions,
-    organizationId: input.acmeOrgId,
-    projectId: input.customerA.id,
-    controlId: "ac-2",
-    body: "Kickoff note: Customer A package needs owner confirmation on AC-2.",
-    marker: "customer-a-ac-2-root",
+    organizationId: input.cgdsOrgId,
+    projectId: input.cmmc.id,
+    controlId: "AC.L2-3.1.1",
+    body: "CUI enclave kickoff: confirm authorized-user scope for Border Post 17 before we go further on AC.L2-3.1.1.",
+    marker: "cmmc-ac-l2-3.1.1-root",
     author: bob,
   });
-  if (custRoot.created) commentsCreated += 1;
-  const custAssign = await ensureAssignment({
+  if (cmmcRoot.created) commentsCreated += 1;
+  const cmmcAssign = await ensureAssignment({
     assignments,
-    organizationId: input.acmeOrgId,
-    projectId: input.customerA.id,
-    controlId: "ac-2",
+    organizationId: input.cgdsOrgId,
+    projectId: input.cmmc.id,
+    controlId: "AC.L2-3.1.1",
     assigneeUserId: carol.id,
     assignmentRole: "owner",
     assignedBy: bob,
   });
-  if (custAssign.created) assignmentsCreated += 1;
+  if (cmmcAssign.created) assignmentsCreated += 1;
 
-  // Lab — almost no collaboration (skip intentionally)
+  void input.early;
 
-  // Contoso — a few discussions + assignments
+  const gapRoot = await ensureRootComment({
+    discussions,
+    organizationId: input.cgdsOrgId,
+    projectId: input.evidenceGap.id,
+    controlId: "cm-2",
+    body: "CIMS narratives are in good shape, but we still do not have active Evidence for most of this package.",
+    marker: "evidence-gap-cm-2-root",
+    author: alice,
+  });
+  if (gapRoot.created) commentsCreated += 1;
+
+  const highRoot = await ensureRootComment({
+    discussions,
+    organizationId: input.cgdsOrgId,
+    projectId: input.high.id,
+    controlId: "pl-2",
+    body: "High overlay is open. Please keep Moderate narratives where they still apply and leave High-only enhancements unaddressed for now.",
+    marker: "high-pl-2-root",
+    author: bob,
+  });
+  if (highRoot.created) commentsCreated += 1;
+
   const contosoRoot = await ensureRootComment({
     discussions,
     organizationId: input.contosoOrgId,

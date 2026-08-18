@@ -1,37 +1,35 @@
 /**
- * Developer demo bootstrap constants (development only).
+ * Developer demo bootstrap constants.
  *
- * Framework: NIST SP 800-53 Rev. 5 Moderate (explicit demo/bootstrap
- * selection). The prompt's "FedRAMP Moderate" label maps to this framework
- * because no FedRAMP OSCAL profile is implemented (see ADR / standards docs).
- *
+ * Canonical organization/project names live in `src/seed/demo/catalog.ts`.
  * Olivia's "Contributor" role maps to `author` (fixed Milestone 1 role set).
  */
 
 import type { OrgRole } from "@/authz/permissions";
 import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
+import { CANONICAL_ORGS, CANONICAL_PROJECTS } from "@/seed/demo/catalog";
 
-export const DEMO_PASSWORD = "ControlFreakDemo123!" as const;
+/** Local-development default only. Production/demo deploy must set DEMO_BOOTSTRAP_PASSWORD. */
+export const DEFAULT_LOCAL_DEMO_PASSWORD = "ControlFreakDemo123!" as const;
+
+/** @deprecated Use resolveDemoBootstrapPassword(). Kept for local DX and tests. */
+export const DEMO_PASSWORD = DEFAULT_LOCAL_DEMO_PASSWORD;
 
 export const FRAMEWORK_ID = NIST_MODERATE_FRAMEWORK_ID;
 
 export const ORGS = {
-  acme: {
-    name: "Acme Corporation",
-    slug: "acme-corporation",
-  },
-  contoso: {
-    name: "Contoso Industries",
-    slug: "contoso-industries",
-  },
+  cgds: CANONICAL_ORGS.cgds,
+  contoso: CANONICAL_ORGS.contoso,
 } as const;
+
+export type DemoOrgKey = keyof typeof ORGS;
 
 export type DemoUserSpec = {
   name: string;
   email: string;
   /** Application RBAC role (Olivia Contributor → author). */
   role: OrgRole;
-  org: keyof typeof ORGS;
+  org: DemoOrgKey;
 };
 
 export const DEMO_USERS: readonly DemoUserSpec[] = [
@@ -39,37 +37,37 @@ export const DEMO_USERS: readonly DemoUserSpec[] = [
     name: "Alice Admin",
     email: "alice@example.com",
     role: "organization_admin",
-    org: "acme",
+    org: "cgds",
   },
   {
     name: "Bob Manager",
     email: "bob@example.com",
     role: "project_manager",
-    org: "acme",
+    org: "cgds",
   },
   {
     name: "Carol Author",
     email: "carol@example.com",
     role: "author",
-    org: "acme",
+    org: "cgds",
   },
   {
     name: "Dave Reviewer",
     email: "dave@example.com",
     role: "reviewer",
-    org: "acme",
+    org: "cgds",
   },
   {
     name: "Victor Viewer",
     email: "victor@example.com",
     role: "viewer",
-    org: "acme",
+    org: "cgds",
   },
   {
     name: "Olivia Operator",
     email: "olivia@example.com",
-    role: "author", // Contributor → author
-    org: "acme",
+    role: "author",
+    org: "cgds",
   },
   {
     name: "Oscar Admin",
@@ -86,13 +84,15 @@ export const DEMO_USERS: readonly DemoUserSpec[] = [
 ] as const;
 
 export const PROJECT_NAMES = {
-  goose: "Goose Command Control Center",
-  customerA: "Customer A SSP",
-  lab: "Internal Lab Environment",
-  contosoCloud: "Contoso Cloud Platform",
+  flagship: CANONICAL_PROJECTS.flagship.name,
+  cmmc: CANONICAL_PROJECTS.cmmc.name,
+  early: CANONICAL_PROJECTS.early.name,
+  evidenceGap: CANONICAL_PROJECTS.evidenceGap.name,
+  high: CANONICAL_PROJECTS.high.name,
+  contosoCloud: CANONICAL_PROJECTS.contosoCloud.name,
 } as const;
 
-/** Featured controls that receive rich collaboration on Goose. */
+/** Featured controls that receive rich collaboration on the Goose flagship. */
 export const GOOSE_FEATURED_CONTROLS = [
   "ac-2",
   "ia-2",
@@ -104,11 +104,7 @@ export const GOOSE_FEATURED_CONTROLS = [
   "cm-2",
 ] as const;
 
-/** Stable seed markers embedded in comment bodies for idempotent collab. */
-export function demoSeedMarker(key: string): string {
-  return `\n\n<!-- demo-seed:${key} -->`;
-}
-
-export function hasDemoSeedMarker(body: string, key: string): boolean {
-  return body.includes(`<!-- demo-seed:${key} -->`);
-}
+export {
+  demoSeedMarker,
+  hasDemoSeedMarker,
+} from "@/seed/demo/markers";

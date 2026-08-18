@@ -5,12 +5,12 @@ Date: 2026-08-18
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application.
-Milestone 04C (CMMC Level 2 Framework Support) adds the first non-800-53
-framework on top of Milestone 04B (Framework UX and Runtime Hardening) and
-the project-scoped NIST SP 800-53 Rev. 5 Low / Moderate / High architecture
-introduced in Milestone 04A, on top of Evidence Coverage (03D), Evidence
-Versions (03B), Workflow Automation (02C), Domain Events (02B), Collaboration
-(02A), and Platform Foundation.
+Milestone 05A consolidates the canonical demo dataset on top of Milestone 04C
+(CMMC Level 2 Framework Support), Milestone 04B (Framework UX and Runtime
+Hardening), and the project-scoped NIST SP 800-53 Rev. 5 Low / Moderate / High
+architecture introduced in Milestone 04A, on top of Evidence Coverage (03D),
+Evidence Versions (03B), Workflow Automation (02C), Domain Events (02B),
+Collaboration (02A), and Platform Foundation.
 
 The application currently provides:
 
@@ -39,8 +39,10 @@ The application currently provides:
 - OSCAL SSP export and schema validation for NIST SP 800-53 projects
   (unavailable for CMMC; no official CMMC / SP 800-171 Rev. 2 OSCAL profile)
 - Idempotent demo project seeding into a demo organization
-- Developer demo bootstrap (`npm run bootstrap:demo`) for a full local
-  multi-tenant environment (Acme + Contoso, users, projects, collaboration)
+- Canonical demo bootstrap (`npm run bootstrap:demo`) for a local
+  multi-tenant environment: Canadian Goose Defence System (Goose flagship
+  plus supporting projects, including CMMC Level 2) and Contoso Industries
+
 
 OSCAL is an export/interchange format, not the internal editing model.
 Collaboration metadata is never exported as OSCAL.
@@ -90,31 +92,38 @@ Authorization is enforced server-side; UI hiding is not authorization.
 - Cutover: one-shot SQLite → PostgreSQL
   (`docs/playbooks/sqlite-to-postgres-cutover.md`, ADR-016)
 - Demo: authenticated invite-only; full local environment via
-  `npm run bootstrap:demo` (development-only, idempotent, never truncates);
-  minimal admin via `npm run bootstrap:admin`; deploy seed with
-  `SEED_DEMO_ORG_SLUG` (never `--reset` on deploy)
+  `npm run bootstrap:demo` (development orchestrator, idempotent, never
+  truncates); minimal admin via `npm run bootstrap:admin`; deploy seed with
+  `SEED_DEMO_ORG_SLUG` (never `--reset` on deploy). See `docs/demo-data.md`.
 - Health: `GET /api/health` probes PostgreSQL without exposing secrets
 
 ## Developer demo bootstrap
 
-`npm run bootstrap:demo` prepares a complete local environment without manual
-`.env.local` editing, invitations, or hand-built demo data. It:
+`npm run bootstrap:demo` is the canonical command for the demo environment.
+It prepares a complete local environment without manual `.env.local`
+editing, invitations, or hand-built demo data. It:
 
 1. Ensures `.env.local` (create from `.env.example` or fill missing keys only)
-2. Refuses production / non-local databases
+2. Refuses production / non-local databases (local orchestrator only)
 3. Runs `npm run db:migrate`
-4. Creates Acme Corporation and Contoso Industries with RBAC memberships
-5. Creates four NIST SP 800-53 Rev. 5 Moderate projects (Goose flagship plus
-   thinner Acme/Contoso projects), each with an explicit Moderate
-   `frameworkId`
-6. Populates Milestone 02A collaboration via discussion/assignment services
-   (markers keep seeds idempotent)
+4. Creates **Canadian Goose Defence System** and **Contoso Industries** with
+   RBAC memberships
+5. Seeds the Goose flagship plus supporting projects (NIST Low / Moderate /
+   High and CMMC Level 2)
+6. Populates collaboration, ControlRecord metadata, and Evidence
+   (markers keep seeds idempotent; existing user edits are preserved)
 
-Shared demo password: `ControlFreakDemo123!`. Olivia’s prompt label
-“Contributor” maps to the existing `author` role. There is no FedRAMP Moderate
-importer; demo/bootstrap projects explicitly use the pinned NIST Moderate
-baseline. New projects may select Low, Moderate, High, or CMMC Level 2. Moderate remains
-the default. There is no CMMC demo project.
+Shared local demo password: `ControlFreakDemo123!` (override with
+`DEMO_BOOTSTRAP_PASSWORD`). Olivia’s prompt label “Contributor” maps to the
+existing `author` role. There is no FedRAMP Moderate importer; the flagship
+uses the pinned NIST Moderate baseline. CMMC demo content does not export
+OSCAL.
+
+See `docs/demo-data.md` for organizations, projects, maturity intent, and
+safety/idempotency rules.
+
+`db:seed:demo` remains a lower-level flagship-only seed into
+`SEED_DEMO_ORG_SLUG`. `--reset` is a separate destructive local command.
 
 ## Collaboration (Milestone 02A)
 
@@ -232,8 +241,8 @@ the default. There is no CMMC demo project.
   Omitting `frameworkId` on the create API still selects Moderate for
   backwards-compatible callers; that default is API compatibility, not the
   architectural source of framework identity.
-- Demo/bootstrap projects remain Moderate with that `frameworkId` explicit.
-  04C does not add a CMMC demo project.
+- Demo/bootstrap projects: the Goose flagship remains Moderate; supporting
+  demo projects cover Low, High, and CMMC Level 2. See `docs/demo-data.md`.
 - Existing projects continue as Moderate; no SQL backfill was required.
 - Current product does not claim FedRAMP, CMMC certification, C3PAO
   assessment, MET / NOT MET, or SPRS scoring.
@@ -344,9 +353,9 @@ cutover only.
 
 ## Next approved milestone
 
-Word/PDF export remains the next roadmap item after CMMC Level 2 Framework
-Support (Milestone 04C). Assessment management, Evidence approval, and an
-organization-wide library are later. See `docs/roadmap.md`.
+Word/PDF export remains on the roadmap. Seeded demo deployment (Render /
+`DEPLOYMENT_MODE`) is the follow-on to Milestone 05A and is not implemented
+yet. See `docs/roadmap.md`.
 
 ## Required verification for each milestone
 

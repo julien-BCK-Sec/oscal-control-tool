@@ -4,6 +4,12 @@
  * Usage:
  *   npm run db:seed:demo
  *   npm run db:seed:demo -- --reset
+ *
+ * Canonical full environment: `npm run bootstrap:demo`.
+ * This command only ensures the flagship project in SEED_DEMO_ORG_SLUG.
+ *
+ * `--reset` is destructive (deletes and recreates the flagship project) and
+ * is local-development only.
  */
 import {
   closeDb,
@@ -16,6 +22,11 @@ import {
   formatSeedDemoSummary,
   seedDemoProject,
 } from "../src/seed/demo";
+import {
+  assertDestructiveDemoResetAllowed,
+  assertIdempotentDemoSeedAllowed,
+  DemoSeedSafetyError,
+} from "../src/seed/safety";
 import { loadLocalEnv } from "./load-env";
 
 function parseArgs(argv: string[]): { reset: boolean } {
@@ -27,9 +38,16 @@ function parseArgs(argv: string[]): { reset: boolean } {
 async function main(): Promise<void> {
   loadLocalEnv();
   const { reset } = parseArgs(process.argv.slice(2));
+
+  if (reset) {
+    assertDestructiveDemoResetAllowed(process.env);
+  } else {
+    assertIdempotentDemoSeedAllowed(process.env);
+  }
+
   const databaseUrl = resolveDatabaseUrl();
   if (!databaseUrl) {
-    throw new Error(
+    throw new DemoSeedSafetyError(
       "DATABASE_URL is required to seed the demo project. Set it before running db:seed:demo.",
     );
   }
@@ -38,7 +56,8 @@ async function main(): Promise<void> {
   if (!orgSlug) {
     throw new Error(
       "SEED_DEMO_ORG_SLUG is required. Every project is organization-owned (WP3). " +
-        "Run `npm run bootstrap:admin` first, then set SEED_DEMO_ORG_SLUG to that organization's slug.",
+        "Prefer `npm run bootstrap:demo` for the full canonical environment, or run " +
+        "`npm run bootstrap:admin` and set SEED_DEMO_ORG_SLUG to that organization's slug.",
     );
   }
 
@@ -47,7 +66,7 @@ async function main(): Promise<void> {
   const organization = await orgRepo.getOrganizationBySlug(orgSlug);
   if (!organization) {
     throw new Error(
-      `No organization with slug "${orgSlug}". Bootstrap it first (npm run bootstrap:admin).`,
+      `No organization with slug "${orgSlug}". Bootstrap it first (npm run bootstrap:admin or npm run bootstrap:demo).`,
     );
   }
 
@@ -64,7 +83,11 @@ async function main(): Promise<void> {
 }
 
 main().catch(async (error) => {
-  console.error(error);
+  if (error instanceof DemoSeedSafetyError) {
+    console.error(`Safety check failed: ${error.message}`);
+  } else {
+    console.error(error);
+  }
   await closeDb();
   process.exit(1);
 });

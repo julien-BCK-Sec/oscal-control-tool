@@ -1,57 +1,42 @@
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
-import type { ControlImplementation, ImplementationStatus } from "@/data/implementation";
+import type { ControlImplementation } from "@/data/implementation";
 import type { ProjectMetadata } from "@/data/project";
 import type { ProjectRepository } from "@/persistence/repository";
 import type { StoredProject } from "@/persistence/types";
-import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
 import {
-  buildCompleteDemoImplementations,
-  collectDemoNarratives,
-} from "@/seed/demo";
-import { PROJECT_NAMES } from "./constants";
+  CANONICAL_PROJECTS,
+  type CanonicalProjectKey,
+} from "@/seed/demo/catalog";
+import { seedDemoProject } from "@/seed/demo/seedDemoProject";
+import {
+  buildContosoCloudDescription,
+  buildContosoImplementations,
+  buildCmmcImplementations,
+  buildCmmcProjectDescription,
+  buildEarlyImplementations,
+  buildEarlyProjectDescription,
+  buildEvidenceGapImplementations,
+  buildEvidenceGapProjectDescription,
+  buildHighImplementations,
+  buildHighProjectDescription,
+  buildSupportingMetadata,
+} from "@/seed/demo/supporting";
 
-function metadataFor(
-  systemName: string,
-  organizationName: string,
-  systemDescription: string,
-): ProjectMetadata {
-  return { systemName, organizationName, systemDescription };
-}
-
-function pickNarratives(
-  controlIds: readonly string[],
-  status: ImplementationStatus,
-): Record<string, ControlImplementation> {
-  const all = collectDemoNarratives();
-  const out: Record<string, ControlImplementation> = {};
-  for (const id of controlIds) {
-    const narrative = all[id];
-    if (!narrative) {
-      continue;
-    }
-    out[id] = { status, narrative };
-  }
-  return out;
-}
-
-function everyNthControl(
-  n: number,
-  limit: number,
-): string[] {
-  const ids = FRAMEWORK_CONTROLS.map((c) => c.id);
-  const picked: string[] = [];
-  for (let i = 0; i < ids.length && picked.length < limit; i += n) {
-    picked.push(ids[i]!);
-  }
-  return picked;
-}
+export type DemoProjectsResult = {
+  flagship: StoredProject;
+  cmmc: StoredProject;
+  early: StoredProject;
+  evidenceGap: StoredProject;
+  high: StoredProject;
+  contosoCloud: StoredProject;
+  created: string[];
+};
 
 async function findOrCreateProject(
   repository: ProjectRepository,
   organizationId: string,
   name: string,
-  organizationName: string,
-  systemDescription: string,
+  frameworkId: string,
+  metadata: ProjectMetadata,
   implementations: Record<string, ControlImplementation>,
 ): Promise<{ project: StoredProject; created: boolean }> {
   const listed = await repository.list(organizationId);
@@ -67,93 +52,106 @@ async function findOrCreateProject(
   const project = await repository.create({
     name,
     organizationId,
-    organizationName,
-    frameworkId: NIST_MODERATE_FRAMEWORK_ID,
-    metadata: metadataFor(name, organizationName, systemDescription),
+    organizationName: metadata.organizationName,
+    frameworkId,
+    metadata,
     implementations,
   });
   return { project, created: true };
 }
 
-export type DemoProjectsResult = {
-  goose: StoredProject;
-  customerA: StoredProject;
-  lab: StoredProject;
-  contosoCloud: StoredProject;
-  created: string[];
-};
+async function ensureSupporting(
+  repository: ProjectRepository,
+  organizationId: string,
+  key: CanonicalProjectKey,
+  implementations: Record<string, ControlImplementation>,
+  systemDescription: string,
+): Promise<{ project: StoredProject; created: boolean }> {
+  const spec = CANONICAL_PROJECTS[key];
+  return findOrCreateProject(
+    repository,
+    organizationId,
+    spec.name,
+    spec.frameworkId,
+    buildSupportingMetadata(key, systemDescription),
+    implementations,
+  );
+}
 
 /**
- * Create the four demo projects with explicit NIST SP 800-53 Rev. 5 Moderate
- * framework identity and implementations.
- * Goose uses the full curated demo baseline; others use thinner subsets.
+ * Seed canonical demo projects. The flagship uses seedDemoProject (complete
+ * baseline + named versions). Supporting projects are find-or-create only.
  */
 export async function ensureDemoProjects(
   repository: ProjectRepository,
-  organizationIds: { acme: string; contoso: string },
+  organizationIds: { cgds: string; contoso: string },
+  options: { validateOscal?: boolean } = {},
 ): Promise<DemoProjectsResult> {
   const created: string[] = [];
 
-  const gooseImpl = buildCompleteDemoImplementations();
-  const goose = await findOrCreateProject(
-    repository,
-    organizationIds.acme,
-    PROJECT_NAMES.goose,
-    "Acme Corporation",
-    "Goose Command Control Center is Acme's flagship compliance demonstration system for NIST SP 800-53 Rev. 5 Moderate authoring, review, and collaboration.",
-    gooseImpl,
-  );
-  if (goose.created) created.push(PROJECT_NAMES.goose);
-
-  // ~25 actively worked controls for Customer A.
-  const customerIds = everyNthControl(8, 26);
-  const customerImpl = pickNarratives(customerIds, "in-progress");
-  // Leave some as not-started intentionally by only setting ~20.
-  const customerKeys = Object.keys(customerImpl).slice(0, 22);
-  const customerTrimmed: Record<string, ControlImplementation> = {};
-  for (const key of customerKeys) {
-    customerTrimmed[key] = customerImpl[key]!;
+  const flagshipResult = await seedDemoProject(repository, {
+    reset: false,
+    validateOscal: options.validateOscal !== false,
+    organizationId: organizationIds.cgds,
+  });
+  if (!flagshipResult.project) {
+    throw new Error("Flagship demo project missing after seed.");
   }
-  const customerA = await findOrCreateProject(
-    repository,
-    organizationIds.acme,
-    PROJECT_NAMES.customerA,
-    "Acme Corporation",
-    "Customer A SSP tracks a mid-stream Moderate authorization package with partial implementation progress.",
-    customerTrimmed,
-  );
-  if (customerA.created) created.push(PROJECT_NAMES.customerA);
+  if (flagshipResult.status === "created") {
+    created.push(CANONICAL_PROJECTS.flagship.name);
+  }
 
-  const labIds = ["ac-1", "ac-2", "ia-2", "cm-2", "pl-2"] as const;
-  const labImpl = pickNarratives(labIds, "implemented");
-  const lab = await findOrCreateProject(
+  const cmmc = await ensureSupporting(
     repository,
-    organizationIds.acme,
-    PROJECT_NAMES.lab,
-    "Acme Corporation",
-    "Internal Lab Environment is an early-stage lab system with only a handful of completed controls.",
-    labImpl,
+    organizationIds.cgds,
+    "cmmc",
+    buildCmmcImplementations(),
+    buildCmmcProjectDescription(),
   );
-  if (lab.created) created.push(PROJECT_NAMES.lab);
+  if (cmmc.created) created.push(CANONICAL_PROJECTS.cmmc.name);
 
-  // Contoso: import most baseline narratives but mark many as not-started /
-  // in-progress mix by keeping a thin subset implemented.
-  const contosoIds = everyNthControl(12, 18);
-  const contosoImpl = pickNarratives(contosoIds, "in-progress");
-  const contosoCloud = await findOrCreateProject(
+  const early = await ensureSupporting(
+    repository,
+    organizationIds.cgds,
+    "early",
+    buildEarlyImplementations(),
+    buildEarlyProjectDescription(),
+  );
+  if (early.created) created.push(CANONICAL_PROJECTS.early.name);
+
+  const evidenceGap = await ensureSupporting(
+    repository,
+    organizationIds.cgds,
+    "evidenceGap",
+    buildEvidenceGapImplementations(),
+    buildEvidenceGapProjectDescription(),
+  );
+  if (evidenceGap.created) created.push(CANONICAL_PROJECTS.evidenceGap.name);
+
+  const high = await ensureSupporting(
+    repository,
+    organizationIds.cgds,
+    "high",
+    buildHighImplementations(),
+    buildHighProjectDescription(),
+  );
+  if (high.created) created.push(CANONICAL_PROJECTS.high.name);
+
+  const contosoCloud = await ensureSupporting(
     repository,
     organizationIds.contoso,
-    PROJECT_NAMES.contosoCloud,
-    "Contoso Industries",
-    "Contoso Cloud Platform is Contoso's Moderate baseline demonstration used for tenant-isolation testing.",
-    contosoImpl,
+    "contosoCloud",
+    buildContosoImplementations(),
+    buildContosoCloudDescription(),
   );
-  if (contosoCloud.created) created.push(PROJECT_NAMES.contosoCloud);
+  if (contosoCloud.created)     created.push(CANONICAL_PROJECTS.contosoCloud.name);
 
   return {
-    goose: goose.project,
-    customerA: customerA.project,
-    lab: lab.project,
+    flagship: flagshipResult.project,
+    cmmc: cmmc.project,
+    early: early.project,
+    evidenceGap: evidenceGap.project,
+    high: high.project,
     contosoCloud: contosoCloud.project,
     created,
   };

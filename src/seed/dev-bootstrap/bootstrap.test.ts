@@ -2,11 +2,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, it } from "node:test";
+import { describe, it } from "node:test";
 import { ensureDevEnvLocal } from "./env";
 import {
+  assertDestructiveDemoResetAllowed,
   assertDevBootstrapAllowed,
+  assertIdempotentDemoSeedAllowed,
   BootstrapSafetyError,
+  DemoSeedSafetyError,
 } from "./safety";
 import {
   demoSeedMarker,
@@ -15,10 +18,8 @@ import {
   ORGS,
   PROJECT_NAMES,
 } from "./constants";
-
-afterEach(() => {
-  // no shared DB state in these unit tests
-});
+import { resolveDemoBootstrapPassword } from "./password";
+import { CANONICAL_PROJECTS } from "@/seed/demo/catalog";
 
 describe("dev bootstrap env", () => {
   it("creates .env.local from defaults without inventing production secrets twice", () => {
@@ -109,12 +110,98 @@ describe("dev bootstrap safety", () => {
   });
 });
 
+describe("idempotent vs destructive seed safety", () => {
+  const localUrl =
+    "postgres://postgres:postgres@localhost:5432/oscal_control_tool";
+
+  it("allows idempotent seed locally", () => {
+    assert.doesNotThrow(() =>
+      assertIdempotentDemoSeedAllowed({
+        NODE_ENV: "development",
+        DATABASE_URL: localUrl,
+      }),
+    );
+  });
+
+  it("allows idempotent seed in production only when DEPLOYMENT_MODE=demo", () => {
+    assert.throws(
+      () =>
+        assertIdempotentDemoSeedAllowed({
+          NODE_ENV: "production",
+          DATABASE_URL: "postgres://user:pass@db.example.com:5432/app",
+        }),
+      DemoSeedSafetyError,
+    );
+    assert.doesNotThrow(() =>
+      assertIdempotentDemoSeedAllowed({
+        NODE_ENV: "production",
+        DEPLOYMENT_MODE: "demo",
+        DATABASE_URL: "postgres://user:pass@db.example.com:5432/app",
+      }),
+    );
+  });
+
+  it("never allows destructive reset in production or demo mode", () => {
+    assert.throws(
+      () =>
+        assertDestructiveDemoResetAllowed({
+          NODE_ENV: "production",
+          DATABASE_URL: localUrl,
+        }),
+      DemoSeedSafetyError,
+    );
+    assert.throws(
+      () =>
+        assertDestructiveDemoResetAllowed({
+          NODE_ENV: "development",
+          DEPLOYMENT_MODE: "demo",
+          DATABASE_URL: localUrl,
+        }),
+      DemoSeedSafetyError,
+    );
+    assert.doesNotThrow(() =>
+      assertDestructiveDemoResetAllowed({
+        NODE_ENV: "development",
+        DATABASE_URL: localUrl,
+      }),
+    );
+  });
+});
+
 describe("dev bootstrap constants", () => {
-  it("keeps the shared demo password and org/project names stable", () => {
+  it("keeps the shared demo password and canonical names stable", () => {
     assert.equal(DEMO_PASSWORD, "ControlFreakDemo123!");
-    assert.equal(ORGS.acme.slug, "acme-corporation");
+    assert.equal(ORGS.cgds.slug, "canadian-goose-defence-system");
     assert.equal(ORGS.contoso.slug, "contoso-industries");
-    assert.equal(PROJECT_NAMES.goose, "Goose Command Control Center");
+    assert.equal(
+      PROJECT_NAMES.flagship,
+      CANONICAL_PROJECTS.flagship.name,
+    );
+    assert.equal(
+      PROJECT_NAMES.flagship,
+      "Strategic Goose Operations Platform (Demo)",
+    );
+  });
+
+  it("uses the local default password unless DEMO_BOOTSTRAP_PASSWORD is set", () => {
+    assert.equal(
+      resolveDemoBootstrapPassword({ NODE_ENV: "development" }),
+      DEMO_PASSWORD,
+    );
+    assert.equal(
+      resolveDemoBootstrapPassword({
+        NODE_ENV: "development",
+        DEMO_BOOTSTRAP_PASSWORD: "OverridePassword123!",
+      }),
+      "OverridePassword123!",
+    );
+    assert.throws(
+      () =>
+        resolveDemoBootstrapPassword({
+          NODE_ENV: "production",
+        }),
+      DemoSeedSafetyError,
+    );
   });
 
   it("round-trips demo seed markers", () => {
