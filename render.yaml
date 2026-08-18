@@ -56,3 +56,5 @@ services:
       # Set in the dashboard when the provider requires them (e.g. R2, MinIO).
       - key: EVIDENCE_S3_REGION
         sync: false
+      - key: EVIDENCE_S3_KEY_PREFIX
+        sync: false

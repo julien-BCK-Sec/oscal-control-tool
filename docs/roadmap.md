@@ -107,13 +107,17 @@ or `DEPLOYMENT_MODE=demo`. Shared canonical demo library, retired
 startup validation. See `docs/milestones/05B-normal-demo-deployment-lifecycle.md`,
 `docs/deployment.md`, and ADR-028.
 
+**Milestone 05C – Render Deployment and Seeded Demo Verification** (implemented)
+
+Hosted demo on Render: Ohio Docker web service, managed PostgreSQL, S3
+Evidence, `DEPLOYMENT_MODE=demo`, custom domain, canonical 05A dataset,
+real Evidence upload, NIST OSCAL SSP export, and redeploy without reset.
+See `docs/milestones/05C-render-deployment-seeded-demo-verification.md`,
+`docs/deploy-render.md`, and `docs/deployment.md`.
+
 ## Next
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
-
-**Milestone 05C – Render Deployment** — provision Render PostgreSQL, web
-service, environment, and object storage using the 05B lifecycle. Not
-implemented in 05B.
 
 ## Later
 
