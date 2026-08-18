@@ -34,7 +34,7 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends libstdc++6 \
   && rm -rf /var/lib/apt/lists/* \
   && groupadd --system --gid 1001 nodejs \
-  && useradd --system --uid 1001 --gid nodejs nextjs
+  && useradd --system --uid 1001 --gid nodejs --home-dir /home/nextjs --create-home nextjs
 
 # App runtime (Next.js)
 COPY --from=builder --chown=nextjs:nodejs /app/package.json /app/package-lock.json ./
@@ -53,6 +53,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/src ./src
 COPY --from=builder --chown=nextjs:nodejs /app/vendor/oscal/v1.2.2/schema ./vendor/oscal/v1.2.2/schema
 
 USER nextjs
+ENV HOME=/home/nextjs
 
 EXPOSE 3000
 

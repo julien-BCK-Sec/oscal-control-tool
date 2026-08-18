@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { describe, it } from "node:test";
 import { resolveDatabaseUrl } from "./client";
 
@@ -53,6 +55,25 @@ describe("resolveDatabaseUrl", () => {
     assert.throws(
       () => resolveDatabaseUrl({ NODE_ENV: "production", DATABASE_URL: "   " }),
       /DATABASE_URL must be set in production/,
+    );
+  });
+});
+
+describe("production module graph", () => {
+  it("does not statically import PGlite (pruned from production images)", () => {
+    const source = fs.readFileSync(
+      path.join(import.meta.dirname, "client.ts"),
+      "utf8",
+    );
+    assert.doesNotMatch(
+      source,
+      /^import .+@electric-sql\/pglite/m,
+      "static PGlite import would fail npm start after npm prune --omit=dev",
+    );
+    assert.doesNotMatch(
+      source,
+      /^import .+drizzle-orm\/pglite/m,
+      "static drizzle-orm/pglite import pulls PGlite into the production graph",
     );
   });
 });

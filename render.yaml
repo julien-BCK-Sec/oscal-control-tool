@@ -1,21 +1,30 @@
 # render.yaml — Docker web service + Render PostgreSQL
 #
-# Do not put secrets in this file. Set BETTER_AUTH_SECRET and related values
-# in the Render dashboard.
+# Do not put secrets in this file. Set secret values in the Render dashboard
+# (or via the Render API/CLI) at create time.
+#
+# Blueprint default is DEPLOYMENT_MODE=normal so this repository stays usable
+# for a later non-demo install. The hosted Milestone 05C demo overrides that
+# value to `demo` in the dashboard and sets DEMO_BOOTSTRAP_PASSWORD there.
+#
+# fromDatabase.connectionString injects Render's *internal* Postgres URL
+# (private network, same region). Do not set DATABASE_SSL=true for that URL;
+# internal connections are not TLS. External URLs include sslmode=require and
+# are handled automatically.
 #
 # https://render.com/docs/blueprint-spec
 
 databases:
   - name: oscal-control-tool-db
     plan: basic-256mb
-    region: oregon
+    region: ohio
 
 services:
   - type: web
     name: oscal-control-tool
     runtime: docker
     plan: starter
-    region: oregon
+    region: ohio
     branch: main
     healthCheckPath: /api/health
     numInstances: 1
@@ -26,11 +35,24 @@ services:
         fromDatabase:
           name: oscal-control-tool-db
           property: connectionString
-      - key: BETTER_AUTH_URL
-        sync: false
-      - key: NEXT_PUBLIC_APP_URL
-        sync: false
-      - key: BETTER_AUTH_SECRET
-        generateValue: true
+      # Safest default. Override to `demo` in the dashboard for the hosted demo.
       - key: DEPLOYMENT_MODE
         value: normal
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: BETTER_AUTH_URL
+        sync: false
+      # Required only when DEPLOYMENT_MODE=demo. Leave unset for normal installs.
+      - key: DEMO_BOOTSTRAP_PASSWORD
+        sync: false
+      # Production Evidence storage (ADR-025). Never commit real credentials.
+      - key: EVIDENCE_S3_BUCKET
+        sync: false
+      - key: EVIDENCE_S3_ACCESS_KEY_ID
+        sync: false
+      - key: EVIDENCE_S3_SECRET_ACCESS_KEY
+        sync: false
+      # Optional S3-compatible extras (region/endpoint/path-style/prefix).
+      # Set in the dashboard when the provider requires them (e.g. R2, MinIO).
+      - key: EVIDENCE_S3_REGION
+        sync: false
