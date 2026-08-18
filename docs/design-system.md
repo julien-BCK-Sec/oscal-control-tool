@@ -189,6 +189,12 @@ percentage bar.
 - Labels associated with inputs (`FormLabel` + `htmlFor`).
 - Buttons for actions (not clickable divs).
 - Status badges include text; unassigned owner announced via `role="status"`.
+- Truncated control/requirement titles in the left-hand list reveal the
+  full text on hover and keyboard focus only when the visible label
+  overflows (`OverflowTitle`).
+- The control-navigation resize handle is a vertical `separator` with a
+  visible hover/focus affordance, a 12px hit area, and Left/Right keyboard
+  support; it is hidden in the stacked mobile layout.
 - `prefers-reduced-motion` short-circuits transitions in `globals.css`.
 - Brand: meaningful `alt` by default; `decorative` for redundant placements.
 - Theme selector uses `menuitemradio` with a visible Selected label (not color

@@ -78,6 +78,8 @@ export type ProjectWorkspaceProps = {
   initialView?: WorkspaceTabId;
   /** Deep-link focus into Controls (notification / overview navigation). */
   initialFocus?: ControlsFocusRequest;
+  /** Deep-link into a specific Evidence record on the Evidence tab. */
+  initialEvidenceId?: string;
   initialEvidenceAttention?: EvidenceAttentionFilter;
 };
 
@@ -106,6 +108,7 @@ export function ProjectWorkspace({
   initialSnapshots,
   initialView = DEFAULT_WORKSPACE_TAB,
   initialFocus,
+  initialEvidenceId,
   initialEvidenceAttention = "all",
 }: ProjectWorkspaceProps) {
   const router = useRouter();
@@ -144,12 +147,21 @@ export function ProjectWorkspace({
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [activeTab, setActiveTab] = useState<WorkspaceTabId>(
-    initialFocus?.controlId ? "controls" : initialView,
+    initialEvidenceId
+      ? "evidence"
+      : initialFocus?.controlId
+        ? "controls"
+        : initialView,
   );
   const [controlsFocus, setControlsFocus] =
     useState<ControlsFocusRequest | null>(initialFocus ?? null);
+  const [evidenceFocus, setEvidenceFocus] = useState<string | null>(
+    initialEvidenceId ?? null,
+  );
   const [evidenceAttention, setEvidenceAttention] =
-    useState<EvidenceAttentionFilter>(initialEvidenceAttention);
+    useState<EvidenceAttentionFilter>(
+      initialEvidenceId ? "all" : initialEvidenceAttention,
+    );
   const [evidenceCoverage, setEvidenceCoverage] =
     useState<ProjectEvidenceCoverageResult | null>(null);
   const [evidenceCoverageLoading, setEvidenceCoverageLoading] = useState(true);
@@ -182,7 +194,30 @@ export function ProjectWorkspace({
     ok: true,
   }));
   const mountedRef = useRef(true);
+  const urlStateKey = [
+    initialView,
+    initialEvidenceId ?? "",
+    initialFocus?.controlId ?? "",
+    initialFocus?.commentId ?? "",
+    initialEvidenceAttention,
+  ].join("|");
+  const [appliedUrlStateKey, setAppliedUrlStateKey] = useState(urlStateKey);
 
+  if (urlStateKey !== appliedUrlStateKey) {
+    setAppliedUrlStateKey(urlStateKey);
+    if (initialEvidenceId) {
+      setActiveTab("evidence");
+      setEvidenceFocus(initialEvidenceId);
+      setEvidenceAttention("all");
+    } else if (initialFocus?.controlId || initialFocus?.commentId) {
+      setActiveTab("controls");
+      setControlsFocus(initialFocus ?? null);
+    } else {
+      setActiveTab(initialView);
+      setEvidenceAttention(initialEvidenceAttention);
+      setEvidenceFocus(null);
+    }
+  }
   const completion = useMemo(
     () => computeOverallCompletion(framework.controls, implementations),
     [framework.controls, implementations],
@@ -882,6 +917,8 @@ export function ProjectWorkspace({
               canRead={evidenceCaps.canRead}
               attention={evidenceAttention}
               coverage={evidenceCoverage}
+              focusEvidenceId={evidenceFocus}
+              onFocusEvidenceHandled={() => setEvidenceFocus(null)}
               onAttentionChange={(next) => selectTab("evidence", next)}
               onEvidenceChanged={() => {
                 setActivityRefreshToken((token) => token + 1);

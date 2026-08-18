@@ -64,8 +64,8 @@ Current stack:
 - Better Auth (sessions, organizations plugin)
 - SQLite tooling retained only for offline cutover from legacy deployments
 - Browser localStorage retained only for non-authoritative UI preferences
-  (theme preference `system` | `light` | `dark`, ADR-022; authoritative data is
-  PostgreSQL)
+  (theme preference `system` | `light` | `dark`, ADR-022; control-navigation
+  pane width `cf-control-nav-width`; authoritative data is PostgreSQL)
 
 ## Architecture
 
@@ -204,7 +204,8 @@ Production deployments use `DEPLOYMENT_MODE` (`docs/deployment.md`, ADR-028).
 - Permissions: `evidence.read|create|update|associate|archive|delete` (no new
   reporting permission; inventory CSV uses `evidence.read`)
 - UI: Overview coverage counts; scalable Evidence tab search/filters/attention
-  views; control-tree coverage indicators; control Evidence panel freshness
+  views; control-tree coverage indicators; control Evidence panel freshness;
+  linked Evidence titles open `/projects/{id}?view=evidence&evidence={id}`
 - Coverage semantics: only `active` Evidence satisfies coverage; drafts are
   attention facts; archived is excluded; metadata-only active Evidence counts;
   computed over the project's selected framework control set (default
@@ -355,7 +356,8 @@ Do not fetch standards files at runtime and do not use moving branches.
   `evidence.current_version_id` in `drizzle-pg/0006_happy_raza.sql`; Evidence
   search keyset index in `drizzle-pg/0007_evidence_search_idx.sql`; Evidence
   review-due index in `drizzle-pg/0008_evidence_review_due_idx.sql`.
-- Routes: `/sign-in`, `/projects`, `/projects/[id]` (including `?view=evidence`),
+- Routes: `/sign-in`, `/projects`, `/projects/[id]` (including `?view=evidence`
+  and `?evidence={id}`),
   `/help`, `/help/[slug]`,
   `/organizations/[orgId]/settings`, `/organizations/[orgId]/workflows`,
   `/invitations/[id]`

@@ -45,8 +45,10 @@ From a control's **Evidence** panel, select **Link evidence** to search
 existing project Evidence (archived and already-linked records are
 excluded from the picker), or create a new one on the spot with
 **Create and link** — that path always creates the record as Active.
-**Unlink** removes the association without affecting the Evidence record
-itself. You can also manage links from the Evidence tab, but linking and
+The linked title opens that record on the project Evidence tab, where
+metadata, versions, and the current file are available. **Unlink**
+removes the association without affecting the Evidence record itself.
+You can also manage links from the Evidence tab, but linking and
 unlinking always happens through a specific control's Evidence panel.
 
 Each control also has its own **Evidence requirement** field — **Required**

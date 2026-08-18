@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
 } from "react";
 import type { Framework } from "@/data/framework";
 import type { FrameworkItemTerms } from "@/components/framework/presentation";
@@ -47,6 +48,10 @@ import {
   deriveControlCoverageState,
   type ControlEvidenceCoverage,
 } from "@/data/evidence";
+import { OverflowTitle } from "@/components/ui/OverflowTitle";
+import { ControlNavResizeHandle } from "@/components/controlBrowser/ControlNavResizeHandle";
+import { useControlNavWidth } from "@/components/controlBrowser/useControlNavWidth";
+import { clampControlNavWidth } from "@/components/controlBrowser/navWidth";
 
 function getImplementation(
   implementations: Record<string, ControlImplementation>,
@@ -133,6 +138,24 @@ export function ControlBrowser({
     useState<ControlsFocusRequest | null>(null);
   const [pendingCommentId, setPendingCommentId] = useState<string | null>(null);
   const selectedItemRef = useRef<HTMLButtonElement | null>(null);
+  const layoutRef = useRef<HTMLDivElement | null>(null);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
+  const { width: storedNavWidth, preview: previewNavWidth, commit: commitNavWidth } =
+    useControlNavWidth();
+  const navWidth = clampControlNavWidth(storedNavWidth, containerWidth);
+
+  useEffect(() => {
+    const el = layoutRef.current;
+    if (!el || typeof ResizeObserver === "undefined") {
+      return;
+    }
+    const observer = new ResizeObserver(() => {
+      setContainerWidth(el.getBoundingClientRect().width);
+    });
+    observer.observe(el);
+    setContainerWidth(el.getBoundingClientRect().width);
+    return () => observer.disconnect();
+  }, []);
 
   // Apply Overview → Controls focus during render (preferred over an effect).
   if (focusRequest && focusRequest !== appliedFocus) {
@@ -333,9 +356,18 @@ export function ControlBrowser({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-surface text-foreground md:flex-row">
+    <div
+      ref={layoutRef}
+      className="flex min-h-0 flex-1 flex-col bg-surface text-foreground md:flex-row"
+    >
       <aside
-        className="flex max-h-[42vh] w-full shrink-0 flex-col border-b border-border bg-surface-secondary md:max-h-none md:h-full md:w-80 md:border-b-0 md:border-r lg:w-[22rem]"
+        id="control-navigation-pane"
+        className="flex max-h-[42vh] w-full shrink-0 flex-col border-b border-border bg-surface-secondary md:max-h-none md:h-full md:w-[var(--control-nav-width)] md:border-b-0"
+        style={
+          {
+            "--control-nav-width": `${navWidth}px`,
+          } as CSSProperties
+        }
         aria-label={itemsLabel}
       >
         <div className="shrink-0 space-y-3 border-b border-border px-3 py-3">
@@ -531,9 +563,9 @@ export function ControlBrowser({
                                     >
                                       {formatControlIdDisplay(node.control.id)}
                                     </span>
-                                    <span className="mt-0.5 block truncate text-[13px] font-medium leading-snug text-foreground">
+                                    <OverflowTitle className="mt-0.5 block w-full truncate text-[13px] font-medium leading-snug text-foreground">
                                       {node.control.title}
-                                    </span>
+                                    </OverflowTitle>
                                     {renderListMeta(node.control.id)}
                                   </span>
                                   {renderCompletionMark(
@@ -586,9 +618,9 @@ export function ControlBrowser({
                                               )}{" "}
                                               ({number})
                                             </span>
-                                            <span className="mt-0.5 block truncate text-[13px] font-medium leading-snug text-foreground">
+                                            <OverflowTitle className="mt-0.5 block w-full truncate text-[13px] font-medium leading-snug text-foreground">
                                               {enhancement.title}
-                                            </span>
+                                            </OverflowTitle>
                                             {renderListMeta(enhancement.id)}
                                           </span>
                                           {renderCompletionMark(
@@ -613,6 +645,16 @@ export function ControlBrowser({
           )}
         </nav>
       </aside>
+
+      <ControlNavResizeHandle
+        paneId="control-navigation-pane"
+        width={navWidth}
+        onPreview={previewNavWidth}
+        onCommit={commitNavWidth}
+        getContainerWidth={() =>
+          layoutRef.current?.getBoundingClientRect().width ?? null
+        }
+      />
 
       <ControlEditorWorkspace
         key={selected.id}
