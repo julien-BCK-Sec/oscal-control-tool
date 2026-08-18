@@ -1,8 +1,10 @@
 # syntax=docker/dockerfile:1
 
-# Multi-stage production image for Render (PostgreSQL-backed).
-# Does not use Next.js standalone output: migrate/seed scripts, Drizzle SQL,
-# generated framework JSON, and the pinned OSCAL SSP schema must remain on disk.
+# Multi-stage production image. The same image runs in DEPLOYMENT_MODE=normal
+# or DEPLOYMENT_MODE=demo; mode and secrets are supplied at runtime.
+# Does not use Next.js standalone output: migrate/bootstrap/seed scripts,
+# Drizzle SQL, generated framework JSON, and the pinned OSCAL SSP schema
+# must remain on disk. Does not bake .env.local or secrets into the image.
 
 FROM node:22-bookworm-slim AS deps
 RUN apt-get update \
@@ -25,7 +27,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-# Render sets PORT; default for local docker run
+# Host platforms inject PORT; default for local docker run.
 ENV PORT=3000
 
 RUN apt-get update \
@@ -42,7 +44,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts ./
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./
 
-# Production startup needs migrate/seed sources + Drizzle SQL + OSCAL schema
+# Production startup: validate → migrate → mode bootstrap → Next.js.
+# Sources plus Drizzle SQL and OSCAL schema must be present at runtime.
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle-pg ./drizzle-pg
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts

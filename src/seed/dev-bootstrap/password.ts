@@ -9,7 +9,7 @@ import { DEFAULT_LOCAL_DEMO_PASSWORD } from "./constants";
  * production image.
  */
 export function resolveDemoBootstrapPassword(
-  env: NodeJS.ProcessEnv = process.env,
+  env: Record<string, string | undefined> = process.env,
 ): string {
   const fromEnv = env.DEMO_BOOTSTRAP_PASSWORD?.trim();
   if (fromEnv) {

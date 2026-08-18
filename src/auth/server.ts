@@ -10,6 +10,11 @@ import * as authSchema from "@/persistence/postgres/auth-schema";
 import { ORG_ROLES } from "@/authz/permissions";
 import { getAuthDb } from "./db";
 import { deliverAuthEmail } from "./email";
+import {
+  resolveAuthBaseUrl,
+  resolveConfiguredTrustedOrigins,
+  shouldTrustProxyHeaders,
+} from "./urls";
 
 /** Seven days, in seconds (ADR-018). */
 const INVITATION_EXPIRES_IN_SECONDS = 7 * 24 * 60 * 60;
@@ -61,25 +66,13 @@ function resolveAuthSecret(): string {
   return "development-only-insecure-secret-change-me";
 }
 
-function resolveBaseUrl(): string | undefined {
-  return (
-    process.env.BETTER_AUTH_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    undefined
-  );
-}
-
-/**
- * Build the Better Auth instance. Kept as a factory so the concrete inferred
- * type (including the organization plugin's contributions) flows through
- * `getAuth()` and its consumers, rather than the widened base `Auth` type.
- */
 function createAuthInstance() {
   const isProduction = process.env.NODE_ENV === "production";
   return betterAuth({
     appName: "Control Freak",
-    baseURL: resolveBaseUrl(),
+    baseURL: resolveAuthBaseUrl(),
     secret: resolveAuthSecret(),
+    trustedOrigins: resolveConfiguredTrustedOrigins(),
     database: drizzleAdapter(getAuthDb(), {
       provider: "pg",
       schema: authSchema,
@@ -104,6 +97,13 @@ function createAuthInstance() {
         sameSite: "lax",
         secure: isProduction,
       },
+      /**
+       * Honor X-Forwarded-Host / X-Forwarded-Proto behind HTTPS reverse
+       * proxies when BETTER_AUTH_TRUSTED_PROXY_HEADERS=true. Default off
+       * because an untrusted Host header would otherwise be accepted.
+       * Prefer setting BETTER_AUTH_URL to the public HTTPS origin.
+       */
+      trustedProxyHeaders: shouldTrustProxyHeaders(),
     },
     plugins: [
       organization({
@@ -117,7 +117,7 @@ function createAuthInstance() {
         cancelPendingInvitationsOnReInvite: true,
         requireEmailVerificationOnInvitation: true,
         async sendInvitationEmail(data) {
-          const base = resolveBaseUrl() ?? "";
+          const base = resolveAuthBaseUrl() ?? "";
           deliverAuthEmail({
             type: "organization-invitation",
             to: data.email,

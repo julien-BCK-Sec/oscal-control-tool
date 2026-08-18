@@ -202,6 +202,13 @@ describe("dev bootstrap constants", () => {
         }),
       DemoSeedSafetyError,
     );
+    assert.throws(
+      () =>
+        resolveDemoBootstrapPassword({
+          DEPLOYMENT_MODE: "demo",
+        }),
+      DemoSeedSafetyError,
+    );
   });
 
   it("round-trips demo seed markers", () => {

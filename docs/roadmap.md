@@ -99,12 +99,21 @@ evidence-gap projects, Contoso tenant isolation, idempotent bootstrap, and
 separated destructive reset. See `docs/milestones/05A-consolidate-modernize-demo-dataset.md`
 and `docs/demo-data.md`.
 
+**Milestone 05B – Normal and Demo Deployment Lifecycle** (implemented)
+
+One production startup command (`npm start`) with `DEPLOYMENT_MODE=normal`
+or `DEPLOYMENT_MODE=demo`. Shared canonical demo library, retired
+`SEED_DEMO_PROJECT` production switch, explicit demo password, Evidence S3
+startup validation. See `docs/milestones/05B-normal-demo-deployment-lifecycle.md`,
+`docs/deployment.md`, and ADR-028.
+
 ## Next
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
 
-Seeded demo deployment (`DEPLOYMENT_MODE`, Render lifecycle) is not
-implemented; 05A only prepared the dataset and seed safety.
+**Milestone 05C – Render Deployment** — provision Render PostgreSQL, web
+service, environment, and object storage using the 05B lifecycle. Not
+implemented in 05B.
 
 ## Later
 

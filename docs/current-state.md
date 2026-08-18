@@ -5,7 +5,8 @@ Date: 2026-08-18
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application.
-Milestone 05A consolidates the canonical demo dataset on top of Milestone 04C
+Milestone 05B adds explicit `DEPLOYMENT_MODE=normal|demo` production startup
+on top of Milestone 05A (canonical demo dataset), Milestone 04C
 (CMMC Level 2 Framework Support), Milestone 04B (Framework UX and Runtime
 Hardening), and the project-scoped NIST SP 800-53 Rev. 5 Low / Moderate / High
 architecture introduced in Milestone 04A, on top of Evidence Coverage (03D),
@@ -91,10 +92,11 @@ Authorization is enforced server-side; UI hiding is not authorization.
 - Roles and permissions: authoritative matrix in `src/authz/permissions.ts`
 - Cutover: one-shot SQLite → PostgreSQL
   (`docs/playbooks/sqlite-to-postgres-cutover.md`, ADR-016)
-- Demo: authenticated invite-only; full local environment via
-  `npm run bootstrap:demo` (development orchestrator, idempotent, never
-  truncates); minimal admin via `npm run bootstrap:admin`; deploy seed with
-  `SEED_DEMO_ORG_SLUG` (never `--reset` on deploy). See `docs/demo-data.md`.
+- Demo: authenticated invite-only. Local full environment via
+  `npm run bootstrap:demo`. Production uses `DEPLOYMENT_MODE=normal|demo`
+  (`npm start`: validate → migrate → mode bootstrap → Next.js). Deployed
+  demo requires `DEMO_BOOTSTRAP_PASSWORD` and seeds the full 05A dataset.
+  Never `--reset` on deploy. See `docs/deployment.md` and `docs/demo-data.md`.
 - Health: `GET /api/health` probes PostgreSQL without exposing secrets
 
 ## Developer demo bootstrap
@@ -124,6 +126,9 @@ safety/idempotency rules.
 
 `db:seed:demo` remains a lower-level flagship-only seed into
 `SEED_DEMO_ORG_SLUG`. `--reset` is a separate destructive local command.
+
+Production deployments use `DEPLOYMENT_MODE` (`docs/deployment.md`, ADR-028).
+`SEED_DEMO_PROJECT` is no longer a production startup switch.
 
 ## Collaboration (Milestone 02A)
 
@@ -353,9 +358,9 @@ cutover only.
 
 ## Next approved milestone
 
-Word/PDF export remains on the roadmap. Seeded demo deployment (Render /
-`DEPLOYMENT_MODE`) is the follow-on to Milestone 05A and is not implemented
-yet. See `docs/roadmap.md`.
+Word/PDF export remains on the roadmap. Milestone 05B implements the
+normal/demo production startup lifecycle. Actual Render provisioning is
+**Milestone 05C**. See `docs/roadmap.md` and `docs/deployment.md`.
 
 ## Required verification for each milestone
 

@@ -22,6 +22,7 @@
     "auth:generate": "better-auth generate --config src/auth/server.ts --output drizzle-pg/better-auth-schema.reference.ts -y",
     "db:studio": "drizzle-kit studio --config=drizzle-pg.config.ts",
     "smoke:persistence": "tsx --require ./scripts/mock-server-only.cjs scripts/smoke-persistence.ts",
+    "verify:deployment": "tsx --require ./scripts/mock-server-only.cjs scripts/verify-deployment-lifecycle.ts",
     "predev": "npm run db:migrate"
   },
   "dependencies": {

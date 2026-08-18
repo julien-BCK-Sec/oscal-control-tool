@@ -827,3 +827,46 @@ Reason:
 Date:
 2026-08-18
 
+## ADR-028
+
+Decision:
+Use one production startup command (`npm start` →
+`scripts/start-production.ts`) with an explicit `DEPLOYMENT_MODE` of `normal`
+or `demo`. Omitted `DEPLOYMENT_MODE` defaults to `normal`. Unknown values fail
+closed before migrations.
+
+Both modes share the same codebase, production build, Docker image, and
+migration path (`drizzle-pg/` via `getDb`). Mode-specific work runs after
+migrations:
+
+- **normal:** optional idempotent `BOOTSTRAP_ADMIN_*` administrator (same
+  logic as `npm run bootstrap:admin`). No canonical demo data.
+- **demo:** ensure the full Milestone 05A canonical demo environment through
+  `src/seed/canonical-demo.ts`, requiring `DEMO_BOOTSTRAP_PASSWORD`. Never use
+  the local default demo password on a deployed demo.
+
+`npm run bootstrap:demo` remains the local orchestrator (may write
+`.env.local`, assumes localhost). Production demo startup must not depend on
+that local-only behavior.
+
+Retire `SEED_DEMO_PROJECT` from production startup. A truthy value with
+`DEPLOYMENT_MODE=normal` (or the omitted default) is a configuration error so
+flagship-only demo data cannot appear in a normal deployment.
+
+Evidence production storage remains S3-compatible and is validated at startup.
+Health remains `GET /api/health`. Hosting hostnames are never hard-coded.
+
+This decision supersedes the production-startup portions of ADR-008 and
+ADR-019 that used `SEED_DEMO_PROJECT` as the demo switch. Invite-only
+authentication, PostgreSQL, and “never `--reset` on deploy” remain in force.
+
+Reason:
+- One image and one command keep cloud configuration to environment variables.
+- Defaulting omitted mode to `normal` is fail-safe for existing installs.
+- Sharing the 05A canonical library prevents a second, partial demo definition.
+- Explicit demo credentials keep the documented local password off the
+  Internet-facing deployment.
+
+Date:
+2026-08-18
+

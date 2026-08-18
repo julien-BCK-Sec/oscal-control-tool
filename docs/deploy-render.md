@@ -1,24 +1,35 @@
 # Deploying to Render (Docker + PostgreSQL)
 
 Control Freak runs as a Next.js Docker web service on Render with **Render
-PostgreSQL** in the same region (ADR-014, ADR-015, ADR-019).
+PostgreSQL** in the same region (ADR-014, ADR-015, ADR-019, ADR-028).
 
-Authentication is required. The demo deployment is invite-only after bootstrap.
-Do not seed shared public credentials.
+**Milestone 05B does not provision Render.** Use this file for host-specific
+notes. The application startup lifecycle is documented in `docs/deployment.md`.
+Actual service/database/object-storage provisioning is Milestone 05C.
+
+Authentication is required. Membership is invite-only after bootstrap.
+Do not seed the local default demo password onto an Internet-facing service.
 
 ## Required environment variables
 
+See `.env.example` and `docs/deployment.md`. At minimum for a Render web
+service:
+
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `DATABASE_URL` | **Yes** | PostgreSQL connection string. Prefer the Render **internal** URL for the web service. |
+| `DATABASE_URL` | **Yes** | PostgreSQL connection string. Prefer the Render **internal** URL. |
 | `BETTER_AUTH_SECRET` | **Yes** | Opaque session signing secret (`openssl rand -base64 32`) |
-| `BETTER_AUTH_URL` | **Yes** | Public app base URL (e.g. `https://your-service.onrender.com`) |
-| `NEXT_PUBLIC_APP_URL` | **Yes** | Same public base URL for client auth helpers (non-secret) |
+| `BETTER_AUTH_URL` | **Yes** | Public HTTPS origin (e.g. `https://your-service.onrender.com`) |
+| `NEXT_PUBLIC_APP_URL` | Optional at image build | Same origin for the client if baked at build time; runtime server uses `BETTER_AUTH_URL` |
+| `DEPLOYMENT_MODE` | Recommended | `normal` or `demo` (omitted defaults to `normal`) |
+| `DEMO_BOOTSTRAP_PASSWORD` | **Yes if demo** | Canonical demo login password (never the local default) |
+| `BOOTSTRAP_ADMIN_*` | Optional if normal | Initial administrator when not using demo mode |
+| `EVIDENCE_S3_*` | **Yes in production** | S3-compatible Evidence storage (not provisioned in 05B) |
 | `PORT` | Set by Render | HTTP listen port |
 | `NODE_ENV` | Production | Set to `production` |
-| `SEED_DEMO_PROJECT` | Optional | When `true`, idempotent demo project seed (**never** `--reset`) |
-| `SEED_DEMO_ORG_SLUG` | Required if seeding | Organization slug that owns the demo project |
 | `DATABASE_SSL` | Optional | Set `true` to force TLS when the URL does not include `sslmode=require` |
+
+`SEED_DEMO_PROJECT` is deprecated and must not be `true` in `normal` mode.
 
 Never commit `.env` files or secrets. Never put `DATABASE_URL` or
 `BETTER_AUTH_SECRET` in `NEXT_PUBLIC_*` variables.
@@ -31,42 +42,22 @@ Never commit `.env` files or secrets. Never put `DATABASE_URL` or
 3. For one-off admin tools from outside Render, use the external URL with TLS
    (`sslmode=require`).
 4. Persistent disks are **not** required for application data (PostgreSQL holds
-   state). Remove legacy SQLite disk mounts when cutting over.
+   state). Evidence binaries need S3-compatible storage (05C).
+5. Start with `numInstances: 1`.
 
-Blueprint: `render.yaml` (Docker web service + managed Postgres).
+Blueprint: `render.yaml` (Docker web service + managed Postgres). Do not treat
+it as a complete 05C deployment.
 
 ## Production startup
 
-`npm start` runs `scripts/start-production.ts`, which:
+`npm start` runs `scripts/start-production.ts`:
 
-1. Requires `DATABASE_URL` (fails closed if unset)
-2. Applies Drizzle PostgreSQL migrations from `drizzle-pg/`
-3. If `SEED_DEMO_PROJECT=true`, runs the **idempotent** demo seed into
-   `SEED_DEMO_ORG_SLUG` (**never** `--reset`)
-4. Starts Next.js bound to `0.0.0.0` on `PORT`
+1. Validate `DEPLOYMENT_MODE` and required variables
+2. Apply Drizzle PostgreSQL migrations from `drizzle-pg/`
+3. Normal: optional `BOOTSTRAP_ADMIN_*`; demo: full canonical 05A dataset
+4. Start Next.js bound to `0.0.0.0` on `PORT`
 
-### Bootstrap (one-time, outside normal deploy)
-
-Create the first organization administrator **once** before relying on the
-demo or invitations:
-
-```bash
-BOOTSTRAP_ADMIN_EMAIL=you@example.com \
-BOOTSTRAP_ADMIN_PASSWORD='a-long-unique-password' \
-BOOTSTRAP_ADMIN_NAME='Platform Admin' \
-BOOTSTRAP_ORG_NAME='Demo Organization' \
-BOOTSTRAP_ORG_SLUG=demo-organization \
-npm run bootstrap:admin
-```
-
-Then invite additional users from **Organization settings**. Public
-self-registration remains disabled.
-
-### Why `--reset` must never run during normal deployment
-
-`npm run db:seed:demo -- --reset` deletes the demo project and recreates it.
-That would wipe demo edits on every deploy. Startup only calls the idempotent
-path.
+Never `--reset` during deployment.
 
 ## Health check
 
@@ -75,61 +66,48 @@ path.
 - Does not expose connection strings, secrets, or stack traces
 - Performs a lightweight `SELECT 1` against PostgreSQL
 
-## SQLite → PostgreSQL cutover
-
-Existing SQLite deployments must follow the offline cutover playbook:
-
-`docs/playbooks/sqlite-to-postgres-cutover.md`
-
-Rollback is restoration of the previous SQLite deployment and its backup. No
-PostgreSQL-to-SQLite reverse sync is provided.
-
 ## Local Docker (application only)
-
-For the local PostgreSQL database used during development, prefer
-`docker compose up -d` from the repository root (`compose.yaml`). The snippet
-below runs only the application image and still needs a reachable
-`DATABASE_URL` (Compose, Render, or another Postgres):
 
 ```bash
 docker build -t oscal-control-tool .
 
 docker run --rm -p 3000:3000 \
+  -e NODE_ENV=production \
+  -e DEPLOYMENT_MODE=normal \
   -e DATABASE_URL='postgres://postgres:postgres@host.docker.internal:5432/oscal_control_tool' \
-  -e BETTER_AUTH_SECRET='replace-me' \
+  -e BETTER_AUTH_SECRET='replace-me-at-least-32-chars' \
   -e BETTER_AUTH_URL='http://localhost:3000' \
-  -e NEXT_PUBLIC_APP_URL='http://localhost:3000' \
-  -e SEED_DEMO_PROJECT=false \
+  -e EVIDENCE_STORAGE_DRIVER=s3 \
+  -e EVIDENCE_S3_BUCKET=dev-not-for-prod \
+  -e EVIDENCE_S3_ACCESS_KEY_ID=minio \
+  -e EVIDENCE_S3_SECRET_ACCESS_KEY=minio12345 \
   -e PORT=3000 \
   oscal-control-tool
 ```
 
+Local production-mode runs still require S3 configuration because
+`NODE_ENV=production` fails closed on filesystem Evidence storage. For
+day-to-day development use `npm run dev` with Compose PostgreSQL.
+
 ## Manual production smoke test
 
-After deploy and bootstrap:
+After deploy and bootstrap, follow the checklist in `docs/deployment.md` plus:
 
 1. Sign in and sign out at `/sign-in`
 2. Confirm unauthenticated requests to `/projects` redirect to sign-in
-3. Create or open a project in the demo organization
-4. Edit an implementation as an author
-5. Submit for review; complete a review as a reviewer
-6. Confirm a viewer cannot mutate
-7. Invite a member; accept the invitation with a verified matching email
-8. Remove a member and confirm access is revoked
-9. Export and validate OSCAL for a representative project
-10. Restart the service and confirm persistence
-11. Confirm `/api/health` returns `{"status":"ok"}`
+3. Confirm `/api/health` returns `{"status":"ok"}`
+4. Restart the service and confirm persistence
 
-## Data backup
+## SQLite → PostgreSQL cutover
 
-- Use Render PostgreSQL backups / point-in-time recovery per your plan
-- Keep OSCAL SSP JSON exports as an application-level content backup
-- Retain the pre-cutover SQLite file backup until the release is accepted
+Existing SQLite deployments must follow:
+
+`docs/playbooks/sqlite-to-postgres-cutover.md`
 
 ## Limitations
 
 - Horizontal scaling requires a shared PostgreSQL and sticky-aware session
   design review; start with a single web instance unless load requires more
-- No production email provider is wired by default — configure a real sender
-  before relying on verification/invitation email outside development
+- No production email provider is wired by default
 - Social login, SSO, passkeys, MFA, and SCIM remain out of scope
+- Evidence object storage is required in production but is not provisioned here
