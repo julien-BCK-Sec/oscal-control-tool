@@ -65,9 +65,12 @@ npm run dev
 - Ensures `.env.local` exists (copies from `.env.example`, fills localhost
   defaults, generates missing secrets only — never overwrites existing keys)
 - Verifies PostgreSQL connectivity and runs `npm run db:migrate`
-- Creates demo organizations, users, memberships, projects, and collaboration
-  data (idempotent; safe to re-run)
+- Creates demo organizations, users, memberships, canonical projects,
+  collaboration, and Evidence (idempotent; safe to re-run; does not reset
+  user edits)
 - Prints login emails and the shared demo password
+
+See `docs/demo-data.md` for the purpose of each sample project.
 
 Compose PostgreSQL defaults (no `compose.yaml` edits required):
 
@@ -85,19 +88,20 @@ Demo accounts (shared password `ControlFreakDemo123!`):
 
 | Email | Role | Organization |
 |-------|------|--------------|
-| alice@example.com | Organization Admin | Acme Corporation |
-| bob@example.com | Project Manager | Acme Corporation |
-| carol@example.com | Author | Acme Corporation |
-| dave@example.com | Reviewer | Acme Corporation |
-| victor@example.com | Viewer | Acme Corporation |
-| olivia@example.com | Author (Contributor) | Acme Corporation |
+| alice@example.com | Organization Admin | Canadian Goose Defence System |
+| bob@example.com | Project Manager | Canadian Goose Defence System |
+| carol@example.com | Author | Canadian Goose Defence System |
+| dave@example.com | Reviewer | Canadian Goose Defence System |
+| victor@example.com | Viewer | Canadian Goose Defence System |
+| olivia@example.com | Author (Contributor) | Canadian Goose Defence System |
 | oscar@example.com | Organization Admin | Contoso Industries |
 | rachel@example.com | Reviewer | Contoso Industries |
 
-Projects: Goose Command Control Center (flagship), Customer A SSP, Internal Lab
-Environment (Acme), Contoso Cloud Platform (Contoso). Demo framework content
-uses the pinned NIST SP 800-53 Rev. 5 Moderate baseline explicitly (no FedRAMP
-profile is shipped). New projects can select Low, Moderate, or High.
+Flagship: Strategic Goose Operations Platform (Demo) (NIST SP 800-53 Rev. 5
+Moderate). Supporting CGDS projects cover CMMC Level 2, NIST Low, an
+evidence-gap Moderate system, and NIST High. Contoso Cloud Platform is a
+second-tenant Moderate project. New projects can select Low, Moderate, High,
+or CMMC Level 2.
 
 Migrations vs demo data: `npm run db:migrate` applies schema only.
 `bootstrap:demo` runs migrations, then seeds identity and demo content.
@@ -176,6 +180,7 @@ local development.
 | `docs/decisions.md` | Architectural decisions (ADRs) |
 | `docs/design-system.md` | UI design system |
 | `docs/oscal-standards-alignment.md` | OSCAL and standards guidance |
+| `docs/demo-data.md` | Canonical demo organizations, projects, and seed commands |
 | `docs/deploy-render.md` | Deployment guide |
 | `docs/playbooks/sqlite-to-postgres-cutover.md` | Legacy SQLite cutover |
 | `docs/milestones/` | Milestone specifications |

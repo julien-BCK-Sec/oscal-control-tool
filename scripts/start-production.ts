@@ -18,6 +18,7 @@ import {
   resolveDatabaseUrl,
 } from "../src/persistence/postgres/client";
 import { createPostgresProjectRepository } from "../src/persistence/postgres/project-repository";
+import { createPostgresOrganizationRepository } from "../src/persistence/postgres/organization-repository";
 import {
   formatSeedDemoSummary,
   seedDemoProject,
@@ -58,10 +59,25 @@ async function seedDemoIfRequested(databaseUrl: string): Promise<void> {
   console.log(
     "SEED_DEMO_PROJECT enabled; seeding demo (idempotent, no --reset)...",
   );
-  const repository = createPostgresProjectRepository(await getDb(databaseUrl));
+  const db = await getDb(databaseUrl);
+  const orgSlug = process.env.SEED_DEMO_ORG_SLUG?.trim().toLowerCase();
+  if (!orgSlug) {
+    throw new Error(
+      "SEED_DEMO_ORG_SLUG is required when SEED_DEMO_PROJECT is enabled.",
+    );
+  }
+  const organization = await createPostgresOrganizationRepository(
+    db,
+  ).getOrganizationBySlug(orgSlug);
+  if (!organization) {
+    throw new Error(
+      `SEED_DEMO_ORG_SLUG "${orgSlug}" does not match an existing organization.`,
+    );
+  }
+  const repository = createPostgresProjectRepository(db);
   const result = await seedDemoProject(
     repository,
-    { reset: false, validateOscal: true },
+    { reset: false, validateOscal: true, organizationId: organization.id },
     { databasePathHint: databaseUrl },
   );
   console.log(formatSeedDemoSummary(result));

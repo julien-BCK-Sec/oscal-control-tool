@@ -91,9 +91,20 @@ OSCAL SSP export disabled for CMMC. Not CMMC assessment or certification.
 See `docs/milestones/04C-cmmc-level-2-framework-support.md`, ADR-026
 amendment, and ADR-027.
 
+**Milestone 05A – Consolidate and Modernize the Demo Dataset** (implemented)
+
+One canonical demo environment: Canadian Goose Defence System flagship
+(Strategic Goose Operations Platform) plus supporting Low / High / CMMC /
+evidence-gap projects, Contoso tenant isolation, idempotent bootstrap, and
+separated destructive reset. See `docs/milestones/05A-consolidate-modernize-demo-dataset.md`
+and `docs/demo-data.md`.
+
 ## Next
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
+
+Seeded demo deployment (`DEPLOYMENT_MODE`, Render lifecycle) is not
+implemented; 05A only prepared the dataset and seed safety.
 
 ## Later
 
