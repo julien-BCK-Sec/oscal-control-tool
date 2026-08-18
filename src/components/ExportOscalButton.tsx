@@ -5,6 +5,7 @@ import type { Framework } from "@/data/framework";
 import type { ControlImplementation } from "@/data/implementation";
 import type { ProjectMetadata } from "@/data/project";
 import { assembleProject } from "@/domain";
+import { frameworkHasOscalSspExport } from "@/framework/nist-sp-800-53-rev5/identities";
 import {
   buildSspExportFilename,
   downloadJsonFile,
@@ -24,6 +25,7 @@ export function ExportOscalButton({
   implementations,
 }: ExportOscalButtonProps) {
   const [exportError, setExportError] = useState<string | null>(null);
+  const oscalAvailable = frameworkHasOscalSspExport(framework.id);
 
   function handleExport() {
     setExportError(null);
@@ -45,6 +47,15 @@ export function ExportOscalButton({
 
     const filename = buildSspExportFilename(project.metadata.systemName);
     downloadJsonFile(filename, oscalDocument);
+  }
+
+  if (!oscalAvailable) {
+    return (
+      <p className="max-w-md text-left text-xs leading-relaxed text-text-secondary">
+        OSCAL SSP export is available for NIST SP 800-53 projects. No official
+        CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned.
+      </p>
+    );
   }
 
   return (

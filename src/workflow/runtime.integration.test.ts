@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, it } from "node:test";
+import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
 import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
 import {
   NIST_HIGH_FRAMEWORK_ID,
@@ -420,6 +421,108 @@ describe("workflow domain event integration", () => {
       (await env.controlRecords.getByProjectAndControl(project.id, outsideId)) ==
         null,
       true,
+    );
+  });
+
+  it("rejects 800-53 IDs on a CMMC Level 2 project before creating operational state", async () => {
+    const env = await setup();
+    const admin = await env.makeMember("admin6@example.com", "organization_admin");
+    const project = await env.projects.create({
+      name: "CMMC WF",
+      frameworkId: CMMC_LEVEL_2_FRAMEWORK_ID,
+      organizationId: env.org.id,
+    });
+
+    await env.workflowRepo.createRule({
+      organizationId: env.org.id,
+      name: "Assign on event",
+      triggerType: "control_assigned",
+      conditions: [],
+      actions: [
+        {
+          type: "assign_user",
+          userId: admin.id,
+          assignmentRole: "owner",
+        },
+      ],
+      createdByUserId: admin.id,
+    });
+
+    const event = controlAssignedEvent({
+      organizationId: env.org.id,
+      actorId: admin.id,
+      projectId: project.id,
+      controlId: "ac-2",
+      assignmentId: "asg-cmmc-invalid",
+      assigneeUserId: admin.id,
+      assignmentRole: "owner",
+    });
+
+    await processWorkflowDomainEvent(event, env.deps);
+
+    const executions = await env.workflowRepo.listExecutions(env.org.id);
+    assert.equal(executions.length, 1);
+    assert.equal(executions[0]?.status, "failed");
+    assert.equal(
+      executions[0]?.detail.actionResults[0]?.errorMessage,
+      UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+    );
+    assert.equal(
+      (await env.assignments.listByControl(env.org.id, project.id, "ac-2"))
+        .length,
+      0,
+    );
+  });
+
+  it("allows a valid CMMC requirement ID for generic workflow actions", async () => {
+    const env = await setup();
+    const admin = await env.makeMember("admin7@example.com", "organization_admin");
+    const project = await env.projects.create({
+      name: "CMMC WF valid",
+      frameworkId: CMMC_LEVEL_2_FRAMEWORK_ID,
+      organizationId: env.org.id,
+    });
+
+    await env.workflowRepo.createRule({
+      organizationId: env.org.id,
+      name: "Assign on event",
+      triggerType: "control_assigned",
+      conditions: [],
+      actions: [
+        {
+          type: "assign_user",
+          userId: admin.id,
+          assignmentRole: "reviewer",
+        },
+      ],
+      createdByUserId: admin.id,
+    });
+
+    const event = controlAssignedEvent({
+      organizationId: env.org.id,
+      actorId: admin.id,
+      projectId: project.id,
+      controlId: "AC.L2-3.1.1",
+      assignmentId: "asg-cmmc-valid",
+      assigneeUserId: admin.id,
+      assignmentRole: "owner",
+    });
+
+    await processWorkflowDomainEvent(event, env.deps);
+
+    const executions = await env.workflowRepo.listExecutions(env.org.id);
+    assert.equal(executions.length, 1);
+    assert.equal(executions[0]?.status, "succeeded");
+    const assigned = await env.assignments.listByControl(
+      env.org.id,
+      project.id,
+      "AC.L2-3.1.1",
+    );
+    assert.ok(
+      assigned.some(
+        (row) =>
+          row.assigneeUserId === admin.id && row.assignmentRole === "reviewer",
+      ),
     );
   });
 });

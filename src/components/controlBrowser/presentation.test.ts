@@ -5,6 +5,7 @@ import {
   buildControlTree,
   filterControlTree,
   formatControlIdDisplay,
+  isEnhancementId,
   parentControlId,
 } from "./presentation";
 
@@ -25,6 +26,15 @@ describe("formatControlIdDisplay", () => {
     assert.equal(formatControlIdDisplay("ac-2.1"), "AC-2 (1)");
     assert.equal(formatControlIdDisplay("ac-2.13"), "AC-2 (13)");
     assert.equal(formatControlIdDisplay("cm-6"), "CM-6");
+    assert.equal(formatControlIdDisplay("AC.L2-3.1.1"), "AC.L2-3.1.1");
+  });
+
+  it("treats only 800-53 enhancement syntax as nested enhancements", () => {
+    assert.equal(isEnhancementId("ac-2.1"), true);
+    assert.equal(isEnhancementId("ac-2"), false);
+    assert.equal(isEnhancementId("AC.L2-3.1.1"), false);
+    assert.equal(isEnhancementId("3.1.1"), false);
+    assert.equal(parentControlId("AC.L2-3.1.1"), null);
   });
 });
 
@@ -79,5 +89,31 @@ describe("buildControlTree and filterControlTree", () => {
       byId[0].nodes[0].enhancements.map((enhancement) => enhancement.id),
       ["ac-2.1", "ac-2.2"],
     );
+  });
+
+  it("keeps CMMC requirement IDs as peers and finds them by origin ID", () => {
+    const tree = buildControlTree([
+      control({
+        id: "AC.L2-3.1.1",
+        title: "Limit system access to authorized users",
+        family: "Access Control",
+      }),
+      {
+        ...control({
+          id: "AC.L2-3.1.2",
+          title: "Limit system access to the types of transactions",
+          family: "Access Control",
+        }),
+        originId: "3.1.2",
+      },
+    ]);
+    assert.equal(tree.length, 1);
+    assert.equal(tree[0]?.nodes.length, 2);
+    assert.deepEqual(
+      tree[0]?.nodes.map((node) => node.enhancements.length),
+      [0, 0],
+    );
+    const byOrigin = filterControlTree(tree, "3.1.2");
+    assert.equal(byOrigin[0]?.nodes[0]?.control.id, "AC.L2-3.1.2");
   });
 });

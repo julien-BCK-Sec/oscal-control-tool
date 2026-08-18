@@ -41,6 +41,11 @@ import {
 } from "@/data/control-record";
 import type { ProjectMetadata } from "@/data/project";
 import type { Framework } from "@/data/framework";
+import type { FrameworkDescriptor } from "@/data/framework/types";
+import {
+  frameworkItemTerms,
+  type FrameworkItemTerms,
+} from "@/components/framework/presentation";
 import { computeOverallCompletion } from "@/domain";
 import {
   AUTOSAVE_DEBOUNCE_MS,
@@ -66,6 +71,7 @@ import type {
 export type ProjectWorkspaceProps = {
   initialProject: StoredProject;
   framework: Framework;
+  frameworkDescriptor: FrameworkDescriptor;
   frameworkLabel: string;
   initialControlRecords: ControlRecord[];
   initialSnapshots: ProjectSnapshotSummary[];
@@ -94,6 +100,7 @@ function initialWorkingCopy(
 export function ProjectWorkspace({
   initialProject,
   framework,
+  frameworkDescriptor,
   frameworkLabel,
   initialControlRecords,
   initialSnapshots,
@@ -154,6 +161,7 @@ export function ProjectWorkspace({
     canArchive: false,
     canDelete: false,
   });
+  const itemTerms: FrameworkItemTerms = frameworkItemTerms(frameworkDescriptor);
 
   const historyRef = useRef(
     new EditorHistory(initialWorkingCopy(initialProject, initialRecordsMap)),
@@ -758,6 +766,7 @@ export function ProjectWorkspace({
         projectName={name}
         organizationName={metadata.organizationName}
         frameworkLabel={frameworkLabel}
+        itemPlural={itemTerms.plural}
         revision={revision}
         autosaveStatus={autosaveStatus}
         autosaveMessage={autosaveMessage}
@@ -796,6 +805,7 @@ export function ProjectWorkspace({
             <ProjectOverview
               framework={framework}
               frameworkLabel={frameworkLabel}
+              itemTerms={itemTerms}
               metadata={metadata}
               implementations={implementations}
               revision={revision}
@@ -848,6 +858,7 @@ export function ProjectWorkspace({
                 : undefined
             }
             canEditEvidence={evidenceCaps.canAssociate}
+            itemTerms={itemTerms}
           />
         </div>
 
@@ -876,6 +887,7 @@ export function ProjectWorkspace({
                 setActivityRefreshToken((token) => token + 1);
               }}
               onOpenControl={navigateToControl}
+              itemTerms={itemTerms}
             />
           ) : null}
         </div>

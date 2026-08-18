@@ -107,9 +107,9 @@ export function computeFamilyCompletion(
   });
 }
 
-/** e.g. `ac-1` → `AC`, `cm-2.1` → `CM`. */
+/** e.g. `ac-1` → `AC`, `cm-2.1` → `CM`, `AC.L2-3.1.1` → `AC`. */
 export function familyAbbreviationFromControlId(controlId: string): string {
-  const match = /^([a-z]+)-/i.exec(controlId.trim());
+  const match = /^([a-z]+)[.-]/i.exec(controlId.trim());
   return match ? match[1].toUpperCase() : "";
 }
 

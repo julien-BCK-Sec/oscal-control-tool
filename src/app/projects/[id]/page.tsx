@@ -83,6 +83,7 @@ export default async function ProjectPage({
       key={loaded.project.id}
       initialProject={loaded.project}
       framework={resolveFramework(loaded.project.frameworkId)}
+      frameworkDescriptor={frameworkDescriptor}
       frameworkLabel={formatFrameworkLabel(frameworkDescriptor)}
       initialControlRecords={controlRecords}
       initialSnapshots={snapshots}

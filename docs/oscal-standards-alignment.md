@@ -73,12 +73,16 @@ The UI no longer uses a handwritten MVP control list.
 | `FrameworkProvider` | `src/data/framework/types.ts` / `provider.ts` |
 | NIST Rev. 5 identities | `src/framework/nist-sp-800-53-rev5/identities.ts` |
 | NIST Rev. 5 derivation | `src/framework/nist-sp-800-53-rev5/derive.ts` |
-| Generated app framework JSON | `src/data/framework/generated/nist-sp-800-53-rev5-{low,moderate,high}.json` |
-| Derive script | `scripts/derive-nist-sp-800-53-rev5-frameworks.ts` (`npm run derive:framework`) |
+| CMMC Level 2 identity | `src/framework/cmmc-level-2-nist-sp-800-171-r2/identities.ts` |
+| CMMC Level 2 derivation | `src/framework/cmmc-level-2-nist-sp-800-171-r2/derive.ts` (pinned NIST SP 800-171 R2 CSV) |
+| Generated app framework JSON | `src/data/framework/generated/nist-sp-800-53-rev5-{low,moderate,high}.json`, `cmmc-level-2-nist-sp-800-171-r2.json` |
+| Derive script | `npm run derive:framework` (NIST 800-53 then CMMC) |
 
-**Source of truth for which controls appear:** the pinned Low / Moderate / High profile `imports[].include-controls[].with-ids` for the project's `frameworkId`.
+**Source of truth for which 800-53 controls appear:** the pinned Low / Moderate / High profile `imports[].include-controls[].with-ids` for the project's `frameworkId`.
 
-**Source of truth for titles, families, and statements:** the pinned SP 800-53 Rev. 5 catalog.
+**Source of truth for 800-53 titles, families, and statements:** the pinned SP 800-53 Rev. 5 catalog.
+
+**Source of truth for CMMC Level 2 requirements:** NIST SP 800-171 Rev. 2 (PDF normative; CSV used for deterministic derivation). CMMC identification numbers follow 32 CFR § 170.14(c)(1). Do not use NIST SP 800-171 Rev. 3, unofficial OSCAL, or community mappings.
 
 **Where derivation occurs:** build-time (and pretest) Node script. The browser loads only the generated application JSON for the project's selected framework (passed from the server). Client components must not import `FrameworkRegistry`, which would bundle all generated catalogs.
 
@@ -133,7 +137,9 @@ Do **not** import the catalog directly, FedRAMP Rules, a fabricated FedRAMP prof
 
 ### Current export
 
-Single SSP JSON file. The SSP references a commit-pinned external NIST profile via back-matter `rlink` for the project's selected Low, Moderate, or High baseline. Implemented requirements cover the full derived control set for that profile.
+Single SSP JSON file for NIST SP 800-53 Low / Moderate / High projects. The SSP references a commit-pinned external NIST profile via back-matter `rlink` for the project's selected baseline. Implemented requirements cover the full derived control set for that profile.
+
+CMMC Level 2 projects do not export OSCAL. There is no official CMMC or NIST SP 800-171 Rev. 2 OSCAL catalog/profile pinned in this repository. Do not fabricate one. Revisit only if an authoritative source is available in a later milestone.
 
 ### Future target
 
@@ -151,8 +157,10 @@ ZIP packaging is not implemented yet.
 
 ```
 vendor/oscal/v1.2.2/          # pinned NIST OSCAL schemas + NIST content
+vendor/nist/sp800-171/r2/     # pinned NIST SP 800-171 Rev. 2 PDF/CSV/XLSX for CMMC L2
 src/data/framework/           # FrameworkRegistry + FrameworkProvider + generated app-facing frameworks
 src/framework/nist-sp-800-53-rev5/  # identities + build-time profile/catalog derivation (not UI)
+src/framework/cmmc-level-2-nist-sp-800-171-r2/  # CMMC L2 identity + CSV derivation (not UI)
 src/framework/nist-moderate/  # compatibility re-exports for existing Moderate tests
 src/data/implementation/      # user implementation state
 src/data/project/             # project metadata
@@ -165,20 +173,20 @@ docs/                         # vision, architecture, this alignment note
 ## Application architecture
 
 1. **Domain model** — `Project` (metadata + `frameworkId` + framework controls + implementations); no OSCAL types.
-2. **FrameworkRegistry / FrameworkProvider** — application `Framework` derived from the pinned NIST profile/catalog selected by `frameworkId`.
+2. **FrameworkRegistry / FrameworkProvider** — application `Framework` derived from pinned official artifacts selected by `frameworkId` (OSCAL for 800-53; NIST CSV for CMMC L2).
 3. **User implementation** — status/narrative keyed by control ID.
-4. **OSCAL exporter** — pure `Project` → SSP JSON in `src/oscal/`.
+4. **OSCAL exporter** — pure `Project` → SSP JSON in `src/oscal/` for frameworks with an approved OSCAL representation. Unavailable for CMMC.
 5. **Validation** — AJV against pinned SSP schema (structural only).
 6. **FedRAMP policy evaluation (later)** — Consolidated Rules; never replaces catalog/profile.
 
 ```text
-pinned Low / Moderate / High profiles + catalog
+pinned official artifacts (OSCAL profiles/catalog and/or NIST 800-171 R2 CSV)
         │
         ▼ (build-time derive)
 generated Framework JSON ──► FrameworkRegistry ──► FrameworkProvider ──► UI / domain Project
                                                       │
                                                       ▼
-                                               OSCAL SSP exporter
+                              OSCAL SSP exporter (800-53 only; disabled for CMMC)
                                                       │
                                                       ▼
                                                AJV / pinned SSP schema
@@ -218,6 +226,11 @@ NIST SP 800-53 / OSCAL-specific by design:
 `FRAMEWORK` / `FRAMEWORK_CONTROLS` remain Moderate convenience exports for
 demo and historical tests. Project-scoped runtime paths must resolve through
 the Project's `frameworkId`.
+
+CMMC Level 2 (04C) extends the same registry without a parallel subsystem.
+Assessment objectives, MET / NOT MET, scoring, and certification remain out
+of the framework domain (ADR-027). The 13 July 2026 CMMC Phase II
+suspension is program context only and is not persisted as framework identity.
 
 ## Gaps before FedRAMP support can be claimed
 

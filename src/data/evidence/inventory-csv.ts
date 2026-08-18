@@ -76,8 +76,13 @@ function cell(value: string | number | null | undefined): string {
 
 export function formatEvidenceInventoryCsv(
   rows: readonly EvidenceInventoryRow[],
+  options?: { controlIdColumnLabel?: string },
 ): string {
-  const lines = [COLUMNS.join(",")];
+  const controlIdColumnLabel = options?.controlIdColumnLabel?.trim() || "Control ID";
+  const headers = COLUMNS.map((column) =>
+    column === "Control ID" ? controlIdColumnLabel : column,
+  );
+  const lines = [headers.join(",")];
   for (const row of rows) {
     lines.push(
       [

@@ -7,6 +7,7 @@ import {
   utcTodayIsoDate,
   type EvidenceInventoryRow,
 } from "@/data/evidence";
+import { frameworkRegistry } from "@/data/framework";
 import {
   getEvidenceCoverageQuery,
   getProjectRepository,
@@ -75,7 +76,14 @@ export async function GET(
       ...row,
       projectName: loaded.project.name,
     }));
-    const csv = formatEvidenceInventoryCsv(rows);
+    const descriptor = frameworkRegistry.getDescriptor(
+      loaded.project.frameworkId,
+    );
+    const controlIdColumnLabel =
+      descriptor?.itemSingular === "requirement"
+        ? "Requirement ID"
+        : "Control ID";
+    const csv = formatEvidenceInventoryCsv(rows, { controlIdColumnLabel });
     const filename = evidenceInventoryFilename(loaded.project.name, asOfDate);
 
     return new Response(csv, {

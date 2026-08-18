@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { assembleProject } from "@/domain";
 import { resolveFrameworkControls } from "@/data/framework";
 import {
+  frameworkHasOscalSspExport,
   NIST_HIGH_FRAMEWORK_ID,
   NIST_HIGH_IDENTITY,
   NIST_LOW_FRAMEWORK_ID,
@@ -11,6 +12,7 @@ import {
   NIST_MODERATE_IDENTITY,
   type NistSp80053Rev5Identity,
 } from "@/framework/nist-sp-800-53-rev5/identities";
+import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
 import { NIST_SP80053_REV5_MODERATE_PROFILE_URI } from "@/oscal/ssp/constants";
 import { projectToOscalSsp } from "@/oscal/ssp/exportSsp";
 import { validateOscalSspDocument } from "@/oscal/ssp/validateSsp";
@@ -98,6 +100,27 @@ describe("projectToOscalSsp framework profile metadata", () => {
             },
             frameworkId: "not-a-framework",
             frameworkControls: [],
+            implementations: {},
+          }),
+        ),
+      /Unknown framework/,
+    );
+  });
+
+  it("does not fabricate an OSCAL SSP for CMMC Level 2", () => {
+    assert.equal(frameworkHasOscalSspExport(CMMC_LEVEL_2_FRAMEWORK_ID), false);
+    assert.equal(frameworkHasOscalSspExport(NIST_MODERATE_FRAMEWORK_ID), true);
+    assert.throws(
+      () =>
+        projectToOscalSsp(
+          assembleProject({
+            metadata: {
+              systemName: "CMMC",
+              organizationName: "Example",
+              systemDescription: "Should not export.",
+            },
+            frameworkId: CMMC_LEVEL_2_FRAMEWORK_ID,
+            frameworkControls: resolveFrameworkControls(CMMC_LEVEL_2_FRAMEWORK_ID),
             implementations: {},
           }),
         ),

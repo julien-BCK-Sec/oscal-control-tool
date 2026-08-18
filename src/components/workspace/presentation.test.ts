@@ -9,6 +9,7 @@ import {
   parseControlQueryParam,
   parseWorkspaceViewParam,
   workspaceTabDefinition,
+  workspaceTabsForItemPlural,
 } from "@/components/workspace/presentation";
 
 describe("workspace tabs", () => {
@@ -24,6 +25,11 @@ describe("workspace tabs", () => {
       ["overview", "controls", "evidence", "details", "history"],
     );
     assert.equal(workspaceTabDefinition("controls").label, "Controls");
+    assert.equal(
+      workspaceTabsForItemPlural("requirements").find((tab) => tab.id === "controls")
+        ?.label,
+      "Requirements",
+    );
     assert.equal(workspaceTabDefinition("evidence").label, "Evidence");
     assert.equal(
       workspaceTabDefinition("details").label,

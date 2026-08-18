@@ -6,10 +6,12 @@ import type {
   FrameworkRegistry,
 } from "./types";
 import {
+  cmmcLevel2FrameworkProvider,
   nistHighFrameworkProvider,
   nistLowFrameworkProvider,
   nistModerateFrameworkProvider,
 } from "./provider";
+import { CMMC_LEVEL_2_IDENTITY } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
 import {
   DEFAULT_FRAMEWORK_ID,
   NIST_HIGH_IDENTITY,
@@ -29,6 +31,8 @@ function descriptorFromIdentity(
     profile: identity.profile,
     provider: identity.provider,
     source: identity.source,
+    itemSingular: "control",
+    itemPlural: "controls",
     oscalProfileTitle: identity.oscalProfileTitle,
     oscalProfileUri: identity.oscalProfileUri,
     oscalProfileMediaType: identity.oscalProfileMediaType,
@@ -50,6 +54,20 @@ const ENTRIES: readonly {
   {
     descriptor: descriptorFromIdentity(NIST_HIGH_IDENTITY),
     provider: nistHighFrameworkProvider,
+  },
+  {
+    descriptor: {
+      id: CMMC_LEVEL_2_IDENTITY.id,
+      title: CMMC_LEVEL_2_IDENTITY.title,
+      catalog: CMMC_LEVEL_2_IDENTITY.catalog,
+      revision: CMMC_LEVEL_2_IDENTITY.revision,
+      profile: CMMC_LEVEL_2_IDENTITY.profile,
+      provider: CMMC_LEVEL_2_IDENTITY.provider,
+      source: CMMC_LEVEL_2_IDENTITY.source,
+      itemSingular: CMMC_LEVEL_2_IDENTITY.itemSingular,
+      itemPlural: CMMC_LEVEL_2_IDENTITY.itemPlural,
+    },
+    provider: cmmcLevel2FrameworkProvider,
   },
 ];
 

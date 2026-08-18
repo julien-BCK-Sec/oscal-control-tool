@@ -73,6 +73,15 @@ export function workspaceTabDefinition(
   return found;
 }
 
+export function workspaceTabsForItemPlural(
+  itemPlural = "controls",
+): readonly WorkspaceTabDefinition[] {
+  const label = `${itemPlural.charAt(0).toUpperCase()}${itemPlural.slice(1)}`;
+  return WORKSPACE_TABS.map((tab) =>
+    tab.id === "controls" ? { ...tab, label } : tab,
+  );
+}
+
 /** Which panel content is active for a given tab selection. */
 export function isWorkspacePanelActive(
   activeTab: WorkspaceTabId,

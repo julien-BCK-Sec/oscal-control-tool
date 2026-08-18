@@ -100,9 +100,17 @@ form primitives. Do not move workflow or persistence logic into
 
 Framework/profile labels use registry descriptor metadata via
 `formatFrameworkLabel` in `src/components/framework/presentation.ts`
-(for example `NIST SP 800-53 Rev. 5 — Moderate`). Do not hard-code
-Low/Moderate/High conditionals in UI. Show the full label on project cards,
-Overview, and workspace chrome; do not repeat it in every nested panel.
+(for example `NIST SP 800-53 Rev. 5 — Moderate` or `CMMC Level 2`). Do not
+hard-code Low/Moderate/High conditionals in UI. Group the project-create
+selector by catalog/revision (`formatFrameworkFamilyGroup`). Show the full
+label on project cards, Overview, and workspace chrome; do not repeat it in
+every nested panel.
+
+User-facing item terms (`control`/`controls` vs `requirement`/`requirements`)
+come from optional descriptor `itemSingular` / `itemPlural`. Use them on
+workspace tabs, Control Browser headings, Overview, and Evidence coverage
+copy. Keep internal routes and types (`view=controls`, `controlId`) unchanged.
+Sentence case still applies. Never communicate status by color alone.
 
 ### Preferred composition
 

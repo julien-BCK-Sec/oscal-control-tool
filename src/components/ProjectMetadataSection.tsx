@@ -4,6 +4,7 @@ import { ExportOscalButton } from "@/components/ExportOscalButton";
 import type { Framework } from "@/data/framework";
 import type { ControlImplementation } from "@/data/implementation";
 import type { ProjectMetadata } from "@/data/project";
+import { frameworkHasOscalSspExport } from "@/framework/nist-sp-800-53-rev5/identities";
 
 export type ProjectMetadataSectionProps = {
   framework: Framework;
@@ -20,6 +21,7 @@ export function ProjectMetadataSection({
   implementations,
   projectName,
 }: ProjectMetadataSectionProps) {
+  const oscalAvailable = frameworkHasOscalSspExport(framework.id);
   function updateMetadata(patch: Partial<ProjectMetadata>) {
     onMetadataChange({
       ...metadata,
@@ -39,7 +41,11 @@ export function ProjectMetadataSection({
           </h2>
           <p className="mt-0.5 text-xs text-text-muted">
             {projectName
-              ? `Editing “${projectName}”. System and organization details for OSCAL export.`
+              ? `Editing “${projectName}”. ${
+                  oscalAvailable
+                    ? "System and organization details for OSCAL export."
+                    : "System and organization details for this documentation project."
+                }`
               : "System and organization details for this documentation project."}
           </p>
         </div>

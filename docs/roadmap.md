@@ -82,6 +82,15 @@ presentation, and compatibility for existing documents and named versions.
 See `docs/milestones/04B-framework-ux-and-hardening.md` and ADR-026
 amendment.
 
+**Milestone 04C – CMMC Level 2 Framework Support** (implemented)
+
+CMMC Level 2 as a registered framework (`cmmc-level-2-nist-sp-800-171-r2`)
+backed by pinned NIST SP 800-171 Rev. 2 artifacts (32 CFR Part 170). 110
+requirements, CMMC operational IDs, Evidence and workflow against those IDs,
+OSCAL SSP export disabled for CMMC. Not CMMC assessment or certification.
+See `docs/milestones/04C-cmmc-level-2-framework-support.md`, ADR-026
+amendment, and ADR-027.
+
 ## Next
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
@@ -94,8 +103,9 @@ amendment.
 - Scheduled Evidence reminders (missing required, due soon, overdue)
 - Email / Slack / Teams notifications
 - Durable domain event store / outbox / external broker
-- Additional compliance frameworks beyond the 04A/04B NIST Rev. 5 Low / Moderate /
-  High registry (ISO, CIS, PCI DSS, CMMC, CSF, mappings)
+- Additional compliance frameworks beyond the current NIST Rev. 5 Low /
+  Moderate / High and CMMC Level 2 registry (ISO, CIS, PCI DSS, CMMC Level 1/3,
+  CSF, mappings, official CMMC OSCAL if one is published)
 - AI-assisted authoring
 - Async / queued workflow execution, approvals, SLA timers
 - Horizontal scaling review beyond single-instance defaults

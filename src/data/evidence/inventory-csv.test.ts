@@ -72,6 +72,33 @@ describe("evidence inventory CSV", () => {
     assert.match(lines[2] ?? "", /p1,,,e2,/);
   });
 
+  it("can label the control-id column as Requirement ID for CMMC inventories", () => {
+    const csv = formatEvidenceInventoryCsv(
+      [
+        {
+          projectId: "p1",
+          projectName: "CMMC",
+          controlId: "AC.L2-3.1.1",
+          evidenceRequirement: "required",
+          evidenceId: "e1",
+          title: "Policy",
+          evidenceType: "policy",
+          owner: "Sam",
+          status: "active",
+          collectionDate: "2026-01-01",
+          reviewDueDate: null,
+          freshness: "no_review_date",
+          currentVersionFilename: null,
+          currentVersionUploadedAt: null,
+          linkedControlCount: 1,
+        },
+      ],
+      { controlIdColumnLabel: "Requirement ID" },
+    );
+    assert.match(csv, /^Project,Project ID,Requirement ID,/);
+    assert.match(csv, /AC\.L2-3\.1\.1/);
+  });
+
   it("neutralizes spreadsheet formula and control prefixes", () => {
     assert.equal(neutralizeCsvFormulaPrefix("=1+1"), "'=1+1");
     assert.equal(neutralizeCsvFormulaPrefix("+SUM(A1:A2)"), "'+SUM(A1:A2)");

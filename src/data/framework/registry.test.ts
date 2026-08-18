@@ -4,6 +4,7 @@ import {
   DEFAULT_FRAMEWORK_ID,
   FRAMEWORK,
   UnknownFrameworkError,
+  cmmcLevel2FrameworkProvider,
   frameworkRegistry,
   isFrameworkControlId,
   isRegisteredFrameworkId,
@@ -13,6 +14,7 @@ import {
   resolveFramework,
   resolveFrameworkControls,
 } from "@/data/framework";
+import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
 import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
@@ -20,13 +22,14 @@ import {
 } from "@/framework/nist-sp-800-53-rev5/identities";
 
 describe("frameworkRegistry", () => {
-  it("returns unique stable IDs for Low, Moderate, and High", () => {
+  it("returns unique stable IDs for Low, Moderate, High, and CMMC Level 2", () => {
     const listed = frameworkRegistry.list();
     const ids = listed.map((entry) => entry.id);
     assert.deepEqual(ids, [
       NIST_LOW_FRAMEWORK_ID,
       NIST_MODERATE_FRAMEWORK_ID,
       NIST_HIGH_FRAMEWORK_ID,
+      CMMC_LEVEL_2_FRAMEWORK_ID,
     ]);
     assert.equal(new Set(ids).size, ids.length);
     assert.equal(DEFAULT_FRAMEWORK_ID, NIST_MODERATE_FRAMEWORK_ID);
@@ -42,6 +45,13 @@ describe("frameworkRegistry", () => {
     assert.equal(moderate.provider, "nist-oscal");
     assert.notEqual(moderate.id, moderate.title);
     assert.ok(moderate.oscalProfileUri?.includes("MODERATE-baseline_profile"));
+    const cmmc = frameworkRegistry.requireDescriptor(CMMC_LEVEL_2_FRAMEWORK_ID);
+    assert.equal(cmmc.catalog, "CMMC");
+    assert.equal(cmmc.profile, "Level 2");
+    assert.equal(cmmc.itemSingular, "requirement");
+    assert.equal(cmmc.itemPlural, "requirements");
+    assert.equal(cmmc.oscalProfileUri, undefined);
+    assert.equal(cmmc.provider, "cmmc-nist-800-171");
   });
 
   it("resolves Low, Moderate, and High providers successfully", () => {
@@ -57,6 +67,12 @@ describe("frameworkRegistry", () => {
     assert.equal(low, nistLowFrameworkProvider.getFramework());
     assert.equal(moderate, nistModerateFrameworkProvider.getFramework());
     assert.equal(high, nistHighFrameworkProvider.getFramework());
+    const cmmc = frameworkRegistry.require(CMMC_LEVEL_2_FRAMEWORK_ID).getFramework();
+    assert.equal(cmmc.id, CMMC_LEVEL_2_FRAMEWORK_ID);
+    assert.equal(cmmc, cmmcLevel2FrameworkProvider.getFramework());
+    assert.equal(cmmc.controls.length, 110);
+    assert.equal(cmmc.controls[0]?.id, "AC.L2-3.1.1");
+    assert.equal(cmmc.controls[0]?.originId, "3.1.1");
     assert.equal(moderate, FRAMEWORK);
   });
 
@@ -74,6 +90,12 @@ describe("frameworkRegistry", () => {
     );
     assert.ok(isFrameworkControlId(NIST_MODERATE_FRAMEWORK_ID, "ac-2"));
     assert.equal(isFrameworkControlId(NIST_LOW_FRAMEWORK_ID, "not-a-control"), false);
+    assert.ok(isFrameworkControlId(CMMC_LEVEL_2_FRAMEWORK_ID, "AC.L2-3.1.1"));
+    assert.equal(isFrameworkControlId(CMMC_LEVEL_2_FRAMEWORK_ID, "ac-2"), false);
+    assert.equal(
+      isFrameworkControlId(NIST_MODERATE_FRAMEWORK_ID, "AC.L2-3.1.1"),
+      false,
+    );
   });
 
   it("fails closed for unknown framework IDs", () => {

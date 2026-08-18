@@ -8,6 +8,7 @@ export type {
 export {
   createGeneratedFrameworkProvider,
   createNistModerateFrameworkProvider,
+  cmmcLevel2FrameworkProvider,
   nistHighFrameworkProvider,
   nistLowFrameworkProvider,
   nistModerateFrameworkProvider,

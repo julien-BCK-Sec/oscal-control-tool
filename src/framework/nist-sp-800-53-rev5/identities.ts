@@ -100,6 +100,11 @@ export function findFrameworkIdentity(
   return NIST_SP80053_REV5_IDENTITIES.find((entry) => entry.id === id);
 }
 
+/** True when the client SSP exporter has an approved OSCAL profile for this ID. */
+export function frameworkHasOscalSspExport(frameworkId: string): boolean {
+  return findFrameworkIdentity(frameworkId) !== undefined;
+}
+
 export function requireFrameworkIdentity(
   frameworkId: string,
 ): NistSp80053Rev5Identity {
