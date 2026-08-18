@@ -27,7 +27,7 @@ trigger type.
 **Actions:** Notify user, Notify role, Assign user, Assign role, Set due
 date, Change status. Every rule needs at least one action.
 
-> **Note:** Priority, severity, and tag conditions/actions appear in the
+> **Limitation:** Priority, severity, and tag conditions/actions appear in the
 > catalog but aren't usable yet — Control Freak has no priority, severity,
 > or tag fields on controls in this version.
 

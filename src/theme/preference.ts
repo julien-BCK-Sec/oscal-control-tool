@@ -132,3 +132,6 @@ function defaultStorage(): Pick<Storage, "getItem" | "setItem"> | null {
  * sets data-theme + color-scheme before first paint (FOUC prevention).
  */
 export const THEME_INIT_SCRIPT = `(function(){try{var k=${JSON.stringify(THEME_PREFERENCE_STORAGE_KEY)};var p=localStorage.getItem(k);var pref=p==="light"||p==="dark"?p:"system";var dark=pref==="dark"||(pref==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);var t=dark?"dark":"light";var r=document.documentElement;r.setAttribute("data-theme",t);r.style.colorScheme=t;}catch(e){}})();`;
+
+export const THEME_INIT_SCRIPT_ID = "cf-theme-init";
+export const THEME_INIT_SCRIPT_STRATEGY = "beforeInteractive" as const;

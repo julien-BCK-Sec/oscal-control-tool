@@ -2,8 +2,14 @@ import "server-only";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { parseFrontmatter } from "@/help/frontmatter";
-import { type BlockNode, extractHeadings, parseMarkdown } from "@/help/markdown";
+import {
+  type BlockNode,
+  extractHeadings,
+  extractPlainText,
+  parseMarkdown,
+} from "@/help/markdown";
 import { findHelpSection, HELP_SECTIONS, type HelpSection } from "@/help/sections";
+import type { HelpSearchDocument } from "@/help/search";
 
 export type HelpHeading = { id: string; text: string; level: 1 | 2 | 3 | 4 };
 
@@ -113,6 +119,17 @@ export function getHelpManifest(): HelpManifest {
 export function getHelpPage(slug: string): HelpPage | null {
   const pages = loadAllHelpPages();
   return pages.find((page) => page.slug === slug) ?? null;
+}
+
+export function getHelpSearchIndex(): HelpSearchDocument[] {
+  return loadAllHelpPages().map((page) => ({
+    slug: page.slug,
+    title: page.title,
+    summary: page.summary,
+    sectionLabel: page.section.label,
+    headings: page.headings.map(({ id, text }) => ({ id, text })),
+    bodyText: extractPlainText(page.blocks),
+  }));
 }
 
 export function getAdjacentHelpPages(slug: string): {

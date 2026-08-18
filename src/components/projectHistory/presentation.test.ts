@@ -5,6 +5,7 @@ import {
   formatProjectRevisionLabel,
   formatSnapshotHistorySecondary,
   formatSnapshotHistoryTitle,
+  formatSnapshotTimestamp,
   isRestorableSnapshot,
   partitionSnapshotsForHistory,
 } from "./presentation";
@@ -99,5 +100,16 @@ describe("project history presentation", () => {
     assert.match(secondary, /^Project revision /);
     assert.doesNotMatch(title, /^rev\s*\d+/i);
     assert.doesNotMatch(title, /^Project revision/);
+  });
+
+  it("formats snapshot timestamps deterministically in UTC", () => {
+    const formatted = formatSnapshotTimestamp("2026-08-18T20:15:48.000Z");
+    assert.match(formatted, /2026/);
+    assert.match(formatted, /UTC/);
+    assert.equal(
+      formatSnapshotTimestamp("2026-08-18T20:15:48.000Z"),
+      formatSnapshotTimestamp("2026-08-18T20:15:48.000Z"),
+    );
+    assert.equal(formatSnapshotTimestamp("not-a-date"), "not-a-date");
   });
 });

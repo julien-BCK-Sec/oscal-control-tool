@@ -35,7 +35,7 @@ export default async function HelpTopicPage({ params }: HelpTopicPageProps) {
     .filter((summary): summary is NonNullable<typeof summary> => Boolean(summary));
 
   return (
-    <div className="mx-auto flex w-full max-w-[var(--layout-page-max)] flex-col gap-6 lg:flex-row lg:gap-8">
+    <div className="mx-auto flex w-full max-w-[var(--layout-help-max)] flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
       <HelpSidebarNav sections={manifest.sections} activeSlug={slug} />
       <HelpArticle page={page} previous={previous} next={next} related={related} />
     </div>

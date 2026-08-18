@@ -57,7 +57,8 @@ Defined in `src/app/globals.css`:
 - Typography sizes / weights / line heights
 - Radii, shadows (`--shadow-subtle`, `--shadow-elevated`), transitions
 - Control heights, card padding, layout widths (`--layout-sidebar`,
-  `--layout-page-max`, `--product-header-height`)
+  `--layout-page-max`, `--layout-help-max`, `--layout-help-prose`,
+  `--product-header-height`)
 
 Light values live on `:root`. Dark values override the same names under
 `[data-theme="dark"]` (ADR-022). Prefer changing token values over adding
@@ -65,6 +66,9 @@ component-specific dark colors.
 
 Shared component classes: `.btn`, `.btn-primary`, `.btn-danger`, `.btn-sm`,
 `.field`, `.label`, `.control-id`, `.ds-card`, `.ds-card-prominent`.
+Help documentation layout classes (`.help-callout`, `.help-diagram`,
+`.help-article-prose`) live in the same file and are used only by the
+in-app user guide.
 
 ## Theme preference
 
@@ -72,6 +76,7 @@ Shared component classes: `.btn`, `.btn-primary`, `.btn-danger`, `.btn-sm`,
 - Stored in `localStorage` key `cf-theme-preference` (UI-only; not auth-backed)
 - Resolved theme is applied as `data-theme` + `color-scheme` on `<html>`
 - Blocking init script in the root layout prevents a wrong-theme flash
+  (`next/script` `beforeInteractive`, `src/theme/ThemeInitScript.tsx`)
 - Account menu → Theme section selects the preference
 - Implementation: `src/theme/` (`preference.ts`, `ThemeProvider`)
 

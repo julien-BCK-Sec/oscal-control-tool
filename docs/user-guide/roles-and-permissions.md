@@ -38,7 +38,7 @@ full Evidence permission table.
 
 Two capabilities are exclusive to **organization administrators**: managing
 team membership and invitations
-([Invitations and team management](/help/invitations-and-team)), and
+([Manage your team](/help/invitations-and-team)), and
 managing workflow automation rules
 ([Workflow automation](/help/workflow-automation)). No other role — not
 even project manager — can see either of those screens.

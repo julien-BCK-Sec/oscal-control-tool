@@ -1,5 +1,5 @@
 ---
-title: Invitations and team management
+title: Manage your team
 summary: Inviting members, the roles you can assign, and how pending invitations behave — from the Team page.
 section: administration
 order: 20

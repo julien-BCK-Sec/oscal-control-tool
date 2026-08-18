@@ -17,11 +17,12 @@ import {
   type ValidationCheck,
 } from "@/domain";
 import {
+  formatProjectRevisionLabel,
   formatSnapshotHistoryTitle,
-  formatSnapshotTimestamp,
   partitionSnapshotsForHistory,
 } from "@/components/projectHistory/presentation";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { AbsoluteTimestamp } from "@/components/time/AbsoluteTimestamp";
 import type { ControlsFocusRequest } from "@/components/workspace/presentation";
 import { EvidenceOverviewCards } from "@/components/evidence/EvidenceOverviewCards";
 import type { EvidenceAttentionFilter } from "@/components/workspace/presentation";
@@ -36,7 +37,6 @@ import {
   type FrameworkItemTerms,
 } from "@/components/framework/presentation";
 import { formatControlIdDisplay } from "@/components/controlBrowser/presentation";
-import { formatProjectRevisionLabel } from "@/components/projectHistory/presentation";
 import { frameworkHasOscalSspExport } from "@/framework/nist-sp-800-53-rev5/identities";
 
 export type ProjectOverviewProps = {
@@ -186,7 +186,7 @@ export function ProjectOverview({
             <div>
               <dt className="text-text-muted">Last updated</dt>
               <dd className="text-text-secondary">
-                {formatSnapshotTimestamp(updatedAt)}
+                <AbsoluteTimestamp value={updatedAt} />
               </dd>
             </div>
           </dl>
@@ -453,7 +453,7 @@ export function ProjectOverview({
                       {formatSnapshotHistoryTitle(snapshot)}
                     </span>
                     <span className="text-xs text-text-muted">
-                      {formatSnapshotTimestamp(snapshot.createdAt)}
+                      <AbsoluteTimestamp value={snapshot.createdAt} />
                     </span>
                   </li>
                 ))}

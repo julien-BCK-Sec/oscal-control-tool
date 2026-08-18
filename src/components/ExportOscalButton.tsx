@@ -55,7 +55,9 @@ export function ExportOscalButton({
       <p className="max-w-md text-left text-xs leading-relaxed text-text-secondary">
         OSCAL SSP export is available for NIST SP 800-53 projects. No official
         CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned.{" "}
-        <HelpLink slug="oscal-export">Learn more</HelpLink>
+        <HelpLink slug="oscal-export" hash="cmmc-projects-dont-have-this-button">
+          Learn more
+        </HelpLink>
       </p>
     );
   }
@@ -66,7 +68,7 @@ export function ExportOscalButton({
         Export OSCAL SSP
       </button>
       <p className="text-left text-xs sm:text-right">
-        <HelpLink slug="oscal-export">
+        <HelpLink slug="oscal-export" hash="what-valid-means-here">
           What OSCAL export includes and what validation means
         </HelpLink>
       </p>

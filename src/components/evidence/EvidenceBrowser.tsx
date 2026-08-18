@@ -407,7 +407,7 @@ export function EvidenceBrowser({
         description={`${evidenceCoverageDisclaimer(itemTerms)} Search and filter project Evidence. Coverage counts active Evidence only; drafts are in-progress attention facts.`}
       />
       <p className="-mt-2 text-xs">
-        <HelpLink slug="evidence-coverage">
+        <HelpLink slug="evidence-coverage" hash="how-coverage-is-computed">
           How Evidence coverage and freshness are calculated
         </HelpLink>
       </p>

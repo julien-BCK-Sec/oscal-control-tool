@@ -26,7 +26,7 @@ export function ProductHeader({
           <Link
             href={href}
             className="inline-flex shrink-0 items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-            aria-label="Control Freak home"
+            aria-label="Control Freak projects"
           >
             <span className="hidden sm:inline-flex">
               <Brand variant="lockup" appearance="auto" size="sm" priority />

@@ -15,7 +15,7 @@ related: welcome, authoring-controls, evidence
 - **Coverage state** — one of Not required, Optional — no evidence,
   Optional — evidence present, Required — missing evidence, or
   Required — evidence present, computed per control. See
-  [Evidence coverage and reporting](/help/evidence-coverage).
+  [Track Evidence coverage](/help/evidence-coverage).
 - **Evidence** — a project-scoped record (optionally with an uploaded file)
   that substantiates a control's implementation. See
   [Evidence](/help/evidence).

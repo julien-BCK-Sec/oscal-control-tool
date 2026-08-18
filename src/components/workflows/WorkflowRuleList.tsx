@@ -109,7 +109,10 @@ export function WorkflowRuleList({
             they never run from business services directly.
           </p>
           <p className="mt-1 text-xs">
-            <HelpLink slug="workflow-automation">
+            <HelpLink
+              slug="workflow-automation"
+              hash="triggers-conditions-and-actions"
+            >
               Triggers, conditions, and actions explained
             </HelpLink>
           </p>

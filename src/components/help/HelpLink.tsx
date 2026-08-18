@@ -4,22 +4,28 @@ import type { ReactNode } from "react";
 export type HelpLinkProps = {
   /** Slug of the target user-guide page, e.g. "evidence-coverage". */
   slug: string;
+  /** Optional heading id on that page, without the leading #. */
+  hash?: string;
   children: ReactNode;
   className?: string;
 };
 
 /**
- * Small contextual link into the in-app Help guide. Opens in a new tab so a
- * user mid-edit (e.g. an implementation narrative) never loses unsaved work
- * by navigating away.
+ * Contextual link into the in-app Help guide. Same-tab navigation so Help
+ * remains part of the application and the browser Back button returns to
+ * the previous screen.
  */
-export function HelpLink({ slug, children, className = "" }: HelpLinkProps) {
+export function HelpLink({
+  slug,
+  hash,
+  children,
+  className = "",
+}: HelpLinkProps) {
+  const href = hash ? `/help/${slug}#${hash}` : `/help/${slug}`;
   return (
     <Link
-      href={`/help/${slug}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`text-accent underline underline-offset-2 hover:text-accent-hover ${className}`}
+      href={href}
+      className={`text-accent underline underline-offset-2 hover:text-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring ${className}`}
     >
       {children}
     </Link>
