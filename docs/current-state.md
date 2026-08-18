@@ -44,6 +44,10 @@ The application currently provides:
   multi-tenant environment: Canadian Goose Defence System (Goose flagship
   plus supporting projects, including CMMC Level 2), Contoso Industries, and
   FirstDoor.
+- In-app Help / user guide (`/help`, `/help/{slug}`) rendering Markdown
+  content from `docs/user-guide/` for authenticated users, with contextual
+  links from the control editor, Evidence tab, OSCAL export, and workflow
+  automation screens
 
 
 OSCAL is an export/interchange format, not the internal editing model.
@@ -229,6 +233,37 @@ Production deployments use `DEPLOYMENT_MODE` (`docs/deployment.md`, ADR-028).
 - DoD Model Overview short names were not pinable (HTTP 403); titles are
   derived from the NIST requirement statement
 
+## In-app Help / user guide
+
+- Canonical content: Markdown pages with frontmatter (`title`, `summary`,
+  `section`, `order`, `related`) under `docs/user-guide/`; the same files are
+  the checked-in documentation source and the in-app Help content — no
+  duplicated copy
+- Loader (`src/help/`): server-only frontmatter + dependency-free Markdown
+  parser (headings, paragraphs, lists, code blocks, blockquotes, tables,
+  links; no `dangerouslySetInnerHTML`), grouped into a manifest by section
+  (`src/help/sections.ts`)
+- Routes: `/help` (topic index by section) and `/help/{slug}` (article with
+  table of contents, related-topic links, and previous/next), both behind
+  authentication (redirect to sign-in) and using the existing `AppShell` /
+  `ProductHeader` / `PageContent` design-system shell
+- Navigation: sidebar topic list with a client-side substring filter across
+  titles and summaries (no search index/dependency); breadcrumb and
+  previous/next on each article
+- Discoverability: a persistent **Help** link in the authenticated header
+  (`AuthenticatedHeaderActions`); targeted contextual links
+  (`HelpLink`) on the control editor (the three status fields), the Evidence
+  tab (coverage/freshness), the OSCAL export control, and the workflow
+  automation rule list — not added to every screen
+- Tests validate manifest loading/ordering, path-traversal-safe slug
+  resolution, and that every internal `/help/{slug}` and `related` link in
+  the content resolves to a real page
+- Content is read from `docs/user-guide/*.md` at runtime (same pattern as
+  the pinned OSCAL schema); the production Docker image copies that
+  directory alongside `src` and the vendor schema
+- Reused for other output formats (standalone HTML, PDF, Word) if desired
+  later: the Markdown source has no in-app-only content and no build step
+
 ## Current standards position
 
 - OSCAL version: 1.2.2
@@ -320,6 +355,7 @@ Do not fetch standards files at runtime and do not use moving branches.
   search keyset index in `drizzle-pg/0007_evidence_search_idx.sql`; Evidence
   review-due index in `drizzle-pg/0008_evidence_review_due_idx.sql`.
 - Routes: `/sign-in`, `/projects`, `/projects/[id]` (including `?view=evidence`),
+  `/help`, `/help/[slug]`,
   `/organizations/[orgId]/settings`, `/organizations/[orgId]/workflows`,
   `/invitations/[id]`
 - ControlRecords / ControlActivity / collaboration / evidence tables remain

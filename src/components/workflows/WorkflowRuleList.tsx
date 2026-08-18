@@ -8,6 +8,7 @@ import {
   setWorkflowRuleEnabledAction,
 } from "@/app/actions/workflows";
 import { Button } from "@/components/design-system/button/Button";
+import { HelpLink } from "@/components/help/HelpLink";
 import {
   Card,
   CardContent,
@@ -106,6 +107,11 @@ export function WorkflowRuleList({
           <p className="mt-1 text-sm text-text-secondary">
             Automations for {organizationName}. Rules react to domain events;
             they never run from business services directly.
+          </p>
+          <p className="mt-1 text-xs">
+            <HelpLink slug="workflow-automation">
+              Triggers, conditions, and actions explained
+            </HelpLink>
           </p>
         </div>
         <Link

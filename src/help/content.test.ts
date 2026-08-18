@@ -1,0 +1,115 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import {
+  getAdjacentHelpPages,
+  getHelpManifest,
+  getHelpPage,
+} from "./content";
+import { HELP_SECTIONS } from "./sections";
+
+describe("getHelpManifest", () => {
+  it("loads every guide page into a known section", () => {
+    const manifest = getHelpManifest();
+    assert.ok(manifest.flat.length > 0);
+    for (const summary of manifest.flat) {
+      assert.ok(summary.title.length > 0, `${summary.slug} has a title`);
+      assert.ok(summary.summary.length > 0, `${summary.slug} has a summary`);
+    }
+  });
+
+  it("groups pages under sections in the declared section order", () => {
+    const manifest = getHelpManifest();
+    const orders = manifest.sections.map((entry) => entry.section.order);
+    const sorted = [...orders].sort((a, b) => a - b);
+    assert.deepEqual(orders, sorted);
+  });
+
+  it("only uses section ids declared in the section catalog", () => {
+    const manifest = getHelpManifest();
+    const knownIds = new Set(HELP_SECTIONS.map((section) => section.id));
+    for (const entry of manifest.sections) {
+      assert.ok(knownIds.has(entry.section.id));
+    }
+  });
+
+  it("has no duplicate slugs across the whole manifest", () => {
+    const manifest = getHelpManifest();
+    const slugs = manifest.flat.map((page) => page.slug);
+    assert.equal(new Set(slugs).size, slugs.length);
+  });
+});
+
+describe("getHelpPage", () => {
+  it("resolves a known page with parsed content", () => {
+    const page = getHelpPage("welcome");
+    assert.ok(page);
+    assert.equal(page?.slug, "welcome");
+    assert.ok(page!.blocks.length > 0);
+    assert.ok(page!.headings.length > 0);
+  });
+
+  it("returns null for an unknown slug", () => {
+    assert.equal(getHelpPage("does-not-exist"), null);
+  });
+
+  it("returns null for a path-traversal-shaped slug", () => {
+    assert.equal(getHelpPage("../../package"), null);
+    assert.equal(getHelpPage("..%2f..%2fpackage"), null);
+  });
+});
+
+describe("getAdjacentHelpPages", () => {
+  it("returns previous/next within reading order", () => {
+    const manifest = getHelpManifest();
+    const first = manifest.flat[0];
+    const adjacentToFirst = getAdjacentHelpPages(first.slug);
+    assert.equal(adjacentToFirst.previous, null);
+    assert.ok(adjacentToFirst.next);
+
+    const last = manifest.flat[manifest.flat.length - 1];
+    const adjacentToLast = getAdjacentHelpPages(last.slug);
+    assert.equal(adjacentToLast.next, null);
+    assert.ok(adjacentToLast.previous);
+  });
+
+  it("returns null/null for an unknown slug", () => {
+    const adjacent = getAdjacentHelpPages("does-not-exist");
+    assert.equal(adjacent.previous, null);
+    assert.equal(adjacent.next, null);
+  });
+});
+
+describe("cross-page /help links", () => {
+  it("every internal /help/{slug} link in a page body resolves to a real page", () => {
+    const manifest = getHelpManifest();
+    const knownSlugs = new Set(manifest.flat.map((page) => page.slug));
+    const linkPattern = /\/help\/([a-z0-9-]+)/g;
+
+    for (const summary of manifest.flat) {
+      const page = getHelpPage(summary.slug);
+      assert.ok(page);
+      const body = JSON.stringify(page!.blocks);
+      for (const match of body.matchAll(linkPattern)) {
+        assert.ok(
+          knownSlugs.has(match[1]),
+          `${summary.slug} links to unknown page "${match[1]}"`,
+        );
+      }
+    }
+  });
+
+  it("every related-page slug resolves to a real page", () => {
+    const manifest = getHelpManifest();
+    const knownSlugs = new Set(manifest.flat.map((page) => page.slug));
+
+    for (const summary of manifest.flat) {
+      const page = getHelpPage(summary.slug);
+      for (const relatedSlug of page!.related) {
+        assert.ok(
+          knownSlugs.has(relatedSlug),
+          `${summary.slug} lists unknown related page "${relatedSlug}"`,
+        );
+      }
+    }
+  });
+});
