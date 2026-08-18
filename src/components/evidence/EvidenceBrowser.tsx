@@ -40,6 +40,7 @@ import {
 } from "@/components/design-system/layout/primitives";
 import { formatControlIdDisplay } from "@/components/controlBrowser/presentation";
 import type { EvidenceAttentionFilter } from "@/components/workspace/presentation";
+import { HelpLink } from "@/components/help/HelpLink";
 import {
   evidenceCoverageDisclaimer,
   type FrameworkItemTerms,
@@ -376,6 +377,11 @@ export function EvidenceBrowser({
         titleId="evidence-browser-heading"
         description={`${evidenceCoverageDisclaimer(itemTerms)} Search and filter project Evidence. Coverage counts active Evidence only; drafts are in-progress attention facts.`}
       />
+      <p className="-mt-2 text-xs">
+        <HelpLink slug="evidence-coverage">
+          How Evidence coverage and freshness are calculated
+        </HelpLink>
+      </p>
 
       {error ? (
         <p className="text-sm text-danger" role="alert">

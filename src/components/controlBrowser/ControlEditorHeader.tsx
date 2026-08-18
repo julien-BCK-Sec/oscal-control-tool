@@ -16,6 +16,7 @@ import { ImplementationStatusBadge } from "@/components/design-system/badge/stat
 import { ReviewStatusBadge } from "@/components/design-system/badge/statusMaps";
 import { Button } from "@/components/design-system/button/Button";
 import { formatControlIdDisplay } from "@/components/controlBrowser/presentation";
+import { HelpLink } from "@/components/help/HelpLink";
 
 export type ControlEditorHeaderProps = {
   controlId: string;
@@ -115,6 +116,12 @@ export function ControlEditorHeader({
               </dd>
             </div>
           </dl>
+
+          <p className="mt-1.5 text-xs">
+            <HelpLink slug="authoring-controls">
+              What do these three statuses mean?
+            </HelpLink>
+          </p>
         </div>
 
         {primaryAction ? (

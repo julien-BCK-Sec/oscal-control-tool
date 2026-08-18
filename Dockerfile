@@ -45,12 +45,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts ./
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./
 
 # Production startup: validate → migrate → mode bootstrap → Next.js.
-# Sources plus Drizzle SQL and OSCAL schema must be present at runtime.
+# Sources plus Drizzle SQL, OSCAL schema, and the in-app Help content must be
+# present at runtime (Help reads docs/user-guide/*.md from disk, same
+# pattern as the pinned OSCAL schema below).
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle-pg ./drizzle-pg
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/src ./src
 COPY --from=builder --chown=nextjs:nodejs /app/vendor/oscal/v1.2.2/schema ./vendor/oscal/v1.2.2/schema
+COPY --from=builder --chown=nextjs:nodejs /app/docs/user-guide ./docs/user-guide
 
 USER nextjs
 ENV HOME=/home/nextjs

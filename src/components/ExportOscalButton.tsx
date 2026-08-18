@@ -12,6 +12,7 @@ import {
   projectToOscalSsp,
   validateOscalSspDocument,
 } from "@/oscal";
+import { HelpLink } from "@/components/help/HelpLink";
 
 export type ExportOscalButtonProps = {
   framework: Framework;
@@ -53,7 +54,8 @@ export function ExportOscalButton({
     return (
       <p className="max-w-md text-left text-xs leading-relaxed text-text-secondary">
         OSCAL SSP export is available for NIST SP 800-53 projects. No official
-        CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned.
+        CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned.{" "}
+        <HelpLink slug="oscal-export">Learn more</HelpLink>
       </p>
     );
   }
@@ -63,6 +65,11 @@ export function ExportOscalButton({
       <button type="button" onClick={handleExport} className="btn">
         Export OSCAL SSP
       </button>
+      <p className="text-left text-xs sm:text-right">
+        <HelpLink slug="oscal-export">
+          What OSCAL export includes and what validation means
+        </HelpLink>
+      </p>
       {exportError ? (
         <p
           role="alert"
