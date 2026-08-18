@@ -159,6 +159,8 @@ npm run db:migrate:sqlite-to-pg
 npm run bootstrap:demo
 npm run bootstrap:admin
 npm run db:seed:demo
+npm start
+npm run verify:deployment
 
 npm run derive:framework
 ```
@@ -181,7 +183,8 @@ local development.
 | `docs/design-system.md` | UI design system |
 | `docs/oscal-standards-alignment.md` | OSCAL and standards guidance |
 | `docs/demo-data.md` | Canonical demo organizations, projects, and seed commands |
-| `docs/deploy-render.md` | Deployment guide |
+| `docs/deployment.md` | Normal vs demo production startup lifecycle |
+| `docs/deploy-render.md` | Render-specific hosting notes (provisioning is 05C) |
 | `docs/playbooks/sqlite-to-postgres-cutover.md` | Legacy SQLite cutover |
 | `docs/milestones/` | Milestone specifications |
 | `docs/playbooks/` | Engineering playbooks |

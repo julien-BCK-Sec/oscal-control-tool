@@ -5,17 +5,16 @@ import {
   getDb,
   resolveDatabaseUrl,
 } from "@/persistence/postgres/client";
-import { createPostgresProjectRepository } from "@/persistence/postgres/project-repository";
-import { createPostgresOrganizationRepository } from "@/persistence/postgres/organization-repository";
 import { loadLocalEnv } from "../../../scripts/load-env";
+import {
+  canonicalDemoOrgNames,
+  canonicalDemoUserEmails,
+  ensureCanonicalDemoEnvironment,
+} from "@/seed/canonical-demo";
+import { CANONICAL_ORGS, CANONICAL_PROJECTS } from "@/seed/demo/catalog";
+import { DEMO_USERS } from "./constants";
 import { ensureDevEnvLocal } from "./env";
 import { assertDevBootstrapAllowed, BootstrapSafetyError } from "./safety";
-import { ensureDemoIdentity } from "./identity";
-import { ensureDemoProjects } from "./projects";
-import { ensureDemoCollaboration } from "./collaboration";
-import { ensureCanonicalDemoEvidence } from "@/seed/demo/evidence-seed";
-import { CANONICAL_ORGS, CANONICAL_PROJECTS } from "@/seed/demo/catalog";
-import { DEMO_USERS, ORGS } from "./constants";
 import { resolveDemoBootstrapPassword } from "./password";
 
 export type BootstrapDemoResult = {
@@ -81,69 +80,7 @@ export async function bootstrapDemo(
   runMigrations(cwd);
 
   const db = await getDb(databaseUrl);
-
-  const identity = await ensureDemoIdentity(db);
-  const orgsCreated: string[] = [];
-  if (identity.orgs.cgds.created) orgsCreated.push(ORGS.cgds.name);
-  if (identity.orgs.contoso.created) orgsCreated.push(ORGS.contoso.name);
-  const usersCreated = Object.values(identity.users)
-    .filter((u) => u.created)
-    .map((u) => u.email);
-
-  const projects = await ensureDemoProjects(
-    createPostgresProjectRepository(db),
-    {
-      cgds: identity.orgs.cgds.id,
-      contoso: identity.orgs.contoso.id,
-    },
-  );
-
-  const collab = await ensureDemoCollaboration({
-    db,
-    users: identity.users,
-    cgdsOrgId: identity.orgs.cgds.id,
-    contosoOrgId: identity.orgs.contoso.id,
-    flagship: projects.flagship,
-    cmmc: projects.cmmc,
-    early: projects.early,
-    evidenceGap: projects.evidenceGap,
-    high: projects.high,
-    contosoCloud: projects.contosoCloud,
-  });
-
-  const bob = identity.users["bob@example.com"];
-  const evidence = await ensureCanonicalDemoEvidence({
-    db,
-    projects: {
-      flagshipId: projects.flagship.id,
-      cmmcId: projects.cmmc.id,
-      earlyId: projects.early.id,
-      evidenceGapId: projects.evidenceGap.id,
-      highId: projects.high.id,
-    },
-    actor: bob
-      ? { actorId: bob.id, actorDisplayName: bob.name }
-      : { actorId: null, actorDisplayName: "System" },
-  });
-
-  const orgRepo = createPostgresOrganizationRepository(db);
-  const cgdsMembers = await orgRepo.listMembers(identity.orgs.cgds.id);
-  const contosoMembers = await orgRepo.listMembers(identity.orgs.contoso.id);
-  const cgdsEmails = new Set(cgdsMembers.map((m) => m.email.toLowerCase()));
-  const contosoEmails = new Set(
-    contosoMembers.map((m) => m.email.toLowerCase()),
-  );
-  for (const demoUser of DEMO_USERS) {
-    const email = demoUser.email.toLowerCase();
-    if (demoUser.org === "cgds") {
-      if (!cgdsEmails.has(email) || contosoEmails.has(email)) {
-        throw new Error(`Tenant isolation failed for CGDS user ${email}.`);
-      }
-    } else if (!contosoEmails.has(email) || cgdsEmails.has(email)) {
-      throw new Error(`Tenant isolation failed for Contoso user ${email}.`);
-    }
-  }
-
+  const canonical = await ensureCanonicalDemoEnvironment(db);
   await closeDb();
 
   return {
@@ -154,12 +91,12 @@ export async function bootstrapDemo(
           ? "updated"
           : "unchanged",
     migrationsOk: true,
-    orgsCreated,
-    usersCreated,
-    projectsCreated: projects.created,
-    commentsCreated: collab.commentsCreated,
-    assignmentsCreated: collab.assignmentsCreated,
-    evidenceCreated: evidence.created,
+    orgsCreated: canonicalDemoOrgNames(canonical),
+    usersCreated: canonicalDemoUserEmails(canonical),
+    projectsCreated: canonical.projects.created,
+    commentsCreated: canonical.commentsCreated,
+    assignmentsCreated: canonical.assignmentsCreated,
+    evidenceCreated: canonical.evidenceCreated,
   };
 }
 

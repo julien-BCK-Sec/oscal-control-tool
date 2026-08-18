@@ -14,11 +14,8 @@ import {
   NIST_MODERATE_FRAMEWORK_ID,
 } from "@/framework/nist-sp-800-53-rev5/identities";
 import { CANONICAL_ORGS, CANONICAL_PROJECTS } from "@/seed/demo/catalog";
-import { ensureCanonicalDemoEvidence } from "@/seed/demo/evidence-seed";
 import { cmmcAddressedCount } from "@/seed/demo/supporting";
-import { ensureDemoIdentity } from "./identity";
-import { ensureDemoProjects } from "./projects";
-import { ensureDemoCollaboration } from "./collaboration";
+import { ensureCanonicalDemoEnvironment } from "@/seed/canonical-demo";
 import { resetActivityTimestampClock } from "@/persistence/activity-clock";
 
 afterEach(async () => {
@@ -27,42 +24,7 @@ afterEach(async () => {
 });
 
 async function seedOnce(db: Awaited<ReturnType<typeof openTestDb>>) {
-  const identity = await ensureDemoIdentity(db);
-  const projects = await ensureDemoProjects(
-    createPostgresProjectRepository(db),
-    {
-      cgds: identity.orgs.cgds.id,
-      contoso: identity.orgs.contoso.id,
-    },
-    { validateOscal: false },
-  );
-  const collab = await ensureDemoCollaboration({
-    db,
-    users: identity.users,
-    cgdsOrgId: identity.orgs.cgds.id,
-    contosoOrgId: identity.orgs.contoso.id,
-    flagship: projects.flagship,
-    cmmc: projects.cmmc,
-    early: projects.early,
-    evidenceGap: projects.evidenceGap,
-    high: projects.high,
-    contosoCloud: projects.contosoCloud,
-  });
-  const evidence = await ensureCanonicalDemoEvidence({
-    db,
-    projects: {
-      flagshipId: projects.flagship.id,
-      cmmcId: projects.cmmc.id,
-      earlyId: projects.early.id,
-      evidenceGapId: projects.evidenceGap.id,
-      highId: projects.high.id,
-    },
-    actor: {
-      actorId: identity.users["bob@example.com"]!.id,
-      actorDisplayName: identity.users["bob@example.com"]!.name,
-    },
-  });
-  return { identity, projects, collab, evidence };
+  return ensureCanonicalDemoEnvironment(db, { validateOscal: false });
 }
 
 describe("canonical demo seed (integration)", () => {
@@ -132,9 +94,9 @@ describe("canonical demo seed (integration)", () => {
   it("is idempotent across two runs and does not destroy user edits", async () => {
     const db = await openTestDb();
     const first = await seedOnce(db);
-    assert.ok(first.collab.commentsCreated > 0);
-    assert.ok(first.collab.assignmentsCreated > 0);
-    assert.ok(first.evidence.created > 0);
+    assert.ok(first.commentsCreated > 0);
+    assert.ok(first.assignmentsCreated > 0);
+    assert.ok(first.evidenceCreated > 0);
 
     const repository = createPostgresProjectRepository(db);
     const loaded = await repository.load(first.projects.flagship.id);
@@ -159,58 +121,23 @@ describe("canonical demo seed (integration)", () => {
     });
     assert.equal(saved.ok, true);
 
-    const secondIdentity = await ensureDemoIdentity(db);
-    assert.equal(secondIdentity.orgs.cgds.created, false);
-    assert.equal(secondIdentity.orgs.contoso.created, false);
+    const second = await seedOnce(db);
+    assert.equal(second.identity.orgs.cgds.created, false);
+    assert.equal(second.identity.orgs.contoso.created, false);
     assert.ok(
-      Object.values(secondIdentity.users).every((user) => user.created === false),
+      Object.values(second.identity.users).every(
+        (user) => user.created === false,
+      ),
     );
-
-    const secondProjects = await ensureDemoProjects(
-      repository,
-      {
-        cgds: secondIdentity.orgs.cgds.id,
-        contoso: secondIdentity.orgs.contoso.id,
-      },
-      { validateOscal: false },
-    );
-    assert.deepEqual(secondProjects.created, []);
-    assert.equal(secondProjects.flagship.id, first.projects.flagship.id);
+    assert.deepEqual(second.projects.created, []);
+    assert.equal(second.projects.flagship.id, first.projects.flagship.id);
     assert.equal(
-      secondProjects.flagship.implementations["ac-1"]?.narrative,
+      second.projects.flagship.implementations["ac-1"]?.narrative,
       editedNarrative,
     );
-
-    const secondCollab = await ensureDemoCollaboration({
-      db,
-      users: secondIdentity.users,
-      cgdsOrgId: secondIdentity.orgs.cgds.id,
-      contosoOrgId: secondIdentity.orgs.contoso.id,
-      flagship: secondProjects.flagship,
-      cmmc: secondProjects.cmmc,
-      early: secondProjects.early,
-      evidenceGap: secondProjects.evidenceGap,
-      high: secondProjects.high,
-      contosoCloud: secondProjects.contosoCloud,
-    });
-    assert.equal(secondCollab.commentsCreated, 0);
-    assert.equal(secondCollab.assignmentsCreated, 0);
-
-    const secondEvidence = await ensureCanonicalDemoEvidence({
-      db,
-      projects: {
-        flagshipId: secondProjects.flagship.id,
-        cmmcId: secondProjects.cmmc.id,
-        earlyId: secondProjects.early.id,
-        evidenceGapId: secondProjects.evidenceGap.id,
-        highId: secondProjects.high.id,
-      },
-      actor: {
-        actorId: secondIdentity.users["bob@example.com"]!.id,
-        actorDisplayName: secondIdentity.users["bob@example.com"]!.name,
-      },
-    });
-    assert.equal(secondEvidence.created, 0);
+    assert.equal(second.commentsCreated, 0);
+    assert.equal(second.assignmentsCreated, 0);
+    assert.equal(second.evidenceCreated, 0);
 
     const orgRepo = createPostgresOrganizationRepository(db);
     const cgdsMembers = await orgRepo.listMembers(first.identity.orgs.cgds.id);

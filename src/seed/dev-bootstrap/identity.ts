@@ -115,7 +115,7 @@ async function ensureMembership(
  */
 export async function ensureDemoIdentity(
   db: AppDatabase,
-  env: NodeJS.ProcessEnv = process.env,
+  env: Record<string, string | undefined> = process.env,
 ): Promise<BootstrapIdentityResult> {
   const orgRepo = createPostgresOrganizationRepository(db);
   const password = resolveDemoBootstrapPassword(env);

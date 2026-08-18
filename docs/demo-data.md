@@ -1,7 +1,7 @@
 # Demo dataset
 
 Canonical Control Freak sample environment used for local development and
-future seeded demo deployments.
+seeded demo deployments (`DEPLOYMENT_MODE=demo`).
 
 This document describes **what is seeded and why**. Application behavior
 belongs in `docs/current-state.md` and `docs/architecture.md`.
@@ -12,11 +12,15 @@ belongs in `docs/current-state.md` and `docs/architecture.md`.
 npm run bootstrap:demo
 ```
 
-That is the only command a developer needs for a complete demo environment.
-It is idempotent: safe to run repeatedly. It never truncates the database
-and does not reset user-edited records.
+That is the only command a developer needs for a complete **local** demo
+environment. It is idempotent: safe to run repeatedly. It never truncates
+the database and does not reset user-edited records.
 
-Normal application startup does **not** create demo projects.
+A hosted demo uses `DEPLOYMENT_MODE=demo` with `npm start` instead. See
+`docs/deployment.md`. Both paths share `src/seed/canonical-demo.ts`.
+
+Normal application startup (`DEPLOYMENT_MODE=normal`, the default) does
+**not** create demo projects.
 
 ## Lower-level commands
 
@@ -126,11 +130,12 @@ kept after `npm run bootstrap:demo`.
 | Path | Allowed when |
 | --- | --- |
 | `bootstrap:demo` | Local development only (writes `.env.local`; refuses production / remote databases) |
+| Production `DEPLOYMENT_MODE=demo` | Hosted startup via `npm start`; requires `DEMO_BOOTSTRAP_PASSWORD`; does not write `.env.local` or assume localhost |
 | Idempotent `db:seed:demo` | Local databases, **or** `DEPLOYMENT_MODE=demo` |
 | `db:seed:demo -- --reset` | Local development only; refused in production and when `DEPLOYMENT_MODE=demo` |
 
-`DEPLOYMENT_MODE=demo` is reserved for a later seeded deployment. This
-milestone does not implement Render demo hosting.
+`SEED_DEMO_PROJECT` is not a production startup switch. Combined with
+`DEPLOYMENT_MODE=normal` it fails closed. See `docs/deployment.md`.
 
 ## What is not in the demo
 

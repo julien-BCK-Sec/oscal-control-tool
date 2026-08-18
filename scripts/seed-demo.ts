@@ -5,7 +5,8 @@
  *   npm run db:seed:demo
  *   npm run db:seed:demo -- --reset
  *
- * Canonical full environment: `npm run bootstrap:demo`.
+ * Canonical full environment: `npm run bootstrap:demo` (local) or
+ * DEPLOYMENT_MODE=demo (production startup).
  * This command only ensures the flagship project in SEED_DEMO_ORG_SLUG.
  *
  * `--reset` is destructive (deletes and recreates the flagship project) and

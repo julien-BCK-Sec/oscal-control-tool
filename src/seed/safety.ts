@@ -6,9 +6,10 @@
  * - destructive local reset/rebuild (never production).
  *
  * `bootstrap:demo` also writes `.env.local`, so that orchestrator stays
- * local-development-only. Lower-level idempotent seeding may run when
- * DEPLOYMENT_MODE=demo (Milestone 05B). This milestone does not implement
- * Render deployment.
+ * local-development-only. Production demo startup uses DEPLOYMENT_MODE=demo
+ * and the shared canonical demo library (see `src/seed/canonical-demo.ts`
+ * and `src/deployment/`). Do not use this module to decide production
+ * startup; use `resolveProductionDeploymentMode` instead.
  */
 
 export class DemoSeedSafetyError extends Error {
@@ -28,6 +29,11 @@ export class BootstrapSafetyError extends DemoSeedSafetyError {
 
 export type DeploymentMode = "demo" | "normal" | "unset";
 
+/**
+ * Loose seed-safety mode parser. Unknown or omitted values are `unset`.
+ * Production startup uses `resolveProductionDeploymentMode`, which defaults
+ * omitted values to `normal` and rejects unknown values.
+ */
 export function resolveDeploymentMode(
   env: NodeJS.ProcessEnv = process.env,
 ): DeploymentMode {
@@ -131,8 +137,8 @@ export function assertDevBootstrapAllowed(
 /**
  * Safe idempotent demo initialization.
  *
- * Allowed on local databases, or when DEPLOYMENT_MODE=demo (prepared for a
- * future seeded demo deployment). Does not truncate or reset data.
+ * Allowed on local databases, or when DEPLOYMENT_MODE=demo (production
+ * seeded demo deployment). Does not truncate or reset data.
  */
 export function assertIdempotentDemoSeedAllowed(
   env: NodeJS.ProcessEnv = process.env,

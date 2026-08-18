@@ -76,10 +76,13 @@ Milestone 1 capabilities:
 - Organization invitations (ADR-018)
 - Authenticated invite-only demo bootstrap (ADR-019)
 - Canonical demo bootstrap (`npm run bootstrap:demo` under
-  `src/seed/dev-bootstrap/` and shared `src/seed/demo/`) — env ensure,
-  migrate, identity, canonical projects, collaboration, evidence; local
-  orchestrator only. Idempotent dataset seeding may use
-  `DEPLOYMENT_MODE=demo` later; this is not a Render deployment path.
+  `src/seed/dev-bootstrap/` wrapping shared `src/seed/canonical-demo.ts`) —
+  local env ensure, migrate, identity, canonical projects, collaboration,
+  evidence. Local orchestrator only.
+- Production startup (`npm start`, ADR-028): `DEPLOYMENT_MODE=normal|demo`,
+  validate → migrate → mode bootstrap → Next.js. Demo mode uses the same
+  canonical library and requires `DEMO_BOOTSTRAP_PASSWORD`. See
+  `docs/deployment.md`.
 
 Milestone 02A capabilities:
 

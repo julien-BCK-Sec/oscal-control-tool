@@ -32,7 +32,5 @@ services:
         sync: false
       - key: BETTER_AUTH_SECRET
         generateValue: true
-      - key: SEED_DEMO_PROJECT
-        value: "false"
-      - key: SEED_DEMO_ORG_SLUG
-        value: demo-organization
+      - key: DEPLOYMENT_MODE
+        value: normal
