@@ -17,8 +17,9 @@ That command (`scripts/start-production.ts`) always:
 It never resets the database, never truncates data, and never runs
 `db:seed:demo -- --reset`.
 
-Cloud hosts (including a later Render deployment) should run only `npm start`.
-Do not put mode-specific logic in infrastructure files.
+Cloud hosts should run only `npm start`. Do not put mode-specific logic in
+infrastructure files. Host-specific Render notes, including the verified
+Milestone 05C demo, are in `docs/deploy-render.md`.
 
 ## Deployment modes
 
@@ -136,8 +137,9 @@ Production containers must not depend on `.env.local`.
 ## Authentication and public URL
 
 Set `BETTER_AUTH_URL` to the HTTPS origin users actually open (no hard-coded
-hosting hostname). Secure cookies (`Secure`, `SameSite=Lax`) are enabled when
-`NODE_ENV=production`.
+hosting hostname). On Render, that is the **custom domain**, not a blocked
+`*.onrender.com` default URL. Secure cookies (`Secure`, `HttpOnly`,
+`SameSite=Lax`, `__Secure-` prefix) are enabled when `NODE_ENV=production`.
 
 Optional:
 
@@ -171,7 +173,8 @@ Optional: `EVIDENCE_S3_REGION` (default `us-east-1`), `EVIDENCE_S3_ENDPOINT`,
 Metadata-only Evidence (including seeded demo records) does not need object
 storage bytes. Uploads fail closed until S3 is configured.
 
-This milestone does not provision object storage.
+Milestone 05C provisions S3-compatible Evidence storage for the hosted demo.
+See `docs/deploy-render.md`.
 
 ## Health
 
@@ -210,6 +213,14 @@ The image includes migrate/bootstrap sources (`src/`, `scripts/`,
 `drizzle-pg/`). Secrets stay outside the image. `PORT` is honored; the process
 binds `0.0.0.0`.
 
+Production images run `npm prune --omit=dev`. Do not statically import
+dev-only modules such as PGlite from production startup or persistence code.
+The container user `nextjs` has a home directory (`HOME=/home/nextjs`).
+
+Render **internal** `DATABASE_URL` values are not TLS. Do not set
+`DATABASE_SSL=true` for those URLs. External Render URLs include
+`sslmode=require` and enable TLS automatically.
+
 ## Concurrent startup
 
 Assume a single web instance during deploy (the existing blueprint uses
@@ -222,5 +233,4 @@ run multiple unsynchronized first-boot instances against an empty database.
 ## Related documents
 
 - Canonical demo content: `docs/demo-data.md`
-- Host-specific Render notes (historical): `docs/deploy-render.md`
-- Actual Render provisioning: Milestone 05C
+- Host-specific Render notes (verified Milestone 05C demo): `docs/deploy-render.md`

@@ -1,14 +1,10 @@
 import "server-only";
 
 import path from "node:path";
-import { PGlite } from "@electric-sql/pglite";
 import { Pool } from "pg";
 import { drizzle as drizzleNodePostgres } from "drizzle-orm/node-postgres";
 import { migrate as migrateNodePostgres } from "drizzle-orm/node-postgres/migrator";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
-import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
-import type { PgliteDatabase } from "drizzle-orm/pglite";
 import * as schema from "./schema";
 
 /**
@@ -32,8 +28,8 @@ type PooledCacheEntry = {
 };
 
 type TestCacheEntry = {
-  db: PgliteDatabase<typeof schema>;
-  client: PGlite;
+  db: AppDatabase;
+  close: () => Promise<void>;
 };
 
 let pooledCachePromise: Promise<PooledCacheEntry> | null = null;
@@ -150,10 +146,21 @@ async function closePooledDb(): Promise<void> {
 }
 
 async function createTestDb(): Promise<TestCacheEntry> {
+  // Load PGlite only when tests call openTestDb(). A static import would
+  // crash production `npm start`: Docker prunes @electric-sql/pglite
+  // (devDependency) and tsx still resolves the module graph.
+  const [{ PGlite }, pgliteDrizzle, pgliteMigrator] = await Promise.all([
+    import("@electric-sql/pglite"),
+    import("drizzle-orm/pglite"),
+    import("drizzle-orm/pglite/migrator"),
+  ]);
   const client = new PGlite();
-  const db = drizzlePglite(client, { schema });
-  await migratePglite(db, { migrationsFolder: migrationsFolder() });
-  return { db, client };
+  const db = pgliteDrizzle.drizzle(client, { schema });
+  await pgliteMigrator.migrate(db, { migrationsFolder: migrationsFolder() });
+  return {
+    db: db as unknown as AppDatabase,
+    close: () => client.close(),
+  };
 }
 
 /**
@@ -169,7 +176,7 @@ export async function openTestDb(): Promise<AppDatabase> {
   // Safe structural cast: see the `AppDatabase` comment above. PGlite's
   // drizzle database implements the same pg-core query builder API as
   // node-postgres; only the underlying driver/client differs.
-  return created.db as unknown as AppDatabase;
+  return created.db;
 }
 
 async function closeTestDb(): Promise<void> {
@@ -180,7 +187,7 @@ async function closeTestDb(): Promise<void> {
   testCachePromise = null;
   const cached = await promise.catch(() => null);
   if (cached) {
-    await cached.client.close();
+    await cached.close();
   }
 }
 

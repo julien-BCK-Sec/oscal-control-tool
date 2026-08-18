@@ -5,13 +5,13 @@ Date: 2026-08-18
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application.
-Milestone 05B adds explicit `DEPLOYMENT_MODE=normal|demo` production startup
-on top of Milestone 05A (canonical demo dataset), Milestone 04C
-(CMMC Level 2 Framework Support), Milestone 04B (Framework UX and Runtime
-Hardening), and the project-scoped NIST SP 800-53 Rev. 5 Low / Moderate / High
-architecture introduced in Milestone 04A, on top of Evidence Coverage (03D),
-Evidence Versions (03B), Workflow Automation (02C), Domain Events (02B),
-Collaboration (02A), and Platform Foundation.
+Milestone 05C hosts the Milestone 05B `DEPLOYMENT_MODE=normal|demo`
+production startup on Render, on top of Milestone 05A (canonical demo
+dataset), Milestone 04C (CMMC Level 2 Framework Support), Milestone 04B
+(Framework UX and Runtime Hardening), and the project-scoped NIST SP 800-53
+Rev. 5 Low / Moderate / High architecture introduced in Milestone 04A, on
+top of Evidence Coverage (03D), Evidence Versions (03B), Workflow Automation
+(02C), Domain Events (02B), Collaboration (02A), and Platform Foundation.
 
 The application currently provides:
 
@@ -328,7 +328,9 @@ cutover only.
 
 ## Known gaps
 
-- No production email provider wired (dev uses `TEST_EMAIL_SINK`)
+- No production email provider wired (dev uses `TEST_EMAIL_SINK`; hosted
+  demo users are bootstrap-verified so they can sign in without email)
+- Hosted Render demo stays at one web instance; see `docs/deploy-render.md`
 - Social login, SSO, passkeys, MFA, SCIM out of scope
 - No semantic OSCAL cross-reference validation yet
 - No stable OSCAL UUID persistence
@@ -354,13 +356,14 @@ cutover only.
   via the NIST identity table rather than `FrameworkRegistry`. CMMC projects
   use requirement terminology and have no OSCAL SSP export.
 - Per-control UI action hiding is coarse; server authorization is authoritative
-- Favicon remains the light-mark asset (not theme-switched)
+- Production Docker image must not statically import PGlite (devDependency;
+  pruned from the image). Tests load it only inside `openTestDb()`.
 
 ## Next approved milestone
 
-Word/PDF export remains on the roadmap. Milestone 05B implements the
-normal/demo production startup lifecycle. Actual Render provisioning is
-**Milestone 05C**. See `docs/roadmap.md` and `docs/deployment.md`.
+Word/PDF export remains on the roadmap. Milestone 05C is the verified
+hosted seeded demo on Render. See `docs/roadmap.md`, `docs/deployment.md`,
+and `docs/deploy-render.md`.
 
 ## Required verification for each milestone
 
