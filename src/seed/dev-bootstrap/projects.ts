@@ -16,6 +16,8 @@ import {
   buildEarlyProjectDescription,
   buildEvidenceGapImplementations,
   buildEvidenceGapProjectDescription,
+  buildFirstDoorCloudDescription,
+  buildFirstDoorImplementations,
   buildHighImplementations,
   buildHighProjectDescription,
   buildSupportingMetadata,
@@ -28,6 +30,7 @@ export type DemoProjectsResult = {
   evidenceGap: StoredProject;
   high: StoredProject;
   contosoCloud: StoredProject;
+  firstdoorCloud: StoredProject;
   created: string[];
 };
 
@@ -84,7 +87,7 @@ async function ensureSupporting(
  */
 export async function ensureDemoProjects(
   repository: ProjectRepository,
-  organizationIds: { cgds: string; contoso: string },
+  organizationIds: { cgds: string; contoso: string; firstdoor: string },
   options: { validateOscal?: boolean } = {},
 ): Promise<DemoProjectsResult> {
   const created: string[] = [];
@@ -144,7 +147,18 @@ export async function ensureDemoProjects(
     buildContosoImplementations(),
     buildContosoCloudDescription(),
   );
-  if (contosoCloud.created)     created.push(CANONICAL_PROJECTS.contosoCloud.name);
+  if (contosoCloud.created) created.push(CANONICAL_PROJECTS.contosoCloud.name);
+
+  const firstdoorCloud = await ensureSupporting(
+    repository,
+    organizationIds.firstdoor,
+    "firstdoorCloud",
+    buildFirstDoorImplementations(),
+    buildFirstDoorCloudDescription(),
+  );
+  if (firstdoorCloud.created) {
+    created.push(CANONICAL_PROJECTS.firstdoorCloud.name);
+  }
 
   return {
     flagship: flagshipResult.project,
@@ -153,6 +167,7 @@ export async function ensureDemoProjects(
     evidenceGap: evidenceGap.project,
     high: high.project,
     contosoCloud: contosoCloud.project,
+    firstdoorCloud: firstdoorCloud.project,
     created,
   };
 }

@@ -20,6 +20,7 @@ export const FRAMEWORK_ID = NIST_MODERATE_FRAMEWORK_ID;
 export const ORGS = {
   cgds: CANONICAL_ORGS.cgds,
   contoso: CANONICAL_ORGS.contoso,
+  firstdoor: CANONICAL_ORGS.firstdoor,
 } as const;
 
 export type DemoOrgKey = keyof typeof ORGS;
@@ -81,6 +82,48 @@ export const DEMO_USERS: readonly DemoUserSpec[] = [
     role: "reviewer",
     org: "contoso",
   },
+  {
+    name: "Julien",
+    email: "julien@example.com",
+    role: "organization_admin",
+    org: "firstdoor",
+  },
+  {
+    name: "Isabel",
+    email: "isabel@example.com",
+    role: "organization_admin",
+    org: "firstdoor",
+  },
+  {
+    name: "Ruth",
+    email: "ruth@example.com",
+    role: "organization_admin",
+    org: "firstdoor",
+  },
+  {
+    name: "Jason",
+    email: "jason@example.com",
+    role: "organization_admin",
+    org: "firstdoor",
+  },
+  {
+    name: "Michael",
+    email: "michael@example.com",
+    role: "organization_admin",
+    org: "firstdoor",
+  },
+  {
+    name: "Chad",
+    email: "chad@example.com",
+    role: "organization_admin",
+    org: "firstdoor",
+  },
+  {
+    name: "Test User",
+    email: "test@example.com",
+    role: "organization_admin",
+    org: "firstdoor",
+  },
 ] as const;
 
 export const PROJECT_NAMES = {
@@ -90,6 +133,7 @@ export const PROJECT_NAMES = {
   evidenceGap: CANONICAL_PROJECTS.evidenceGap.name,
   high: CANONICAL_PROJECTS.high.name,
   contosoCloud: CANONICAL_PROJECTS.contosoCloud.name,
+  firstdoorCloud: CANONICAL_PROJECTS.firstdoorCloud.name,
 } as const;
 
 /** Featured controls that receive rich collaboration on the Goose flagship. */

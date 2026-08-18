@@ -19,6 +19,7 @@ import {
   buildCmmcImplementations,
   buildEarlyImplementations,
   buildEvidenceGapImplementations,
+  buildFirstDoorImplementations,
   buildHighImplementations,
   cmmcAddressedCount,
 } from "./supporting";
@@ -33,7 +34,7 @@ describe("canonical demo catalog", () => {
       CANONICAL_PROJECTS.flagship.frameworkId,
       NIST_MODERATE_FRAMEWORK_ID,
     );
-    assert.equal(SUPPORTING_PROJECT_KEYS.length, 5);
+    assert.equal(SUPPORTING_PROJECT_KEYS.length, 6);
   });
 
   it("assigns CMMC Level 2 to the CUI enclave with partial progress", () => {
@@ -74,6 +75,27 @@ describe("canonical demo catalog", () => {
     assert.ok(
       Object.keys(high).length <
         resolveFrameworkControls(NIST_HIGH_FRAMEWORK_ID).length,
+    );
+  });
+
+  it("assigns FirstDoor a Moderate sample project with placeholder implementations", () => {
+    assert.equal(CANONICAL_ORGS.firstdoor.name, "FirstDoor");
+    assert.equal(CANONICAL_ORGS.firstdoor.slug, "firstdoor");
+    assert.equal(
+      CANONICAL_PROJECTS.firstdoorCloud.frameworkId,
+      NIST_MODERATE_FRAMEWORK_ID,
+    );
+    const implementations = buildFirstDoorImplementations();
+    assert.ok(Object.keys(implementations).length >= 10);
+    assert.ok(
+      Object.keys(implementations).length <
+        resolveFrameworkControls(NIST_MODERATE_FRAMEWORK_ID).length,
+    );
+    assert.ok(
+      Object.values(implementations).every(
+        (row) =>
+          row.status === "implemented" || row.status === "in-progress",
+      ),
     );
   });
 });

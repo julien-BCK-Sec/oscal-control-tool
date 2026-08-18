@@ -24,6 +24,10 @@ export const CANONICAL_ORGS = {
     name: "Contoso Industries",
     slug: "contoso-industries",
   },
+  firstdoor: {
+    name: "FirstDoor",
+    slug: "firstdoor",
+  },
 } as const;
 
 /**
@@ -44,7 +48,8 @@ export type CanonicalProjectKey =
   | "early"
   | "evidenceGap"
   | "high"
-  | "contosoCloud";
+  | "contosoCloud"
+  | "firstdoorCloud";
 
 export type CanonicalProjectSpec = {
   key: CanonicalProjectKey;
@@ -58,7 +63,8 @@ export type CanonicalProjectSpec = {
     | "early-stage"
     | "evidence-gap"
     | "high-baseline"
-    | "tenant-isolation";
+    | "tenant-isolation"
+    | "operator-demo";
   purpose: string;
 };
 
@@ -126,6 +132,16 @@ export const CANONICAL_PROJECTS: Record<
     purpose:
       "Second-tenant Moderate project used to demonstrate organization isolation. Not a CGDS system.",
   },
+  firstdoorCloud: {
+    key: "firstdoorCloud",
+    name: "FirstDoor Platform (Demo)",
+    organization: "firstdoor",
+    frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+    systemName: "FirstDoor Platform",
+    maturity: "operator-demo",
+    purpose:
+      "Operator-tenant NIST SP 800-53 Rev. 5 Moderate / FedRAMP Moderate sample project with placeholder implementation statements.",
+  },
 } as const;
 
 export const CGDS_PROJECT_KEYS = [
@@ -142,6 +158,7 @@ export const SUPPORTING_PROJECT_KEYS = [
   "evidenceGap",
   "high",
   "contosoCloud",
+  "firstdoorCloud",
 ] as const satisfies readonly CanonicalProjectKey[];
 
 export function canonicalProjectName(key: CanonicalProjectKey): string {

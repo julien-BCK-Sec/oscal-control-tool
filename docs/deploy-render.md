@@ -33,9 +33,11 @@ the custom domain users actually open. Do not use the blocked `onrender.com`
 URL for cookies, redirects, or invitation links.
 
 First demo boot created the canonical 05A dataset (`orgs +2, users +8,
-projects +6`). A later redeploy of the same service, without resetting
-PostgreSQL, logged `orgs +0, users +0, projects +0` and preserved a named
-version plus an uploaded Evidence object.
+projects +6`). Adding FirstDoor later creates the missing org, seven
+admins, and one Moderate project (`orgs +1, users +7, projects +1`) on the
+next demo start. A later redeploy of the same service, without resetting
+PostgreSQL, logs `orgs +0, users +0, projects +0` and preserves user edits
+plus uploaded Evidence objects.
 
 ## Seeded demo vs normal install
 
@@ -179,7 +181,8 @@ Keep the bucket private (all four S3 public-access block settings on).
 Better Auth email/password. Production cookies are `__Secure-` prefixed,
 `Secure`, `HttpOnly`, and `SameSite=Lax`. `BETTER_AUTH_URL` must match the
 custom domain. Wrong passwords return 401. Organization isolation is
-server-enforced (Canadian Goose Defence System vs Contoso Industries).
+server-enforced (Canadian Goose Defence System, Contoso Industries, and
+FirstDoor).
 
 ## Operational commands
 

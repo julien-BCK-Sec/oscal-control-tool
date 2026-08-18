@@ -33,6 +33,12 @@ function fakeDemoResult(): CanonicalDemoResult {
           slug: CANONICAL_ORGS.contoso.slug,
           created: true,
         },
+        firstdoor: {
+          id: "firstdoor",
+          name: CANONICAL_ORGS.firstdoor.name,
+          slug: CANONICAL_ORGS.firstdoor.slug,
+          created: true,
+        },
       },
       users: {},
     },
@@ -183,6 +189,10 @@ describe("runProductionLifecycle with PGlite", () => {
       await orgs.getOrganizationBySlug(CANONICAL_ORGS.contoso.slug),
       null,
     );
+    assert.equal(
+      await orgs.getOrganizationBySlug(CANONICAL_ORGS.firstdoor.slug),
+      null,
+    );
   });
 
   it("seeds the full canonical demo and preserves edits on rerun", async () => {
@@ -200,6 +210,10 @@ describe("runProductionLifecycle with PGlite", () => {
     assert.equal(projects.evidenceGap.name, CANONICAL_PROJECTS.evidenceGap.name);
     assert.equal(projects.high.name, CANONICAL_PROJECTS.high.name);
     assert.equal(projects.contosoCloud.name, CANONICAL_PROJECTS.contosoCloud.name);
+    assert.equal(
+      projects.firstdoorCloud.name,
+      CANONICAL_PROJECTS.firstdoorCloud.name,
+    );
 
     const repository = createPostgresProjectRepository(db);
     const loaded = await repository.load(projects.flagship.id);

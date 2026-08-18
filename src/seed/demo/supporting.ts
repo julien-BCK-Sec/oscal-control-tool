@@ -54,10 +54,7 @@ export function buildSupportingMetadata(
 ): ProjectMetadata {
   const spec = CANONICAL_PROJECTS[key];
   return {
-    organizationName:
-      spec.organization === "cgds"
-        ? CANONICAL_ORGS.cgds.name
-        : CANONICAL_ORGS.contoso.name,
+    organizationName: CANONICAL_ORGS[spec.organization].name,
     systemName: spec.systemName,
     systemDescription,
   };
@@ -96,6 +93,13 @@ export function buildHighProjectDescription(): string {
 
 export function buildContosoCloudDescription(): string {
   return "Contoso Cloud Platform is Contoso's Moderate baseline demonstration used for tenant-isolation testing. It is not a Canadian Goose Defence System project.";
+}
+
+export function buildFirstDoorCloudDescription(): string {
+  return [
+    `${CANONICAL_PROJECTS.firstdoorCloud.systemName} is FirstDoor's NIST SP 800-53 Rev. 5 Moderate (FedRAMP Moderate baseline) sample authorization package.`,
+    "It is placeholder demo content for operator walkthroughs, not a real FedRAMP authorization, ATO, or production system description.",
+  ].join(" ");
 }
 
 function cmmcNarrative(controlId: string, title: string): string {
@@ -228,6 +232,49 @@ export function buildContosoImplementations(): Record<string, ControlImplementat
     }
     out[control.id] = implementation("in-progress", narrative);
     picked += 1;
+  }
+  return out;
+}
+
+const FIRSTDOOR_SAMPLE_CONTROL_IDS = [
+  "ac-1",
+  "ac-2",
+  "ac-3",
+  "ia-2",
+  "ia-5",
+  "au-2",
+  "au-6",
+  "cm-2",
+  "sc-7",
+  "si-4",
+  "pl-2",
+  "ra-3",
+  "ir-4",
+  "cp-2",
+  "sa-9",
+] as const;
+
+function firstDoorNarrative(controlId: string): string {
+  return [
+    `${controlId} for ${CANONICAL_PROJECTS.firstdoorCloud.systemName} is documented against the FirstDoor SaaS authorization boundary.`,
+    "Customer traffic terminates at the FirstDoor edge; privileged administration uses separate jump hosts and the FirstDoor identity service.",
+    "This statement is sample demo documentation only — not a FedRAMP authorization decision or production control assessment.",
+  ].join(" ");
+}
+
+export function buildFirstDoorImplementations(): Record<string, ControlImplementation> {
+  const allowed = new Set(
+    resolveFrameworkControls(NIST_MODERATE_FRAMEWORK_ID).map((control) => control.id),
+  );
+  const out: Record<string, ControlImplementation> = {};
+  for (const [index, controlId] of FIRSTDOOR_SAMPLE_CONTROL_IDS.entries()) {
+    if (!allowed.has(controlId)) {
+      continue;
+    }
+    out[controlId] = implementation(
+      index % 4 === 0 ? "in-progress" : "implemented",
+      firstDoorNarrative(controlId),
+    );
   }
   return out;
 }
