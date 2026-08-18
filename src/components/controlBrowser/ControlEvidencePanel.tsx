@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useId, useState, useTransition } from "react";
 import {
   EVIDENCE_TYPES,
@@ -29,6 +30,7 @@ import {
   FormLabel,
 } from "@/components/design-system/form/FormField";
 import { Stack } from "@/components/design-system/layout/primitives";
+import { buildProjectEvidenceHref } from "@/components/workspace/presentation";
 
 export type ControlEvidencePanelProps = {
   projectId: string;
@@ -153,9 +155,10 @@ export function ControlEvidencePanel({
         Evidence
       </h3>
       <p className="mt-1 text-xs text-text-muted">
-        Logical evidence records linked to this control. Manage file versions
-        from the project Evidence tab. Draft Evidence does not satisfy
-        coverage; active Evidence without a file still does.
+        Logical evidence records linked to this control. Open a linked
+        record from its title to inspect metadata, versions, and files on
+        the project Evidence tab. Draft Evidence does not satisfy coverage;
+        active Evidence without a file still does.
       </p>
       {coverage ? (
         <div className="mt-2">
@@ -187,8 +190,15 @@ export function ControlEvidencePanel({
               className="flex flex-wrap items-start justify-between gap-2 rounded-sm border border-border bg-surface px-3 py-2"
             >
               <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground">
-                  {item.title}
+                <p className="text-sm font-medium">
+                  <Link
+                    href={buildProjectEvidenceHref(projectId, item.id)}
+                    scroll={false}
+                    className="text-accent underline underline-offset-2 hover:text-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                    aria-label={`View evidence: ${item.title}`}
+                  >
+                    {item.title}
+                  </Link>
                 </p>
                 <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
                   <span>

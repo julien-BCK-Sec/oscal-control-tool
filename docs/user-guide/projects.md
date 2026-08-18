@@ -102,6 +102,7 @@ bookmark or share a link straight into a specific place:
 | `?view=controls` (or `evidence`, `details`, `history`) | Opens that tab. Omitted for Overview, the default. |
 | `?control={controlId}` | Also opens the Controls tab and selects that control. |
 | `?comment={commentId}` | Scrolls to and highlights a specific discussion comment. |
+| `?evidence={evidenceId}` | Opens the Evidence tab and selects that Evidence record. |
 | `?attention=missing\|due_soon\|overdue\|unlinked` | Opens the Evidence tab pre-filtered to that attention view. |
 
 Notification links use exactly this mechanism — see

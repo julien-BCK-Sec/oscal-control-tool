@@ -15,7 +15,10 @@ or title — matching a parent control also shows its enhancements, and
 matching an enhancement keeps its parent visible for context. **Expand
 all** / **Collapse all** control the tree, and an overall completion
 progress bar sits above the tree. Selecting an item opens the control
-editor.
+editor. Long titles are truncated in the list; hover or keyboard-focus a
+truncated title to read the full text. On wider screens the list pane can
+be resized by dragging the divider (or with Left/Right arrows when the
+divider is focused).
 
 ## The control editor
 

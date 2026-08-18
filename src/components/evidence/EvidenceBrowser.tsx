@@ -45,6 +45,7 @@ import {
   evidenceCoverageDisclaimer,
   type FrameworkItemTerms,
 } from "@/components/framework/presentation";
+import { resolveEvidenceListSelection } from "@/components/evidence/selection";
 
 export type EvidenceBrowserProps = {
   projectId: string;
@@ -58,6 +59,9 @@ export type EvidenceBrowserProps = {
   onEvidenceChanged?: () => void;
   onOpenControl?: (controlId: string) => void;
   itemTerms?: FrameworkItemTerms;
+  /** Select this Evidence when opening from a control or URL deep link. */
+  focusEvidenceId?: string | null;
+  onFocusEvidenceHandled?: () => void;
 };
 
 type DraftForm = {
@@ -103,6 +107,8 @@ export function EvidenceBrowser({
   onEvidenceChanged,
   onOpenControl,
   itemTerms = { singular: "control", plural: "controls" },
+  focusEvidenceId = null,
+  onFocusEvidenceHandled,
 }: EvidenceBrowserProps) {
   const [items, setItems] = useState<EvidenceSearchResult[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -116,13 +122,28 @@ export function EvidenceBrowser({
   const [hasFileFilter, setHasFileFilter] = useState<"any" | "yes" | "no">(
     "any",
   );
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    focusEvidenceId,
+  );
   const [selectedDetail, setSelectedDetail] =
     useState<EvidenceWithControlIds | null>(null);
+  const [appliedFocusId, setAppliedFocusId] = useState<string | null>(
+    focusEvidenceId,
+  );
+  const [preserveSelectionId, setPreserveSelectionId] = useState<string | null>(
+    focusEvidenceId,
+  );
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState<DraftForm>(emptyDraft);
+
+  if (focusEvidenceId && focusEvidenceId !== appliedFocusId) {
+    setAppliedFocusId(focusEvidenceId);
+    setPreserveSelectionId(focusEvidenceId);
+    setCreating(false);
+    setSelectedId(focusEvidenceId);
+  }
 
   const controlTitleById = useMemo(() => {
     const map = new Map<string, string>();
@@ -183,15 +204,13 @@ export function EvidenceBrowser({
           setNextCursor(result.page.nextCursor);
           setHasMore(result.page.hasMore);
           if (replace) {
-            setSelectedId((currentId) => {
-              if (
-                currentId &&
-                result.page.items.some((item) => item.id === currentId)
-              ) {
-                return currentId;
-              }
-              return result.page.items[0]?.id ?? null;
-            });
+            setSelectedId((currentId) =>
+              resolveEvidenceListSelection({
+                preserveId: preserveSelectionId,
+                currentId,
+                visibleIds: result.page.items.map((item) => item.id),
+              }),
+            );
           }
         })();
       });
@@ -202,6 +221,7 @@ export function EvidenceBrowser({
       hasFileFilter,
       includeArchived,
       ownerFilter,
+      preserveSelectionId,
       projectId,
       searchMode,
       statusFilter,
@@ -214,6 +234,12 @@ export function EvidenceBrowser({
   }, [loadPage]);
 
   useEffect(() => {
+    if (focusEvidenceId && focusEvidenceId === appliedFocusId) {
+      onFocusEvidenceHandled?.();
+    }
+  }, [appliedFocusId, focusEvidenceId, onFocusEvidenceHandled]);
+
+  useEffect(() => {
     if (!selectedId || creating) {
       return;
     }
@@ -224,6 +250,9 @@ export function EvidenceBrowser({
         const loaded = await getEvidenceAction(projectId, id);
         if (!cancelled) {
           setSelectedDetail(loaded);
+          if (loaded?.status === "archived") {
+            setIncludeArchived(true);
+          }
         }
       })();
     });
@@ -576,6 +605,7 @@ export function EvidenceBrowser({
                           : "text-text-secondary hover:bg-surface-muted"
                       }`}
                       onClick={() => {
+                        setPreserveSelectionId(null);
                         setCreating(false);
                         setSelectedId(item.id);
                       }}

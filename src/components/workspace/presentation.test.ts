@@ -3,10 +3,14 @@ import { describe, it } from "node:test";
 import {
   DEFAULT_WORKSPACE_TAB,
   WORKSPACE_TABS,
+  buildProjectEvidenceHref,
+  firstSearchParam,
   isWorkspacePanelActive,
   isWorkspaceTabId,
   parseCommentQueryParam,
   parseControlQueryParam,
+  parseEvidenceQueryParam,
+  parseNonEmptyQueryParam,
   parseWorkspaceViewParam,
   workspaceTabDefinition,
   workspaceTabsForItemPlural,
@@ -58,13 +62,27 @@ describe("workspace tabs", () => {
     assert.equal(parseWorkspaceViewParam("nope"), "overview");
   });
 
-  it("parses control and comment deep-link query params", () => {
+  it("parses control, comment, and evidence deep-link query params", () => {
     assert.equal(parseControlQueryParam("ac-2"), "ac-2");
     assert.equal(parseControlQueryParam("  ac-2.1 "), "ac-2.1");
     assert.equal(parseControlQueryParam(""), undefined);
     assert.equal(parseControlQueryParam(undefined), undefined);
     assert.equal(parseCommentQueryParam("comment-1"), "comment-1");
     assert.equal(parseCommentQueryParam("   "), undefined);
+    assert.equal(parseEvidenceQueryParam("ev-1"), "ev-1");
+    assert.equal(parseEvidenceQueryParam("  ev-1  "), "ev-1");
+    assert.equal(parseEvidenceQueryParam(""), undefined);
+    assert.equal(parseNonEmptyQueryParam(" AC.L2-3.1.1 "), "AC.L2-3.1.1");
+    assert.equal(firstSearchParam(["a", "b"]), "a");
+    assert.equal(firstSearchParam("solo"), "solo");
+    assert.equal(firstSearchParam(undefined), undefined);
+  });
+
+  it("builds a project Evidence deep-link URL", () => {
+    assert.equal(
+      buildProjectEvidenceHref("project-1", "evidence-99"),
+      "/projects/project-1?view=evidence&evidence=evidence-99",
+    );
   });
 
   it("shows only the selected panel as active", () => {

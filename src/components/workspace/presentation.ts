@@ -98,8 +98,15 @@ export type ControlsFocusRequest = {
   commentId?: string;
 };
 
-/** Parse `control` query param for Controls deep links. */
-export function parseControlQueryParam(
+/** First value from a Next.js search param that may be repeated. */
+export function firstSearchParam(
+  value: string | string[] | undefined,
+): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+/** Trim a query param; empty or missing → undefined. */
+export function parseNonEmptyQueryParam(
   value: string | null | undefined,
 ): string | undefined {
   if (typeof value !== "string") {
@@ -109,15 +116,36 @@ export function parseControlQueryParam(
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+/** Parse `control` query param for Controls deep links. */
+export function parseControlQueryParam(
+  value: string | null | undefined,
+): string | undefined {
+  return parseNonEmptyQueryParam(value);
+}
+
 /** Parse `comment` query param for discussion deep links. */
 export function parseCommentQueryParam(
   value: string | null | undefined,
 ): string | undefined {
-  if (typeof value !== "string") {
-    return undefined;
-  }
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
+  return parseNonEmptyQueryParam(value);
+}
+
+/** Parse `evidence` query param for Evidence deep links. */
+export function parseEvidenceQueryParam(
+  value: string | null | undefined,
+): string | undefined {
+  return parseNonEmptyQueryParam(value);
+}
+
+/** Project Evidence tab URL that selects a specific Evidence record. */
+export function buildProjectEvidenceHref(
+  projectId: string,
+  evidenceId: string,
+): string {
+  const params = new URLSearchParams();
+  params.set("view", "evidence");
+  params.set("evidence", evidenceId);
+  return `/projects/${projectId}?${params.toString()}`;
 }
 
 export const EVIDENCE_ATTENTION_FILTERS = [

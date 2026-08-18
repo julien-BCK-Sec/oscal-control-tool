@@ -8,9 +8,11 @@ import { ProjectWorkspace } from "@/components/ProjectWorkspace";
 import { formatFrameworkLabel } from "@/components/framework/presentation";
 import { frameworkRegistry, resolveFramework } from "@/data/framework";
 import {
+  firstSearchParam,
   parseCommentQueryParam,
   parseControlQueryParam,
   parseEvidenceAttentionParam,
+  parseEvidenceQueryParam,
   parseWorkspaceViewParam,
 } from "@/components/workspace/presentation";
 
@@ -23,6 +25,7 @@ type ProjectPageProps = {
     control?: string | string[];
     comment?: string | string[];
     attention?: string | string[];
+    evidence?: string | string[];
   }>;
 };
 
@@ -32,20 +35,21 @@ export default async function ProjectPage({
 }: ProjectPageProps) {
   const { id } = await params;
   const query = await searchParams;
-  const viewParam = Array.isArray(query.view) ? query.view[0] : query.view;
-  const controlParam = Array.isArray(query.control)
-    ? query.control[0]
-    : query.control;
-  const commentParam = Array.isArray(query.comment)
-    ? query.comment[0]
-    : query.comment;
-  const attentionParam = Array.isArray(query.attention)
-    ? query.attention[0]
-    : query.attention;
-  const initialView = parseWorkspaceViewParam(viewParam);
+  const viewParam = firstSearchParam(query.view);
+  const controlParam = firstSearchParam(query.control);
+  const commentParam = firstSearchParam(query.comment);
+  const attentionParam = firstSearchParam(query.attention);
+  const evidenceParam = firstSearchParam(query.evidence);
+  const initialEvidenceId = parseEvidenceQueryParam(evidenceParam);
   const initialControlId = parseControlQueryParam(controlParam);
   const initialCommentId = parseCommentQueryParam(commentParam);
   const initialEvidenceAttention = parseEvidenceAttentionParam(attentionParam);
+  const parsedView = parseWorkspaceViewParam(viewParam);
+  const initialView = initialEvidenceId
+    ? "evidence"
+    : initialControlId
+      ? "controls"
+      : parsedView;
   const initialFocus =
     initialControlId || initialCommentId
       ? {
@@ -87,8 +91,9 @@ export default async function ProjectPage({
       frameworkLabel={formatFrameworkLabel(frameworkDescriptor)}
       initialControlRecords={controlRecords}
       initialSnapshots={snapshots}
-      initialView={initialControlId ? "controls" : initialView}
+      initialView={initialView}
       initialFocus={initialFocus}
+      initialEvidenceId={initialEvidenceId}
       initialEvidenceAttention={initialEvidenceAttention}
     />
   );

@@ -252,8 +252,10 @@ Presentation never contains OSCAL serialization.
 
 UI may hide unauthorized actions but is never the authorization boundary.
 
-Theme preference is a client UI concern (`src/theme/`, localStorage). It is not
-part of auth, tenancy, or domain persistence.
+Theme preference is a client UI concern (`src/theme/`, localStorage). The
+control-navigation pane width is the same class of preference
+(`cf-control-nav-width`). Neither is part of auth, tenancy, or domain
+persistence.
 
 ---
 
