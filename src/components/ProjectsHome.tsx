@@ -31,7 +31,7 @@ import {
 } from "@/components/framework/presentation";
 import type { FrameworkDescriptor } from "@/data/framework/types";
 import { formatCompletionCount, type CompletionProgress } from "@/domain";
-import { formatSnapshotTimestamp } from "@/components/projectHistory/presentation";
+import { AbsoluteTimestamp } from "@/components/time/AbsoluteTimestamp";
 import type { ProjectSummary } from "@/persistence/types";
 
 export type ProjectListItem = ProjectSummary & {
@@ -403,7 +403,7 @@ function ProjectCard({
         <span className="mx-1.5" aria-hidden="true">
           ·
         </span>
-        Updated {formatSnapshotTimestamp(project.updatedAt)}
+        Updated <AbsoluteTimestamp value={project.updatedAt} />
       </p>
       </CardContent>
     </Card>

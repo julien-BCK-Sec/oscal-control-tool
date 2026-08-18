@@ -118,7 +118,10 @@ export function ControlEditorHeader({
           </dl>
 
           <p className="mt-1.5 text-xs">
-            <HelpLink slug="authoring-controls">
+            <HelpLink
+              slug="authoring-controls"
+              hash="the-three-status-fields-in-detail"
+            >
               What do these three statuses mean?
             </HelpLink>
           </p>

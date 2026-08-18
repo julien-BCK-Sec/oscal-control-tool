@@ -1,5 +1,5 @@
 ---
-title: Frameworks and standards
+title: Choose and understand frameworks
 summary: The frameworks Control Freak supports today, how "control" and "requirement" terminology differs by framework, and what a framework choice does and does not mean.
 section: frameworks
 order: 10
@@ -45,7 +45,7 @@ you can search by either form.
 Selecting a framework in Control Freak is a documentation choice, not a
 certification, assessment, or authorization decision:
 
-> **Note:** Control Freak does not claim FedRAMP authorization, CMMC
+> **Limitation:** Control Freak does not claim FedRAMP authorization, CMMC
 > certification, C3PAO assessment, MET / NOT MET determinations, or SPRS
 > scoring for any project, regardless of which framework it uses.
 
@@ -59,7 +59,7 @@ authorization process says otherwise outside the tool.
 For CMMC Level 2 projects specifically, Evidence coverage and implementation
 completion are program-management facts about your documentation — never a
 CMMC assessment result, a MET / NOT MET determination, an SPRS score, or a
-certification status. See [Evidence coverage and reporting](/help/evidence-coverage).
+certification status. See [Track Evidence coverage](/help/evidence-coverage).
 
 ## Where the framework content comes from
 

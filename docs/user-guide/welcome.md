@@ -3,7 +3,7 @@ title: Welcome to Control Freak
 summary: What Control Freak is, the vocabulary it uses, and the ideas that make the rest of this guide easier to follow.
 section: getting-started
 order: 10
-related: signing-in, projects, authoring-controls
+related: quick-start, signing-in, projects, authoring-controls
 ---
 
 ## What Control Freak is
@@ -14,13 +14,16 @@ implements a security control framework, review that documentation together,
 attach supporting Evidence, and export a standards-based System Security Plan
 (SSP) when the framework supports it.
 
-Control Freak documents your implementation. It does not assess it. Nothing
-in the product certifies compliance, issues an authorization to operate,
-scores a SPRS submission, or determines that a control is MET or NOT MET. A
-framework choice, a completion percentage, and an Evidence coverage count are
-all program-management facts about your documentation — not a compliance
-determination. See [Limitations](/help/limitations) for the full list of
-things Control Freak intentionally does not do.
+Control Freak documents your implementation. It does not assess it.
+
+> **Limitation:** Nothing in the product certifies compliance, issues an
+> authorization to operate, scores a SPRS submission, or determines that a
+> control is MET or NOT MET. A framework choice, a completion percentage,
+> and an Evidence coverage count are all program-management facts about
+> your documentation — not a compliance determination.
+
+See [Product limitations](/help/limitations) for the full list of things
+Control Freak intentionally does not do.
 
 ## The vocabulary
 
@@ -38,7 +41,7 @@ Freak:
 - **Control** or **requirement** — one item from the selected framework.
   NIST SP 800-53 projects call these **controls**; CMMC Level 2 projects
   call the same kind of item a **requirement**. The underlying workflow is
-  identical either way — see [Frameworks and standards](/help/frameworks).
+  identical either way — see [Choose and understand frameworks](/help/frameworks).
 - **Implementation** — the narrative text you write describing how your
   organization satisfies a control or requirement.
 - **Evidence** — a record (optionally with an uploaded file) that
@@ -54,7 +57,24 @@ Freak:
 The single most common source of confusion in Control Freak is that a
 control has **three independent status fields**, each answering a different
 question. They do not automatically move together, and none of them
-implies the others:
+implies the others.
+
+> **Note:** These three statuses are independent. Narrative Implemented does
+> not imply review Approved. Implementation status Approved is not the same
+> as review Approved. Review approval does not rewrite Narrative or
+> Implementation status.
+
+```diagram
+columns
+Narrative status
+Has the implementation text been written?
+---
+Implementation status
+What is this control record's governance state?
+---
+Review status
+Where is the documentation in the controlled review workflow?
+```
 
 | Status | Question it answers | Values | Who changes it |
 | --- | --- | --- | --- |
@@ -67,13 +87,16 @@ For example, a control's **narrative status** can be "Implemented" while its
 submit anything for review, and approving a review does not rewrite the
 narrative status. Setting **implementation status** to "Approved" is a
 metadata field you set yourself; it is a separate concept from the reviewer
-actually approving the review workflow. See
-[Authoring controls](/help/authoring-controls) for a full walkthrough of all
-three fields together on one control.
+actually approving the review workflow. The difference between Implemented
+and Approved depends on which of the three fields you are looking at. See
+[Document controls and requirements](/help/authoring-controls) for a full
+walkthrough of all three fields together on one control.
 
 ## Where to go next
 
-- New to the product? Continue to [Signing in and finding your way around](/help/signing-in).
-- Ready to create something? See [Projects and the workspace](/help/projects).
+- Follow [Quick start: document your first control](/help/quick-start) for a
+  short end-to-end workflow.
+- New to signing in? Continue to [Signing in and finding your way around](/help/signing-in).
+- Ready to create something? See [Create and manage projects](/help/projects).
 - Want the control-editing details right away? See
-  [Authoring controls](/help/authoring-controls).
+  [Document controls and requirements](/help/authoring-controls).

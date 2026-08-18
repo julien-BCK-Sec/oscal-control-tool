@@ -52,7 +52,7 @@ including the primary one on narrower screens.
 Approving a control's review does not rewrite its Narrative status or its
 Implementation status field, and it does not touch its Evidence. Review
 status is purely the workflow gate itself — see
-[Authoring controls](/help/authoring-controls) for how it relates to the
+[Document controls and requirements](/help/authoring-controls) for how it relates to the
 other two status fields on a control.
 
 Every review transition is recorded in the control's **History** — see

@@ -1,4 +1,5 @@
 import type { ProjectSnapshotSummary, SnapshotType } from "@/persistence/types";
+import { formatAbsoluteTimestamp } from "@/components/time/formatAbsoluteTimestamp";
 
 /** Label for the live project's optimistic-concurrency revision (not a version number). */
 export function formatProjectRevisionLabel(revision: number): string {
@@ -34,11 +35,7 @@ export function formatSnapshotHistorySecondary(
 }
 
 export function formatSnapshotTimestamp(createdAt: string): string {
-  const parsed = Date.parse(createdAt);
-  if (Number.isNaN(parsed)) {
-    return createdAt;
-  }
-  return new Date(parsed).toLocaleString();
+  return formatAbsoluteTimestamp(createdAt, "utc");
 }
 
 export type PartitionedSnapshots = {

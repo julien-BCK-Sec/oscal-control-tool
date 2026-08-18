@@ -22,18 +22,21 @@ official CMMC or NIST SP 800-171 Revision 2 OSCAL profile exists to export
 against, and Control Freak will not invent or substitute one. The Project
 details and Overview tabs explain this directly:
 
-> **Note:** OSCAL SSP export is available for NIST SP 800-53 projects. No
-> official CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned.
+> **Limitation:** OSCAL SSP export is available for NIST SP 800-53
+> projects. No official CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned.
 
 ## What "valid" means here
 
 The Overview tab's **Run OSCAL validation** button (also NIST-only) checks
-the assembled SSP against the pinned official OSCAL SSP JSON schema. This
-is **structural validation only** — it confirms the document is well-formed
-OSCAL, not that it is semantically complete or policy-compliant. It does
-not check cross-references between parts of the document, confirm that
-every control identifier maps to something meaningful outside the document,
-or evaluate your implementation against FedRAMP or any other policy layer.
+the assembled SSP against the pinned official OSCAL SSP JSON schema.
+
+> **Limitation:** This is **structural validation only** — it confirms the
+> document is well-formed OSCAL, not that it is semantically complete or
+> policy-compliant. It does not check cross-references between parts of the
+> document, confirm that every control identifier maps to something
+> meaningful outside the document, or evaluate your implementation against
+> FedRAMP or any other policy layer.
+
 Treat "OSCAL SSP valid" as "this file is structurally sound OSCAL," not as
 "this system is compliant" or "this SSP is complete."
 

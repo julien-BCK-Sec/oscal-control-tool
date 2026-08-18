@@ -1,5 +1,5 @@
 ---
-title: Evidence
+title: Add and manage Evidence
 summary: What an Evidence record is, its lifecycle, and how to create, upload, and link it to controls.
 section: evidence
 order: 10
@@ -8,14 +8,24 @@ related: evidence-coverage, authoring-controls, roles-and-permissions
 
 ## What Evidence is
 
-An Evidence record is a **logical, permanent record** — not a file. It has
-a title, description, owner, type (Document, Screenshot, Log, Policy,
-Attestation, or Other), a collection date, and a review due date. A file
-upload is optional: an Evidence record can exist, and satisfy coverage,
-with no file attached at all (see
-[Evidence coverage and reporting](/help/evidence-coverage)). When you do
-upload a file, replacing it later creates a new, immutable **version**
-rather than overwriting anything — see below.
+An Evidence record represents the evidence item; it is separate from any
+uploaded file. The record holds:
+
+```diagram
+tree
+Evidence record
+Metadata
+File versions (optional)
+Linked controls/requirements
+```
+
+Metadata includes a title, description, owner, type (Document, Screenshot,
+Log, Policy, Attestation, or Other), a collection date, and a review due
+date. File versions are optional: an Evidence record can exist, and
+satisfy coverage, with no file attached at all (see
+[Track Evidence coverage](/help/evidence-coverage)). When you do upload a
+file, replacing it later creates a new, immutable **version** rather than
+overwriting anything — see below.
 
 Evidence belongs to a single project and can be linked to any number of
 controls within it (and a control can have any number of linked Evidence
@@ -26,18 +36,25 @@ projects in this version of Control Freak.
 
 An Evidence record moves through three states:
 
+```diagram
+flow
+Draft → Active → Archived
+```
+
 - **Draft** — the default for new Evidence you create from the Evidence
   tab. Does not satisfy coverage; shown as an in-progress "attention" fact.
+  A draft with no linked controls can be permanently deleted (organization
+  administrators and project managers only).
 - **Active** — counts toward Evidence coverage. Evidence created directly
-  from a control's Evidence panel is created as Active immediately.
+  from a control's Evidence panel is created as Active immediately. Active
+  Evidence can satisfy coverage even with no current uploaded file.
 - **Archived** — a one-way action (there is no "un-archive"). Archived
   Evidence becomes read-only, is excluded from coverage, and cannot be
   newly linked to a control.
 
-A **draft** record with no linked controls can be permanently deleted
-(organization administrators and project managers only); every other
-Evidence record should be archived rather than deleted, to preserve the
-audit trail.
+Every Evidence record that is not an unlinked draft should be archived
+rather than deleted, to preserve the audit trail. Uploaded versions are
+immutable.
 
 ## Linking Evidence to a control
 
@@ -55,7 +72,7 @@ Each control also has its own **Evidence requirement** field — **Required**
 (the default for every control), **Optional**, or **Not required** — set in
 the control editor's Implementation card. This is what Evidence coverage
 measures against; see
-[Evidence coverage and reporting](/help/evidence-coverage).
+[Track Evidence coverage](/help/evidence-coverage).
 
 ## Uploading files and versions
 

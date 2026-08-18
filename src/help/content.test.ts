@@ -4,7 +4,9 @@ import {
   getAdjacentHelpPages,
   getHelpManifest,
   getHelpPage,
+  getHelpSearchIndex,
 } from "./content";
+import { HELP_CONTEXTUAL_ANCHORS, HELP_LANDING_ITEMS } from "./landing";
 import { HELP_SECTIONS } from "./sections";
 
 describe("getHelpManifest", () => {
@@ -36,6 +38,46 @@ describe("getHelpManifest", () => {
     const manifest = getHelpManifest();
     const slugs = manifest.flat.map((page) => page.slug);
     assert.equal(new Set(slugs).size, slugs.length);
+  });
+
+  it("places Quick start after Welcome in Getting started", () => {
+    const manifest = getHelpManifest();
+    const gettingStarted = manifest.sections.find(
+      (entry) => entry.section.id === "getting-started",
+    );
+    assert.ok(gettingStarted);
+    const slugs = gettingStarted!.pages.map((page) => page.slug);
+    const welcomeIndex = slugs.indexOf("welcome");
+    const quickStartIndex = slugs.indexOf("quick-start");
+    const signingInIndex = slugs.indexOf("signing-in");
+    assert.ok(welcomeIndex !== -1);
+    assert.ok(quickStartIndex !== -1);
+    assert.ok(signingInIndex !== -1);
+    assert.ok(welcomeIndex < quickStartIndex);
+    assert.ok(quickStartIndex < signingInIndex);
+  });
+
+  it("uses task-oriented titles for renamed navigation pages", () => {
+    assert.equal(getHelpPage("projects")?.title, "Create and manage projects");
+    assert.equal(
+      getHelpPage("authoring-controls")?.title,
+      "Document controls and requirements",
+    );
+    assert.equal(getHelpPage("evidence")?.title, "Add and manage Evidence");
+    assert.equal(
+      getHelpPage("evidence-coverage")?.title,
+      "Track Evidence coverage",
+    );
+    assert.equal(
+      getHelpPage("frameworks")?.title,
+      "Choose and understand frameworks",
+    );
+    assert.equal(getHelpPage("invitations-and-team")?.title, "Manage your team");
+    assert.equal(getHelpPage("limitations")?.title, "Product limitations");
+    assert.equal(
+      getHelpPage("quick-start")?.title,
+      "Quick start: document your first control",
+    );
   });
 });
 
@@ -110,6 +152,51 @@ describe("cross-page /help links", () => {
           `${summary.slug} lists unknown related page "${relatedSlug}"`,
         );
       }
+    }
+  });
+});
+
+describe("Help landing destinations and contextual anchors", () => {
+  it("points every landing-page task card at a real Help page and heading", () => {
+    const manifest = getHelpManifest();
+    const knownSlugs = new Set(manifest.flat.map((page) => page.slug));
+
+    for (const item of HELP_LANDING_ITEMS) {
+      assert.ok(item.href.startsWith("/help/"), `${item.label} href is not a Help link`);
+      const match = item.href.match(/^\/help\/([a-z0-9-]+)(?:#([a-z0-9-]+))?$/);
+      assert.ok(match, `${item.label} has an unexpected href: ${item.href}`);
+      const slug = match![1];
+      const headingId = match![2];
+      assert.ok(knownSlugs.has(slug), `${item.label} links to unknown page "${slug}"`);
+      if (headingId) {
+        const page = getHelpPage(slug);
+        assert.ok(
+          page!.headings.some((heading) => heading.id === headingId),
+          `${item.href} is missing heading "${headingId}"`,
+        );
+      }
+    }
+  });
+
+  it("keeps contextual Help heading anchors on the target pages", () => {
+    for (const { slug, headingId } of HELP_CONTEXTUAL_ANCHORS) {
+      const page = getHelpPage(slug);
+      assert.ok(page, `missing Help page "${slug}"`);
+      assert.ok(
+        page!.headings.some((heading) => heading.id === headingId),
+        `${slug} is missing heading "${headingId}"`,
+      );
+    }
+  });
+});
+
+describe("getHelpSearchIndex", () => {
+  it("indexes every manifest page with searchable body text from Markdown", () => {
+    const manifest = getHelpManifest();
+    const index = getHelpSearchIndex();
+    assert.equal(index.length, manifest.flat.length);
+    for (const doc of index) {
+      assert.ok(doc.bodyText.length > 0, `${doc.slug} has empty body text`);
     }
   });
 });

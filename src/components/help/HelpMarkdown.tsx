@@ -1,6 +1,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { BlockNode, InlineNode } from "@/help/markdown";
+import { HelpCallout } from "@/components/help/HelpCallout";
+import { HelpDiagram } from "@/components/help/HelpDiagram";
+
+const HELP_LINK_CLASS =
+  "text-accent underline underline-offset-2 hover:no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring";
 
 /**
  * Renders the Help content AST as React elements. Never uses
@@ -36,11 +41,7 @@ function renderInlineNode(node: InlineNode, key: number): ReactNode {
       const isInternal = node.href.startsWith("/");
       if (isInternal) {
         return (
-          <Link
-            key={key}
-            href={node.href}
-            className="text-accent underline underline-offset-2 hover:no-underline"
-          >
+          <Link key={key} href={node.href} className={HELP_LINK_CLASS}>
             {renderInline(node.children)}
           </Link>
         );
@@ -51,7 +52,7 @@ function renderInlineNode(node: InlineNode, key: number): ReactNode {
           href={node.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-accent underline underline-offset-2 hover:no-underline"
+          className={HELP_LINK_CLASS}
         >
           {renderInline(node.children)}
         </a>
@@ -71,13 +72,6 @@ const HEADING_TAG = {
   4: "h4",
 } as const;
 
-const HEADING_CLASS = {
-  1: "text-lg font-semibold tracking-tight text-foreground",
-  2: "text-lg font-semibold tracking-tight text-foreground",
-  3: "text-base font-semibold tracking-tight text-foreground",
-  4: "text-sm font-semibold text-foreground",
-} as const;
-
 function renderBlock(block: BlockNode, key: number): ReactNode {
   switch (block.type) {
     case "heading": {
@@ -86,9 +80,7 @@ function renderBlock(block: BlockNode, key: number): ReactNode {
         <Tag
           key={key}
           id={block.id}
-          className={`scroll-mt-24 ${HEADING_CLASS[block.level]} ${
-            key > 0 ? "mt-8" : ""
-          }`}
+          className={`scroll-mt-24 ${key === 0 ? "mt-0" : ""}`}
         >
           {renderInline(block.children)}
         </Tag>
@@ -96,7 +88,7 @@ function renderBlock(block: BlockNode, key: number): ReactNode {
     }
     case "paragraph":
       return (
-        <p key={key} className="mt-3 text-sm leading-relaxed text-text-secondary">
+        <p key={key} className="mt-3 text-text-secondary">
           {renderInline(block.children)}
         </p>
       );
@@ -105,7 +97,7 @@ function renderBlock(block: BlockNode, key: number): ReactNode {
       return (
         <Tag
           key={key}
-          className={`mt-3 space-y-1.5 pl-5 text-sm leading-relaxed text-text-secondary ${
+          className={`mt-3 space-y-1.5 pl-5 text-text-secondary ${
             block.ordered ? "list-decimal" : "list-disc"
           }`}
         >
@@ -116,6 +108,9 @@ function renderBlock(block: BlockNode, key: number): ReactNode {
       );
     }
     case "code_block":
+      if (block.lang === "diagram") {
+        return <HelpDiagram key={key} code={block.code} />;
+      }
       return (
         <pre
           key={key}
@@ -126,23 +121,20 @@ function renderBlock(block: BlockNode, key: number): ReactNode {
       );
     case "blockquote":
       return (
-        <div
-          key={key}
-          role="note"
-          className="mt-4 rounded-sm border border-info/30 bg-info-muted px-4 py-3 text-sm leading-relaxed text-text-secondary"
-        >
+        <HelpCallout key={key} kind={block.kind}>
           {renderInline(block.children)}
-        </div>
+        </HelpCallout>
       );
     case "table":
       return (
         <div key={key} className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[28rem] border-collapse text-left text-sm">
+          <table className="w-full border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-border">
+              <tr className="border-b border-border bg-surface-secondary">
                 {block.header.map((cell, cellIndex) => (
                   <th
                     key={cellIndex}
+                    scope="col"
                     className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-text-secondary"
                   >
                     {renderInline(cell)}
@@ -156,7 +148,9 @@ function renderBlock(block: BlockNode, key: number): ReactNode {
                   {row.map((cell, cellIndex) => (
                     <td
                       key={cellIndex}
-                      className="px-3 py-2 align-top text-text-secondary"
+                      className={`px-3 py-2.5 align-top text-text-secondary ${
+                        cellIndex === 0 ? "font-medium text-foreground" : ""
+                      }`}
                     >
                       {renderInline(cell)}
                     </td>

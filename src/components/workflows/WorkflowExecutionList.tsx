@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/design-system/card/Card";
+import { AbsoluteTimestamp } from "@/components/time/AbsoluteTimestamp";
 import { WorkflowBackLink } from "@/components/workflows/WorkflowBackLink";
 import type { WorkflowExecution } from "@/persistence/workflow-repository";
 
@@ -73,7 +74,7 @@ export function WorkflowExecutionList({
                     {execution.triggeringEventType}
                   </CardTitle>
                   <p className="mt-1 text-sm text-text-secondary">
-                    {new Date(execution.startedAt).toLocaleString()} ·{" "}
+                    <AbsoluteTimestamp value={execution.startedAt} /> ·{" "}
                     {execution.durationMs} ms
                     {execution.projectId
                       ? ` · project ${execution.projectId}`

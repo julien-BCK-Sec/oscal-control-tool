@@ -1,5 +1,5 @@
 ---
-title: Authoring controls
+title: Document controls and requirements
 summary: Browsing the control tree and everything on the control editor screen — narrative, ownership, and the three status fields.
 section: controls
 order: 10
@@ -61,6 +61,23 @@ as "No owner assigned."
 Every control carries three independent status concepts. Changing one
 never changes another.
 
+> **Note:** These three statuses are independent. Narrative Implemented does
+> not imply review Approved. Implementation status Approved is not the same
+> as review Approved. Review approval does not rewrite Narrative or
+> Implementation status.
+
+```diagram
+columns
+Narrative status
+Has the implementation text been written?
+---
+Implementation status
+What is this control record's governance state?
+---
+Review status
+Where is the documentation in the controlled review workflow?
+```
+
 ### Narrative status
 
 Tracks whether you've written the implementation text — nothing more. Set
@@ -112,4 +129,4 @@ of them was inferred from another — that's expected, not a bug.
 Also in the Implementation card: **Evidence requirement**, one of
 **Required** (the default for every control), **Optional**, or
 **Not required**. This determines whether the control counts toward
-Evidence coverage gaps — see [Evidence](/help/evidence).
+Evidence coverage gaps — see [Add and manage Evidence](/help/evidence).

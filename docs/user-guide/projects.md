@@ -1,5 +1,5 @@
 ---
-title: Projects and the workspace
+title: Create and manage projects
 summary: Creating a project, the tabs in the project workspace, and what the Overview tab shows you at a glance.
 section: projects
 order: 10
@@ -13,10 +13,10 @@ a framework. The framework choice is grouped by family — **NIST SP 800-53
 Rev. 5** (Low, Moderate, or High) and **CMMC** (Level 2) — and defaults to
 NIST SP 800-53 Rev. 5 Moderate.
 
-> **Note:** A framework cannot be changed after the project is created, and
-> choosing one is not a certification or assessment status. See
-> [Frameworks and standards](/help/frameworks) before you create a project
-> if you're unsure which one applies.
+> **Warning:** A framework cannot be changed after the project is created,
+> and choosing one is not a certification or assessment status. See
+> [Choose and understand frameworks](/help/frameworks) before you create a
+> project if you're unsure which one applies.
 
 Creating a project requires the `project.create` permission (organization
 administrators and project managers). Everyone with project access can open
@@ -40,7 +40,7 @@ Opening a project puts you in its workspace, with five tabs:
 | Tab | What it shows |
 | --- | --- |
 | Overview | A summary dashboard — see below |
-| Controls (or Requirements) | The browsable control/requirement tree and editor — see [Authoring controls](/help/authoring-controls) |
+| Controls (or Requirements) | The browsable control/requirement tree and editor — see [Document controls and requirements](/help/authoring-controls) |
 | Evidence | The project's Evidence records and coverage — see [Evidence](/help/evidence) |
 | Project details | System name, organization name, description, and OSCAL export — see [OSCAL export](/help/oscal-export) |
 | Version history | Named versions and automatic snapshots — see [Version history](/help/version-history) |
@@ -62,7 +62,7 @@ place:
 - **Evidence coverage** — four clickable summary cards (required items
   missing Evidence, Evidence due soon, Evidence overdue, and unlinked
   Evidence), each of which jumps into the Evidence tab pre-filtered. See
-  [Evidence coverage and reporting](/help/evidence-coverage) for exactly
+  [Track Evidence coverage](/help/evidence-coverage) for exactly
   what these numbers mean.
 - **Family progress** — completion by control family, each entry linking
   into that family in the Controls tab.

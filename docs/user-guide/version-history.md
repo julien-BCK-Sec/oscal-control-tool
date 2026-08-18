@@ -28,7 +28,7 @@ asks you to confirm before proceeding — restoring replaces your project's
 current working implementation content with that snapshot's content, after
 first saving your current state as a new recovery snapshot.
 
-> **Note:** Restore only replaces implementation content (the narrative
+> **Warning:** Restore only replaces implementation content (the narrative
 > text and related project document data). It does **not** roll back
 > ControlRecord metadata (ownership, statuses, Evidence requirement),
 > activity history, discussions, assignments, or Evidence links — those

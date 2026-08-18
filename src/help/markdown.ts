@@ -3,9 +3,9 @@
  *
  * Supports exactly what the user-guide content needs: headings (#-####),
  * paragraphs, bold/italic/code/link inline spans, unordered/ordered lists
- * (single level), fenced code blocks, blockquotes (used as note callouts),
- * pipe tables, and horizontal rules. It is intentionally not a general
- * CommonMark implementation.
+ * (single level), fenced code blocks, blockquotes (labeled Note/Tip/Warning/
+ * Limitation callouts), `diagram` fences, pipe tables, and horizontal rules.
+ * It is intentionally not a general CommonMark implementation.
  */
 
 export type InlineNode =
@@ -14,6 +14,8 @@ export type InlineNode =
   | { type: "italic"; children: InlineNode[] }
   | { type: "code"; value: string }
   | { type: "link"; href: string; children: InlineNode[] };
+
+export type CalloutKind = "note" | "tip" | "warning" | "limitation";
 
 export type BlockNode =
   | {
@@ -26,7 +28,7 @@ export type BlockNode =
   | { type: "paragraph"; children: InlineNode[] }
   | { type: "list"; ordered: boolean; items: InlineNode[][] }
   | { type: "code_block"; lang: string | null; code: string }
-  | { type: "blockquote"; children: InlineNode[] }
+  | { type: "blockquote"; kind: CalloutKind; children: InlineNode[] }
   | {
       type: "table";
       header: InlineNode[][];
@@ -34,6 +36,27 @@ export type BlockNode =
       rows: InlineNode[][][];
     }
   | { type: "hr" };
+
+const CALLOUT_PREFIX =
+  /^(?:\*\*)?(Note|Tip|Warning|Limitation):?(?:\*\*)?:?\s+/i;
+
+/**
+ * Recognize a limited set of callout labels at the start of a blockquote.
+ * Unlabeled quotes become notes so every callout has a text label.
+ */
+export function parseCalloutPrefix(raw: string): {
+  kind: CalloutKind;
+  text: string;
+} {
+  const match = raw.match(CALLOUT_PREFIX);
+  if (!match) {
+    return { kind: "note", text: raw };
+  }
+  return {
+    kind: match[1].toLowerCase() as CalloutKind,
+    text: raw.slice(match[0].length),
+  };
+}
 
 export function slugifyHeading(text: string): string {
   return text
@@ -197,9 +220,11 @@ export function parseMarkdown(source: string): BlockNode[] {
         quoteLines.push(lines[i].replace(/^>\s?/, ""));
         i += 1;
       }
+      const { kind, text } = parseCalloutPrefix(quoteLines.join(" ").trim());
       blocks.push({
         type: "blockquote",
-        children: parseInline(quoteLines.join(" ").trim()),
+        kind,
+        children: parseInline(text),
       });
       continue;
     }
@@ -267,4 +292,32 @@ export function extractHeadings(
       block.type === "heading",
     )
     .map(({ id, text, level }) => ({ id, text, level }));
+}
+
+function blockPlainText(block: BlockNode): string {
+  switch (block.type) {
+    case "heading":
+      return block.text;
+    case "paragraph":
+    case "blockquote":
+      return inlineText(block.children);
+    case "list":
+      return block.items.map((item) => inlineText(item)).join("\n");
+    case "code_block":
+      return block.code;
+    case "table":
+      return [
+        block.header.map((cell) => inlineText(cell)).join(" "),
+        ...block.rows.map((row) => row.map((cell) => inlineText(cell)).join(" ")),
+      ].join("\n");
+    case "hr":
+      return "";
+    default:
+      return "";
+  }
+}
+
+/** Flatten parsed blocks to searchable plain text. */
+export function extractPlainText(blocks: BlockNode[]): string {
+  return blocks.map(blockPlainText).filter(Boolean).join("\n");
 }

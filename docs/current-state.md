@@ -242,24 +242,29 @@ Production deployments use `DEPLOYMENT_MODE` (`docs/deployment.md`, ADR-028).
   the checked-in documentation source and the in-app Help content — no
   duplicated copy
 - Loader (`src/help/`): server-only frontmatter + dependency-free Markdown
-  parser (headings, paragraphs, lists, code blocks, blockquotes, tables,
-  links; no `dangerouslySetInnerHTML`), grouped into a manifest by section
-  (`src/help/sections.ts`)
-- Routes: `/help` (topic index by section) and `/help/{slug}` (article with
-  table of contents, related-topic links, and previous/next), both behind
+  parser (headings, paragraphs, lists, code blocks, labeled blockquote
+  callouts, `diagram` fences, tables, links; no `dangerouslySetInnerHTML`),
+  grouped into a manifest by section (`src/help/sections.ts`)
+- Routes: `/help` (Help Center landing: task cards, in-memory full-text
+  search over parsed pages, and browse-all topics) and `/help/{slug}`
+  (article with sticky topic nav, optional right-hand table of contents on
+  wide screens, related-topic links, and previous/next), both behind
   authentication (redirect to sign-in) and using the existing `AppShell` /
   `ProductHeader` / `PageContent` design-system shell
-- Navigation: sidebar topic list with a client-side substring filter across
-  titles and summaries (no search index/dependency); breadcrumb and
-  previous/next on each article
+- Navigation: sidebar topic list with a client-side "Filter topics" control
+  across titles and summaries; landing-page search matches title, summary,
+  headings, and body text (no search index/dependency)
 - Discoverability: a persistent **Help** link in the authenticated header
-  (`AuthenticatedHeaderActions`); targeted contextual links
+  (`AuthenticatedHeaderActions`); the Help header logo and a **Back to
+  projects** link return to `/projects`; targeted contextual links
   (`HelpLink`) on the control editor (the three status fields), the Evidence
   tab (coverage/freshness), the OSCAL export control, and the workflow
-  automation rule list — not added to every screen
+  automation rule list — not added to every screen. Contextual links stay
+  in-app (same tab) and deep-link to the relevant heading where one exists
 - Tests validate manifest loading/ordering, path-traversal-safe slug
-  resolution, and that every internal `/help/{slug}` and `related` link in
-  the content resolves to a real page
+  resolution, landing-page destinations, contextual heading anchors, callout
+  parsing, in-memory search, and that every internal `/help/{slug}` and
+  `related` link in the content resolves to a real page
 - Content is read from `docs/user-guide/*.md` at runtime (same pattern as
   the pinned OSCAL schema); the production Docker image copies that
   directory alongside `src` and the vendor schema

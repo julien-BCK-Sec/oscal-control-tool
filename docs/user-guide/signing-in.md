@@ -3,7 +3,7 @@ title: Signing in and finding your way around
 summary: How access works, how invitations turn into a working account, and the parts of the screen you will see on every page.
 section: getting-started
 order: 20
-related: welcome, roles-and-permissions, invitations-and-team
+related: welcome, quick-start, roles-and-permissions, invitations-and-team
 ---
 
 ## Access is invite-only
@@ -11,7 +11,7 @@ related: welcome, roles-and-permissions, invitations-and-team
 Control Freak has no public sign-up page. You cannot create your own
 account from the sign-in screen. An organization administrator has to
 invite your email address to their organization first — see
-[Invitations and team management](/help/invitations-and-team) for what that
+[Manage your team](/help/invitations-and-team) for what that
 looks like from the administrator's side.
 
 Signing in itself uses an email address and password on the **Sign in**
@@ -54,7 +54,7 @@ will switch your active organization for you automatically.
 If you can manage members in your organization, two extra links —
 **Team** and **Workflows** — appear above your projects list. **Team** is
 where invitations and roles are managed
-([Invitations and team management](/help/invitations-and-team)); **Workflows**
+([Manage your team](/help/invitations-and-team)); **Workflows**
 is where automation rules live
 ([Workflow automation](/help/workflow-automation)). Both are visible only to
 organization administrators — see

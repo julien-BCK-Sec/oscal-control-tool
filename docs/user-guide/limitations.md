@@ -1,5 +1,5 @@
 ---
-title: Limitations and things Control Freak intentionally does not do
+title: Product limitations
 summary: A single, honest list of what's out of scope today, gathered from across the guide.
 section: reference
 order: 10
@@ -10,6 +10,10 @@ Control Freak is deliberately scoped to compliance authoring and control
 governance — not a broad enterprise GRC suite. This page collects the
 limitations mentioned throughout the guide in one place.
 
+> **Limitation:** Control Freak is not an assessment or certification tool.
+> It does not produce MET / NOT MET determinations, SPRS scores, CMMC
+> certification status, or a FedRAMP authorization to operate.
+
 ## Not a compliance or assessment tool
 
 - Control Freak does not certify, assess, or authorize anything. It does
@@ -17,11 +21,11 @@ limitations mentioned throughout the guide in one place.
   status, or a FedRAMP authorization to operate.
 - Evidence coverage and implementation completion are program-management
   counts about your documentation, never a compliance score. See
-  [Evidence coverage and reporting](/help/evidence-coverage).
+  [Track Evidence coverage](/help/evidence-coverage).
 - There is no FedRAMP-specific policy layer, profile, or rules engine. The
   NIST SP 800-53 Moderate baseline is used for realism in places, but
   choosing it does not make a project a FedRAMP package. See
-  [Frameworks and standards](/help/frameworks).
+  [Choose and understand frameworks](/help/frameworks).
 
 ## Standards and OSCAL
 

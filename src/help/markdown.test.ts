@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { parseInline, parseMarkdown, slugifyHeading } from "./markdown";
+import { parseInline, parseMarkdown, parseCalloutPrefix, slugifyHeading } from "./markdown";
 
 describe("slugifyHeading", () => {
   it("lowercases and hyphenates", () => {
@@ -76,6 +76,51 @@ describe("parseMarkdown", () => {
   it("parses a blockquote as a note callout", () => {
     const blocks = parseMarkdown("> Evidence coverage is not a compliance score.");
     assert.equal(blocks[0].type, "blockquote");
+    if (blocks[0].type === "blockquote") {
+      assert.equal(blocks[0].kind, "note");
+    }
+  });
+
+  it("parses labeled callout prefixes into note, tip, warning, and limitation", () => {
+    const note = parseMarkdown("> **Note:** Frameworks are immutable after create.");
+    const tip = parseMarkdown("> **Tip:** Start with Quick start.");
+    const warning = parseMarkdown("> **Warning:** Restore does not roll back Evidence.");
+    const limitation = parseMarkdown(
+      "> **Limitation:** OSCAL validation is structural only.",
+    );
+    assert.equal(note[0].type, "blockquote");
+    if (note[0].type === "blockquote") {
+      assert.equal(note[0].kind, "note");
+    }
+    assert.equal(tip[0].type, "blockquote");
+    if (tip[0].type === "blockquote") {
+      assert.equal(tip[0].kind, "tip");
+    }
+    assert.equal(warning[0].type, "blockquote");
+    if (warning[0].type === "blockquote") {
+      assert.equal(warning[0].kind, "warning");
+    }
+    assert.equal(limitation[0].type, "blockquote");
+    if (limitation[0].type === "blockquote") {
+      assert.equal(limitation[0].kind, "limitation");
+    }
+  });
+
+  it("strips the callout label from the quoted body", () => {
+    const { kind, text } = parseCalloutPrefix(
+      "**Limitation:** Evidence Coverage is not a compliance score.",
+    );
+    assert.equal(kind, "limitation");
+    assert.equal(text, "Evidence Coverage is not a compliance score.");
+  });
+
+  it("preserves diagram fenced blocks with a diagram language", () => {
+    const blocks = parseMarkdown("```diagram\ntree\nEvidence record\nMetadata\n```");
+    assert.equal(blocks[0].type, "code_block");
+    if (blocks[0].type === "code_block") {
+      assert.equal(blocks[0].lang, "diagram");
+      assert.match(blocks[0].code, /Evidence record/);
+    }
   });
 
   it("parses a horizontal rule", () => {

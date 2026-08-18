@@ -88,6 +88,8 @@
   --layout-nav: 22rem;
   --layout-content-max: 48rem;
   --layout-page-max: 56rem;
+  --layout-help-max: 88rem;
+  --layout-help-prose: 46rem;
   --product-header-height: 3.5rem;
 
   color-scheme: light;
@@ -327,5 +329,117 @@ body {
 
   .evidence-picker-dialog::backdrop {
     background: color-mix(in srgb, var(--foreground) 40%, transparent);
+  }
+
+  /* In-app Help / user-guide layout */
+  .help-callout {
+    margin-top: 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+  }
+
+  .help-callout-label {
+    margin: 0;
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .help-callout-body {
+    margin-top: 0.375rem;
+    font-size: var(--text-sm);
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .help-callout-note {
+    border-color: color-mix(in srgb, var(--info) 35%, var(--border));
+    background: var(--info-muted);
+  }
+
+  .help-callout-note .help-callout-label {
+    color: var(--info);
+  }
+
+  .help-callout-tip {
+    border-color: color-mix(in srgb, var(--teal) 35%, var(--border));
+    background: var(--teal-muted);
+  }
+
+  .help-callout-tip .help-callout-label {
+    color: var(--teal);
+  }
+
+  .help-callout-warning {
+    border-color: color-mix(in srgb, var(--warning) 40%, var(--border));
+    background: var(--warning-muted);
+  }
+
+  .help-callout-warning .help-callout-label {
+    color: var(--warning);
+  }
+
+  .help-callout-limitation {
+    border-color: color-mix(in srgb, var(--orange) 40%, var(--border));
+    background: var(--orange-muted);
+  }
+
+  .help-callout-limitation .help-callout-label {
+    color: var(--orange);
+  }
+
+  .help-diagram {
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+
+  .help-diagram-node {
+    border: 1px solid var(--border-strong);
+    background: var(--surface-secondary);
+    border-radius: var(--radius-sm);
+    padding: 0.625rem 0.75rem;
+  }
+
+  .help-article-prose {
+    max-width: var(--layout-help-prose);
+  }
+
+  .help-article-prose h2 {
+    margin-top: 2.25rem;
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: -0.02em;
+    line-height: var(--leading-snug);
+    color: var(--foreground);
+  }
+
+  .help-article-prose h3 {
+    margin-top: 1.5rem;
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--leading-snug);
+    color: var(--foreground);
+  }
+
+  .help-article-prose h4 {
+    margin-top: 1.25rem;
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--foreground);
+  }
+
+  .help-article-prose p,
+  .help-article-prose li {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+  }
+
+  .help-article-prose table {
+    min-width: 20rem;
   }
 }

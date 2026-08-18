@@ -3,6 +3,8 @@ import { afterEach, describe, it } from "node:test";
 import {
   DEFAULT_THEME_PREFERENCE,
   THEME_INIT_SCRIPT,
+  THEME_INIT_SCRIPT_ID,
+  THEME_INIT_SCRIPT_STRATEGY,
   THEME_PREFERENCE_STORAGE_KEY,
   applyResolvedTheme,
   parseThemePreference,
@@ -197,5 +199,12 @@ describe("theme preference", () => {
     assert.match(THEME_INIT_SCRIPT, /cf-theme-preference/);
     assert.match(THEME_INIT_SCRIPT, /data-theme/);
     assert.match(THEME_INIT_SCRIPT, /prefers-color-scheme/);
+  });
+
+  it("loads the initializer with next/script beforeInteractive", () => {
+    assert.equal(THEME_INIT_SCRIPT_ID, "cf-theme-init");
+    assert.equal(THEME_INIT_SCRIPT_STRATEGY, "beforeInteractive");
+    assert.match(THEME_INIT_SCRIPT, /localStorage\.getItem/);
+    assert.match(THEME_INIT_SCRIPT, /colorScheme/);
   });
 });

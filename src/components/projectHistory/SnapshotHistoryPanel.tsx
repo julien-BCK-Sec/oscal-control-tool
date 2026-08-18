@@ -1,11 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { AbsoluteTimestamp } from "@/components/time/AbsoluteTimestamp";
 import type { ProjectSnapshotSummary } from "@/persistence/types";
 import {
   formatSnapshotHistorySecondary,
   formatSnapshotHistoryTitle,
-  formatSnapshotTimestamp,
   isRestorableSnapshot,
   partitionSnapshotsForHistory,
 } from "@/components/projectHistory/presentation";
@@ -40,7 +40,7 @@ function HistoryRow({
           {formatSnapshotHistoryTitle(snapshot)}
         </p>
         <p className="mt-0.5 text-xs text-text-secondary">
-          {formatSnapshotTimestamp(snapshot.createdAt)}
+          <AbsoluteTimestamp value={snapshot.createdAt} />
         </p>
         <p className="text-xs text-text-muted">
           {formatSnapshotHistorySecondary(snapshot)}
