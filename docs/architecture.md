@@ -15,8 +15,8 @@ Responsibilities:
 - FrameworkRegistry (in-process catalog of supported providers, ADR-026)
 - FrameworkProvider
 - FrameworkControl
-- Framework metadata (catalog, revision, profile, OSCAL export fields)
-- Framework derivation (pinned NIST SP 800-53 Rev. 5 Low / Moderate / High)
+- Framework metadata (catalog, revision, profile, optional item terms, optional OSCAL export fields)
+- Framework derivation (pinned NIST SP 800-53 Rev. 5 Low / Moderate / High OSCAL; pinned NIST SP 800-171 Rev. 2 CSV for CMMC Level 2)
 
 Framework data is never persisted in application storage. Projects persist
 only an opaque `frameworkId` in `projects.framework_id`, which is the sole
@@ -158,6 +158,14 @@ Milestone 04B capabilities:
   overview, and workspace chrome
 - Moderate remains the create-form default and the omitted-API-field default
 
+Milestone 04C capabilities:
+
+- CMMC Level 2 (`cmmc-level-2-nist-sp-800-171-r2`) as a registered FrameworkProvider
+- 110 NIST SP 800-171 Rev. 2 requirements, CMMC IDs `DD.L2-REQ`, origin IDs retained
+- User-facing requirement/requirements terms; internal `controlId` unchanged
+- OSCAL SSP export remains NIST SP 800-53 only (disabled for CMMC)
+- No assessment objectives, MET/NOT MET, scoring, or certification fields
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 
@@ -207,7 +215,7 @@ Transforms the domain model into standards-based exports.
 
 Examples:
 
-- OSCAL SSP (profile metadata from the project's selected framework)
+- OSCAL SSP (NIST SP 800-53 Low / Moderate / High only; unavailable for CMMC)
 
 - Word (future)
 - PDF (future)

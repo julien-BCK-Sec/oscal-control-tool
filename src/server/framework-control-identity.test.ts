@@ -4,6 +4,7 @@ import type { OrgContext } from "@/authz/authorize";
 import type { OrgRole } from "@/authz/permissions";
 import { DEFAULT_CONTROL_RECORD_FIELDS } from "@/data/control-record";
 import { resolveFrameworkControls } from "@/data/framework";
+import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
 import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
@@ -307,6 +308,99 @@ describe("project framework control identity", () => {
     if (!result.ok) {
       assert.equal(result.reason, "validation");
       assert.equal(result.message, UNKNOWN_FRAMEWORK_CONTROL_MESSAGE);
+    }
+  });
+
+  it("rejects 800-53 control IDs on a CMMC Level 2 project", async () => {
+    const { projects, org, evidence, controlService } = await setup();
+    const project = await projects.create({
+      name: "CMMC",
+      organizationId: org.id,
+      frameworkId: CMMC_LEVEL_2_FRAMEWORK_ID,
+    });
+    const created = await createEvidenceForOrg(
+      projects,
+      evidence,
+      ctx(org.id),
+      {
+        projectId: project.id,
+        title: "Policy",
+        evidenceType: "policy",
+        status: "draft",
+        controlIds: ["ac-2"],
+      },
+      SYSTEM_ACTOR,
+    );
+    assert.equal(created.ok, false);
+    if (!created.ok) {
+      assert.equal(created.reason, "validation");
+      assert.equal(created.message, UNKNOWN_FRAMEWORK_CONTROL_MESSAGE);
+    }
+    const review = await transitionReviewForOrg(
+      projects,
+      controlService,
+      ctx(org.id),
+      {
+        projectId: project.id,
+        controlId: "ac-2",
+        action: "submit_for_review",
+        expectedCurrentStatus: "not_reviewed",
+      },
+      SYSTEM_ACTOR,
+    );
+    assert.equal(review.ok, false);
+    if (!review.ok) {
+      assert.equal(review.reason, "validation");
+    }
+  });
+
+  it("accepts CMMC requirement IDs on CMMC projects and rejects them on Moderate", async () => {
+    const { projects, org, evidence } = await setup();
+    const cmmc = await projects.create({
+      name: "CMMC",
+      organizationId: org.id,
+      frameworkId: CMMC_LEVEL_2_FRAMEWORK_ID,
+    });
+    const created = await createEvidenceForOrg(
+      projects,
+      evidence,
+      ctx(org.id),
+      {
+        projectId: cmmc.id,
+        title: "Policy",
+        evidenceType: "policy",
+        status: "draft",
+        controlIds: ["AC.L2-3.1.1"],
+      },
+      SYSTEM_ACTOR,
+    );
+    assert.equal(created.ok, true);
+    if (created.ok) {
+      assert.deepEqual(created.evidence.controlIds, ["AC.L2-3.1.1"]);
+    }
+
+    const moderate = await projects.create({
+      name: "Moderate",
+      organizationId: org.id,
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+    });
+    const rejected = await createEvidenceForOrg(
+      projects,
+      evidence,
+      ctx(org.id),
+      {
+        projectId: moderate.id,
+        title: "Policy",
+        evidenceType: "policy",
+        status: "draft",
+        controlIds: ["AC.L2-3.1.1"],
+      },
+      SYSTEM_ACTOR,
+    );
+    assert.equal(rejected.ok, false);
+    if (!rejected.ok) {
+      assert.equal(rejected.reason, "validation");
+      assert.equal(rejected.message, UNKNOWN_FRAMEWORK_CONTROL_MESSAGE);
     }
   });
 });

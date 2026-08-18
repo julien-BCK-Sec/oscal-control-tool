@@ -2,11 +2,16 @@
 
 import type { ProjectEvidenceSummary } from "@/data/evidence";
 import type { EvidenceAttentionFilter } from "@/components/workspace/presentation";
+import {
+  evidenceCoverageDisclaimer,
+  type FrameworkItemTerms,
+} from "@/components/framework/presentation";
 
 export type EvidenceOverviewCardsProps = {
   summary: ProjectEvidenceSummary | null;
   loading?: boolean;
   onSelectAttention: (filter: EvidenceAttentionFilter) => void;
+  itemTerms?: FrameworkItemTerms;
 };
 
 type CardSpec = {
@@ -21,14 +26,16 @@ export function EvidenceOverviewCards({
   summary,
   loading = false,
   onSelectAttention,
+  itemTerms = { singular: "control", plural: "controls" },
 }: EvidenceOverviewCardsProps) {
+  const itemsLabel = itemTerms.plural;
   const cards: CardSpec[] = [
     {
       id: "missing",
-      label: "Required controls missing evidence",
+      label: `Required ${itemsLabel} missing evidence`,
       value: summary?.requiredMissingEvidence ?? 0,
-      empty: "No controls are missing required Evidence.",
-      hint: "Required controls with no active Evidence",
+      empty: `No ${itemsLabel} are missing required Evidence.`,
+      hint: `Required ${itemsLabel} with no active Evidence`,
     },
     {
       id: "due_soon",
@@ -49,7 +56,7 @@ export function EvidenceOverviewCards({
       label: "Unlinked evidence",
       value: summary?.unlinkedEvidence ?? 0,
       empty: "This project has no unlinked Evidence.",
-      hint: "Active or draft Evidence with no controls",
+      hint: `Active or draft Evidence with no ${itemsLabel}`,
     },
   ];
 
@@ -62,12 +69,11 @@ export function EvidenceOverviewCards({
         Evidence coverage
       </h3>
       <p className="mt-0.5 text-xs text-text-muted">
-        Evidence coverage is not a compliance score. Counts describe linked
-        active Evidence against each control&apos;s Evidence requirement.
+        {evidenceCoverageDisclaimer(itemTerms)}
       </p>
       {summary ? (
         <p className="mt-2 text-sm text-text-secondary">
-          Required controls with Evidence: {summary.requiredWithEvidence} of{" "}
+          Required {itemsLabel} with Evidence: {summary.requiredWithEvidence} of{" "}
           {summary.requiredControls}
         </p>
       ) : (

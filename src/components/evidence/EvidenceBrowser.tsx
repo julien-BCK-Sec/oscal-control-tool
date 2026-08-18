@@ -40,6 +40,10 @@ import {
 } from "@/components/design-system/layout/primitives";
 import { formatControlIdDisplay } from "@/components/controlBrowser/presentation";
 import type { EvidenceAttentionFilter } from "@/components/workspace/presentation";
+import {
+  evidenceCoverageDisclaimer,
+  type FrameworkItemTerms,
+} from "@/components/framework/presentation";
 
 export type EvidenceBrowserProps = {
   projectId: string;
@@ -52,6 +56,7 @@ export type EvidenceBrowserProps = {
   onAttentionChange: (attention: EvidenceAttentionFilter) => void;
   onEvidenceChanged?: () => void;
   onOpenControl?: (controlId: string) => void;
+  itemTerms?: FrameworkItemTerms;
 };
 
 type DraftForm = {
@@ -96,6 +101,7 @@ export function EvidenceBrowser({
   onAttentionChange,
   onEvidenceChanged,
   onOpenControl,
+  itemTerms = { singular: "control", plural: "controls" },
 }: EvidenceBrowserProps) {
   const [items, setItems] = useState<EvidenceSearchResult[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -360,7 +366,7 @@ export function EvidenceBrowser({
         : attention === "unlinked"
           ? "This project has no unlinked Evidence."
           : attention === "missing"
-            ? "No controls are missing required Evidence."
+            ? `No ${itemTerms.plural} are missing required Evidence.`
             : "No evidence matches the current filters.";
 
   return (
@@ -368,7 +374,7 @@ export function EvidenceBrowser({
       <SectionHeader
         title="Evidence"
         titleId="evidence-browser-heading"
-        description="Search and filter project Evidence. Coverage counts active Evidence only; drafts are in-progress attention facts. Evidence coverage is not a compliance score."
+        description={`${evidenceCoverageDisclaimer(itemTerms)} Search and filter project Evidence. Coverage counts active Evidence only; drafts are in-progress attention facts.`}
       />
 
       {error ? (
@@ -379,7 +385,7 @@ export function EvidenceBrowser({
 
       {coverage ? (
         <p className="text-sm text-text-secondary">
-          Required controls with Evidence: {coverage.summary.requiredWithEvidence}{" "}
+          Required {itemTerms.plural} with Evidence: {coverage.summary.requiredWithEvidence}{" "}
           of {coverage.summary.requiredControls}
         </p>
       ) : null}
@@ -725,11 +731,11 @@ export function EvidenceBrowser({
 
                 <div>
                   <h4 className="text-xs font-medium text-text-muted">
-                    Linked controls
+                    Linked {itemTerms.plural}
                   </h4>
                   {selected.controlIds.length === 0 ? (
                     <p className="mt-1 text-sm text-text-muted">
-                      Not linked to any controls.
+                      Not linked to any {itemTerms.plural}.
                     </p>
                   ) : (
                     <ul className="mt-1 space-y-1">
@@ -755,7 +761,7 @@ export function EvidenceBrowser({
                     </ul>
                   )}
                   <FormHint className="mt-2">
-                    Link or unlink controls from the control editor Evidence
+                    Link or unlink {itemTerms.plural} from the {itemTerms.singular} editor Evidence
                     section.
                   </FormHint>
                 </div>

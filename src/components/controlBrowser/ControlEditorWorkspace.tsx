@@ -212,6 +212,7 @@ export function ControlEditorWorkspace({
         controlId={control.id}
         title={control.title}
         family={control.family}
+        originId={control.originId}
         fields={fields}
         reviewStatus={reviewStatus}
         narrativeComplete={narrativeComplete}

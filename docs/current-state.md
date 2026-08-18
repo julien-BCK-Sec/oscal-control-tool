@@ -1,12 +1,13 @@
 # Current Project State
 
-Date: 2026-08-17
+Date: 2026-08-18
 
 ## Product Position
 
-Control Freak is a collaborative compliance authoring application built around
-OSCAL. Milestone 04B (Framework UX and Runtime Hardening) completes the
-project-scoped NIST SP 800-53 Rev. 5 Low / Moderate / High architecture
+Control Freak is a collaborative compliance authoring application.
+Milestone 04C (CMMC Level 2 Framework Support) adds the first non-800-53
+framework on top of Milestone 04B (Framework UX and Runtime Hardening) and
+the project-scoped NIST SP 800-53 Rev. 5 Low / Moderate / High architecture
 introduced in Milestone 04A, on top of Evidence Coverage (03D), Evidence
 Versions (03B), Workflow Automation (02C), Domain Events (02B), Collaboration
 (02A), and Platform Foundation.
@@ -35,8 +36,8 @@ The application currently provides:
 - Operational metadata and activity history (including collaboration and
   evidence link/unlink events)
 - Version history
-- OSCAL SSP export and schema validation (profile metadata from the selected
-  project framework)
+- OSCAL SSP export and schema validation for NIST SP 800-53 projects
+  (unavailable for CMMC; no official CMMC / SP 800-171 Rev. 2 OSCAL profile)
 - Idempotent demo project seeding into a demo organization
 - Developer demo bootstrap (`npm run bootstrap:demo`) for a full local
   multi-tenant environment (Acme + Contoso, users, projects, collaboration)
@@ -112,7 +113,8 @@ Authorization is enforced server-side; UI hiding is not authorization.
 Shared demo password: `ControlFreakDemo123!`. Olivia’s prompt label
 “Contributor” maps to the existing `author` role. There is no FedRAMP Moderate
 importer; demo/bootstrap projects explicitly use the pinned NIST Moderate
-baseline. New projects may select Low, Moderate, or High.
+baseline. New projects may select Low, Moderate, High, or CMMC Level 2. Moderate remains
+the default. There is no CMMC demo project.
 
 ## Collaboration (Milestone 02A)
 
@@ -196,24 +198,52 @@ baseline. New projects may select Low, Moderate, or High.
 - Out of scope: org-wide library, approval, assessment, OSCAL export of
   evidence, virus scan, compliance scores
 
+## CMMC Level 2 (Milestone 04C)
+
+- Framework ID: `cmmc-level-2-nist-sp-800-171-r2` (immutable Project identity)
+- Population: 110 requirements in 14 families from NIST SP 800-171 Rev. 2
+- Operational IDs: CMMC identification numbers (`AC.L2-3.1.1`); NIST origin
+  retained as `originId` (`3.1.1`), not a separate operational row
+- Presentation: user-facing "requirement/requirements"; internal `controlId`,
+  ControlRecord, `view=controls` unchanged
+- Evidence Coverage semantics unchanged; CMMC copy states coverage is not
+  MET / NOT MET, SPRS, or certification
+- OSCAL SSP export disabled (no official CMMC / 800-171 R2 OSCAL profile)
+- No schema migration; no assessment, scoring, or certification fields
+- DoD Model Overview short names were not pinable (HTTP 403); titles are
+  derived from the NIST requirement statement
+
 ## Current standards position
 
 - OSCAL version: 1.2.2
-- Supported frameworks: NIST SP 800-53 Rev. 5 Low, Moderate, and High
-  (opaque `frameworkId` values `nist-sp-800-53-rev5-low|moderate|high`)
-- Framework source of truth: pinned Low / Moderate / High profiles + SP 800-53
-  catalog, selected per project via `FrameworkRegistry` (ADR-026). Runtime
-  identity is `projects.framework_id`; `project_json.project.frameworkId` is a
-  schema v1 compatibility copy only.
+- Supported frameworks:
+  - NIST SP 800-53 Rev. 5 Low, Moderate, and High
+    (`nist-sp-800-53-rev5-low|moderate|high`)
+  - CMMC Level 2 / NIST SP 800-171 Rev. 2
+    (`cmmc-level-2-nist-sp-800-171-r2`): 110 requirements identical to
+    NIST SP 800-171 Revision 2 (February 2020, updates as of 28 January 2021),
+    as adopted by 32 CFR Part 170. Do not substitute Rev. 3.
+- Framework source of truth: `FrameworkRegistry` (ADR-026). NIST entries are
+  derived from pinned OSCAL profiles + SP 800-53 catalog. CMMC is derived from
+  pinned NIST SP 800-171 R2 CSV with the official PDF as the normative
+  publication. Runtime identity is `projects.framework_id`;
+  `project_json.project.frameworkId` is a schema v1 compatibility copy only.
 - Create UI defaults to Moderate and always sends an explicit `frameworkId`.
   Omitting `frameworkId` on the create API still selects Moderate for
   backwards-compatible callers; that default is API compatibility, not the
   architectural source of framework identity.
-- Demo/bootstrap projects remain Moderate with that `frameworkId` explicit
-- Existing projects continue as Moderate; no SQL backfill was required
-- Current product does not claim FedRAMP support
+- Demo/bootstrap projects remain Moderate with that `frameworkId` explicit.
+  04C does not add a CMMC demo project.
+- Existing projects continue as Moderate; no SQL backfill was required.
+- Current product does not claim FedRAMP, CMMC certification, C3PAO
+  assessment, MET / NOT MET, or SPRS scoring.
+- CMMC Program Phase II assessment/affirmation rollout was suspended
+  13 July 2026. That acquisition context is documentation only; it is not
+  persisted as Project framework semantics and does not change the 110
+  Level 2 requirements.
 - FedRAMP Rules are a separate future policy layer
 - Do not invent or substitute a FedRAMP OSCAL profile
+- Do not invent a CMMC or SP 800-171 Rev. 2 OSCAL catalog/profile
 
 ## Pinned official artifacts
 
@@ -234,6 +264,20 @@ Use:
 Provenance and checksums are documented in:
 
 `vendor/oscal/v1.2.2/SOURCES.md`
+
+CMMC Level 2 / NIST SP 800-171 Rev. 2 pins live under:
+
+`vendor/nist/sp800-171/r2/`
+
+Use:
+
+- `NIST.SP.800-171r2.pdf`
+- `sp800-171r2-security-reqs.csv`
+- `sp800-171r2-security-reqs.xlsx`
+
+Provenance and checksums are documented in:
+
+`vendor/nist/sp800-171/r2/SOURCES.md`
 
 Do not fetch standards files at runtime and do not use moving branches.
 
@@ -291,16 +335,17 @@ cutover only.
 - Named version restore does not roll back ControlRecord metadata, activity,
   or collaboration rows; it also does not change the live project's
   `frameworkId` column (ADR-026)
-- Intentionally NIST-specific behavior remains: control families, enhancement
-  IDs (`ac-2.1`), family grouping, and client SSP export via the NIST identity
-  table rather than `FrameworkRegistry`
+- Intentionally NIST-specific behavior remains for 800-53 projects: control
+  families, enhancement IDs (`ac-2.1`), family grouping, and client SSP export
+  via the NIST identity table rather than `FrameworkRegistry`. CMMC projects
+  use requirement terminology and have no OSCAL SSP export.
 - Per-control UI action hiding is coarse; server authorization is authoritative
 - Favicon remains the light-mark asset (not theme-switched)
 
 ## Next approved milestone
 
-Word/PDF export remains the next roadmap item after Framework UX and Runtime
-Hardening (Milestone 04B). Assessment management, Evidence approval, and an
+Word/PDF export remains the next roadmap item after CMMC Level 2 Framework
+Support (Milestone 04C). Assessment management, Evidence approval, and an
 organization-wide library are later. See `docs/roadmap.md`.
 
 ## Required verification for each milestone

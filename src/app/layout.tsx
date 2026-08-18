@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s · Control Freak",
   },
   description:
-    "Document NIST SP 800-53 Rev. 5 Low, Moderate, or High controls and export OSCAL SSP JSON.",
+    "Document NIST SP 800-53 Rev. 5 Low, Moderate, or High controls, or CMMC Level 2 requirements.",
   applicationName: "Control Freak",
   icons: {
     icon: [{ url: "/brand/mark-on-light.png", type: "image/png" }],

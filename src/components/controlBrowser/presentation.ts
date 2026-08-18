@@ -30,7 +30,7 @@ export function enhancementNumber(controlId: string): string | null {
 }
 
 export function isEnhancementId(controlId: string): boolean {
-  return controlId.includes(".");
+  return /^[a-z]+-\d+\.\d+$/i.test(controlId.trim());
 }
 
 export function parentControlId(controlId: string): string | null {
@@ -110,14 +110,18 @@ function normalizeSearch(value: string): string {
 }
 
 /** Compact form of a display id for search, e.g. `ac-2 (1)` / `ac-2(1)`. */
-function searchableIdForms(controlId: string): string[] {
-  const display = formatControlIdDisplay(controlId).toLowerCase();
-  return [
-    controlId.toLowerCase(),
+function searchableIdForms(control: FrameworkControl): string[] {
+  const display = formatControlIdDisplay(control.id).toLowerCase();
+  const forms = [
+    control.id.toLowerCase(),
     display,
     display.replace(/\s+/g, ""),
     display.replace(/[()]/g, ""),
   ];
+  if (control.originId) {
+    forms.push(control.originId.toLowerCase());
+  }
+  return forms;
 }
 
 function controlMatchesQuery(
@@ -133,7 +137,7 @@ function controlMatchesQuery(
     return true;
   }
 
-  return searchableIdForms(control.id).some((form) => form.includes(query));
+  return searchableIdForms(control).some((form) => form.includes(query));
 }
 
 /**

@@ -4,7 +4,7 @@
  * User implementation data must not be stored on this type.
  */
 export type FrameworkControl = {
-  /** Catalog control identifier, e.g. "ac-1" or "ac-2.1". */
+  /** Catalog control identifier, e.g. "ac-1", "ac-2.1", or "AC.L2-3.1.1". */
   id: string;
   title: string;
   family: string;
@@ -18,6 +18,12 @@ export type FrameworkControl = {
   source: string;
   /** Source catalog or baseline version label. */
   sourceVersion: string;
+  /**
+   * Origin identifier when this item is adopted from another publication.
+   * For CMMC Level 2, the NIST SP 800-171 R2 requirement number (e.g. "3.1.1").
+   * Not an independent operational row key.
+   */
+  originId?: string;
 };
 
 /**
@@ -54,6 +60,10 @@ export type FrameworkDescriptor = {
   profile: string;
   provider: string;
   source: string;
+  /** User-facing item name. Defaults to "control" when omitted. */
+  itemSingular?: string;
+  /** User-facing item plural. Defaults to "controls" when omitted. */
+  itemPlural?: string;
   oscalProfileTitle?: string;
   oscalProfileUri?: string;
   oscalProfileMediaType?: string;

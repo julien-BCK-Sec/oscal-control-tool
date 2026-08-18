@@ -25,6 +25,9 @@ import {
 import {
   findFrameworkDescriptor,
   formatFrameworkLabel,
+  formatFrameworkProfile,
+  frameworkItemTerms,
+  groupFrameworkDescriptors,
 } from "@/components/framework/presentation";
 import type { FrameworkDescriptor } from "@/data/framework/types";
 import { formatCompletionCount, type CompletionProgress } from "@/domain";
@@ -139,8 +142,8 @@ export function ProjectsHome({
             Projects
           </h1>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-text-secondary">
-            Organization documentation projects. Choose NIST SP 800-53 Rev. 5
-            Low, Moderate, or High when creating a project.
+            Organization documentation projects. Choose a framework when
+            creating a project. NIST SP 800-53 Rev. 5 Moderate is the default.
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
@@ -179,26 +182,52 @@ export function ProjectsHome({
                 className="field mt-1.5"
               />
             </div>
-            <div className="min-w-[16rem] flex-1">
-              <label htmlFor="new-project-framework" className="label">
-                Framework
-              </label>
-              <select
-                id="new-project-framework"
-                value={frameworkId}
-                onChange={(event) => setFrameworkId(event.target.value)}
-                className="field mt-1.5"
-                aria-describedby="new-project-framework-hint"
-              >
-                {frameworks.map((descriptor) => (
-                  <option key={descriptor.id} value={descriptor.id}>
-                    {formatFrameworkLabel(descriptor)}
-                  </option>
-                ))}
-              </select>
-              <FormHint id="new-project-framework-hint">
-                Framework cannot be changed after project creation.
-              </FormHint>
+            <div className="min-w-[18rem] flex-1">
+              <fieldset className="min-w-0">
+                <legend className="label">Framework</legend>
+                <div
+                  className="mt-1.5 space-y-3"
+                  aria-describedby="new-project-framework-hint"
+                >
+                  {groupFrameworkDescriptors(frameworks).map((group) => (
+                    <fieldset
+                      key={group.label}
+                      className="rounded-md border border-border px-3 py-2"
+                    >
+                      <legend className="px-1 text-xs font-medium text-text-secondary">
+                        {group.label}
+                      </legend>
+                      <div className="mt-1 flex flex-col gap-1.5">
+                        {group.descriptors.map((descriptor) => {
+                          const inputId = `new-project-framework-${descriptor.id}`;
+                          return (
+                            <label
+                              key={descriptor.id}
+                              htmlFor={inputId}
+                              className="flex cursor-pointer items-center gap-2 text-sm text-foreground"
+                            >
+                              <input
+                                id={inputId}
+                                type="radio"
+                                name="new-project-framework"
+                                value={descriptor.id}
+                                checked={frameworkId === descriptor.id}
+                                onChange={() => setFrameworkId(descriptor.id)}
+                                className="accent-accent"
+                              />
+                              <span>{formatFrameworkProfile(descriptor)}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
+                  ))}
+                </div>
+                <FormHint id="new-project-framework-hint">
+                  Framework cannot be changed after project creation. A
+                  framework choice is not a certification or assessment status.
+                </FormHint>
+              </fieldset>
             </div>
             <Button
               type="submit"
@@ -238,7 +267,7 @@ export function ProjectsHome({
           <EmptyState
             className="mt-3"
             title="No projects yet"
-            description="Create a project to start documenting controls, or import a browser project if one is available above."
+            description="Create a project to start documenting implementation, or import a browser project if one is available above."
             action={
               canCreate && !showCreate ? (
                 <Button
@@ -267,6 +296,7 @@ export function ProjectsHome({
                       ? formatFrameworkLabel(descriptor)
                       : project.frameworkId
                   }
+                  itemPlural={frameworkItemTerms(descriptor).plural}
                   onRename={() => void handleRename(project.id, project.name)}
                   onDelete={() => void handleDelete(project.id, project.name)}
                 />
@@ -306,11 +336,13 @@ function AccountBar({ account }: { account: ProjectsHomeAccount }) {
 function ProjectCard({
   project,
   frameworkLabel,
+  itemPlural,
   onRename,
   onDelete,
 }: {
   project: ProjectListItem;
   frameworkLabel: string;
+  itemPlural: string;
   onRename: () => void;
   onDelete: () => void;
 }) {
@@ -353,7 +385,7 @@ function ProjectCard({
       <div className="mt-4 max-w-sm">
         <div className="flex items-baseline justify-between gap-2 text-xs">
           <span className="text-text-secondary">
-            {formatCompletionCount(project.completion)} controls implemented
+            {formatCompletionCount(project.completion)} {itemPlural} implemented
           </span>
           <span className="tabular-nums text-text-muted">
             {project.completion.percent}%

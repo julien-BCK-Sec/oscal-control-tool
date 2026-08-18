@@ -7,6 +7,8 @@ import {
   useState,
 } from "react";
 import type { Framework } from "@/data/framework";
+import type { FrameworkItemTerms } from "@/components/framework/presentation";
+import { sentenceCase } from "@/components/framework/presentation";
 import {
   DEFAULT_CONTROL_IMPLEMENTATION,
   type ControlImplementation,
@@ -86,6 +88,7 @@ export type ControlBrowserProps = {
     Record<string, ControlEvidenceCoverage>
   >;
   canEditEvidence?: boolean;
+  itemTerms?: FrameworkItemTerms;
 };
 
 export function ControlBrowser({
@@ -103,7 +106,10 @@ export function ControlBrowser({
   onFocusRequestHandled,
   evidenceCoverageByControlId,
   canEditEvidence = false,
+  itemTerms = { singular: "control", plural: "controls" },
 }: ControlBrowserProps) {
+  const itemsLabel = sentenceCase(itemTerms.plural);
+  const itemIdLabel = `${sentenceCase(itemTerms.singular)} ID`;
   const controls = framework.controls;
   const fullTree = useMemo(() => buildControlTree(controls), [controls]);
   const defaultCollapsedParents = useMemo(
@@ -330,12 +336,12 @@ export function ControlBrowser({
     <div className="flex min-h-0 flex-1 flex-col bg-surface text-foreground md:flex-row">
       <aside
         className="flex max-h-[42vh] w-full shrink-0 flex-col border-b border-border bg-surface-secondary md:max-h-none md:h-full md:w-80 md:border-b-0 md:border-r lg:w-[22rem]"
-        aria-label="Controls"
+        aria-label={itemsLabel}
       >
         <div className="shrink-0 space-y-3 border-b border-border px-3 py-3">
           <div>
             <h2 className="text-sm font-semibold tracking-tight text-foreground">
-              Controls
+              {itemsLabel}
             </h2>
             <div className="mt-2">
               <div className="flex items-baseline justify-between gap-2 text-xs">
@@ -349,20 +355,20 @@ export function ControlBrowser({
               <ProgressBar
                 className="mt-1.5"
                 progress={overall}
-                label="Overall control completion"
+                label={`Overall ${itemTerms.singular} completion`}
               />
             </div>
           </div>
           <div>
             <label htmlFor="control-search" className="sr-only">
-              Search controls
+              Search {itemTerms.plural}
             </label>
             <input
               id="control-search"
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by ID or title…"
+              placeholder={`Search by ${itemIdLabel} or title…`}
               className="field"
             />
           </div>
@@ -386,10 +392,12 @@ export function ControlBrowser({
 
         <nav
           className="min-h-0 flex-1 overflow-y-auto py-2"
-          aria-label="Control list"
+          aria-label={`${sentenceCase(itemTerms.singular)} list`}
         >
           {filteredTree.length === 0 ? (
-            <p className="px-4 py-3 text-sm text-text-muted">No controls match.</p>
+            <p className="px-4 py-3 text-sm text-text-muted">
+              No {itemTerms.plural} match.
+            </p>
           ) : (
             <ul className="flex flex-col gap-1">
               {filteredTree.map((group) => {

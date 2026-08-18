@@ -6,6 +6,7 @@ import { FRAMEWORK_CONTROLS } from "@/data/framework";
 import {
   computeFamilyCompletion,
   computeOverallCompletion,
+  familyAbbreviationFromControlId,
   firstIncompleteControlId,
   isImplementationComplete,
   lowestCompletionFamily,
@@ -33,6 +34,12 @@ function impl(narrative: string): ControlImplementation {
 }
 
 describe("completion helpers", () => {
+  it("reads family abbreviations from 800-53 and CMMC identifiers", () => {
+    assert.equal(familyAbbreviationFromControlId("ac-1"), "AC");
+    assert.equal(familyAbbreviationFromControlId("cm-2.1"), "CM");
+    assert.equal(familyAbbreviationFromControlId("AC.L2-3.1.1"), "AC");
+  });
+
   const controls = [
     control({ id: "ac-1", title: "Policy", family: "Access Control" }),
     control({ id: "ac-2", title: "Accounts", family: "Access Control" }),

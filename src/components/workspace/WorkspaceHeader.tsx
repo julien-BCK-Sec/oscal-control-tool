@@ -7,7 +7,7 @@ import { SaveStatus } from "@/components/ui/SaveStatus";
 import { Button } from "@/components/design-system/button/Button";
 import { formatProjectRevisionLabel } from "@/components/projectHistory/presentation";
 import {
-  WORKSPACE_TABS,
+  workspaceTabsForItemPlural,
   type WorkspaceTabId,
 } from "@/components/workspace/presentation";
 
@@ -15,6 +15,7 @@ export type WorkspaceHeaderProps = {
   projectName: string;
   organizationName: string;
   frameworkLabel: string;
+  itemPlural?: string;
   revision: number;
   autosaveStatus: AutosaveStatus;
   autosaveMessage: string | null;
@@ -34,6 +35,7 @@ export function WorkspaceHeader({
   projectName,
   organizationName,
   frameworkLabel,
+  itemPlural = "controls",
   revision,
   autosaveStatus,
   autosaveMessage,
@@ -132,7 +134,7 @@ export function WorkspaceHeader({
         aria-label="Project workspace"
         className="flex flex-wrap gap-0 border-t border-border px-2 sm:px-4"
       >
-        {WORKSPACE_TABS.map((tab) => {
+        {workspaceTabsForItemPlural(itemPlural).map((tab) => {
           const selected = activeTab === tab.id;
           return (
             <button

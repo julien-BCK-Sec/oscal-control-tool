@@ -37,6 +37,14 @@ provider for a project's `frameworkId`. The resolver remains the existing
 narrow `with-ids` / `merge.as-is: true` implementation; it is not a general
 OSCAL profile engine.
 
+**Amendment (Milestone 04C, 2026-08-18):**
+
+A `FrameworkProvider` may also be derived from pinned non-OSCAL official
+artifacts when no approved OSCAL catalog/profile exists. CMMC Level 2 is
+derived at build time from the pinned NIST SP 800-171 Rev. 2 CSV (PDF is the
+normative publication). This is not a general standards DSL or plugin
+architecture.
+
 ## ADR-003
 
 Decision:
@@ -773,4 +781,49 @@ Reason:
 
 Date:
 2026-08-17
+
+**Amendment (Milestone 04C, 2026-08-18):**
+
+The registry now includes CMMC Level 2 / NIST SP 800-171 Rev. 2
+(`cmmc-level-2-nist-sp-800-171-r2`) as the first non-800-53 entry. Providers
+may be backed by pinned non-OSCAL source material. OSCAL descriptor metadata
+may be omitted when it is not applicable. Optional presentation fields
+`itemSingular` / `itemPlural` and optional `FrameworkControl.originId` are
+allowed; they are not a universal compliance ontology.
+
+The client SSP exporter remains specific to frameworks with an approved OSCAL
+representation (NIST SP 800-53 Rev. 5 identity table). CMMC projects do not
+export OSCAL. Operational identity remains `(projectId, controlId)` with no
+`frameworkId` on operational tables. A future official CMMC adoption of
+NIST SP 800-171 Rev. 3 must become a new durable framework identity rather
+than silently changing this ID.
+
+## ADR-027
+
+Decision:
+Framework requirements are distinct from assessment objectives and assessment
+determinations.
+
+A `FrameworkControl` (or CMMC requirement item) is read-only framework
+content: identifier, title, family, statement, source, and optional origin.
+It is not an assessment objective, examine/interview/test procedure, MET /
+NOT MET determination, SPRS score, finding, POA&M item, certification status,
+or affirmation.
+
+Evidence Coverage remains a program-management count of linked active Evidence
+against each item's Evidence requirement. It is not a CMMC assessment result.
+
+CMMC-specific assessment semantics must not be added to the generic framework
+domain. A later Assessment Management milestone may consume CMMC requirement
+IDs as assessment subjects.
+
+Reason:
+- 04C is framework support, not CMMC assessment or certification management.
+- Collapsing assessment into `FrameworkControl` would make 800-53 and CMMC
+  share false assessment semantics.
+- Assessment Management can attach objectives and results later without
+  rewriting framework identity.
+
+Date:
+2026-08-18
 

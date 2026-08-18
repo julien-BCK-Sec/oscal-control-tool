@@ -31,12 +31,18 @@ import {
   validateOscalSspDocument,
 } from "@/oscal";
 import type { ProjectSnapshotSummary } from "@/persistence/types";
+import {
+  sentenceCase,
+  type FrameworkItemTerms,
+} from "@/components/framework/presentation";
 import { formatControlIdDisplay } from "@/components/controlBrowser/presentation";
 import { formatProjectRevisionLabel } from "@/components/projectHistory/presentation";
+import { frameworkHasOscalSspExport } from "@/framework/nist-sp-800-53-rev5/identities";
 
 export type ProjectOverviewProps = {
   framework: Framework;
   frameworkLabel: string;
+  itemTerms?: FrameworkItemTerms;
   metadata: ProjectMetadata;
   implementations: Record<string, ControlImplementation>;
   revision: number;
@@ -54,6 +60,7 @@ export type ProjectOverviewProps = {
 export function ProjectOverview({
   framework,
   frameworkLabel,
+  itemTerms = { singular: "control", plural: "controls" },
   metadata,
   implementations,
   revision,
@@ -86,7 +93,11 @@ export function ProjectOverview({
     status: "idle",
   });
 
-  const oscalCheck = oscalValidationCheck(oscalState);
+  const oscalAvailable = frameworkHasOscalSspExport(framework.id);
+  const itemsLabel = sentenceCase(itemTerms.plural);
+  const itemSingular = itemTerms.singular;
+
+  const oscalCheck = oscalAvailable ? oscalValidationCheck(oscalState) : null;
   const checks: ValidationCheck[] = oscalCheck
     ? [...domainChecks, oscalCheck]
     : domainChecks;
@@ -202,6 +213,7 @@ export function ProjectOverview({
           summary={evidenceSummary}
           loading={evidenceSummaryLoading}
           onSelectAttention={onNavigateEvidence}
+          itemTerms={itemTerms}
         />
 
         <div className="grid gap-8 lg:grid-cols-2">
@@ -213,7 +225,7 @@ export function ProjectOverview({
               Family progress
             </h3>
             <p className="mt-0.5 text-xs text-text-muted">
-              Select a family to open Controls with that family expanded.
+              Select a family to open {itemsLabel} with that family expanded.
             </p>
             <ul className="mt-3 divide-y divide-border border border-border bg-surface">
               {families.map((family) => (
@@ -270,10 +282,12 @@ export function ProjectOverview({
                     Validation
                   </h3>
                   <p className="mt-0.5 text-xs text-text-muted">
-                    Domain checks update live. OSCAL schema validation runs on
-                    demand.
+                    {oscalAvailable
+                      ? "Domain checks update live. OSCAL schema validation runs on demand."
+                      : "Domain checks update live. OSCAL SSP export and schema validation are available for NIST SP 800-53 projects. No official CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned."}
                   </p>
                 </div>
+                {oscalAvailable ? (
                 <button
                   type="button"
                   className="btn"
@@ -286,12 +300,14 @@ export function ProjectOverview({
                       ? "Refresh validation"
                       : "Run OSCAL validation"}
                 </button>
+                ) : null}
               </div>
               <ul className="mt-3 space-y-2 border border-border bg-surface p-3">
                 {checks.map((check) => (
                   <li key={check.id} className="text-sm">
                     <ValidationCheckRow
                       check={check}
+                      itemPlural={itemTerms.plural}
                       onOpenIncomplete={
                         check.controlIds && check.controlIds.length > 0
                           ? () =>
@@ -303,7 +319,7 @@ export function ProjectOverview({
                     />
                   </li>
                 ))}
-                {oscalState.status === "idle" ? (
+                {oscalAvailable && oscalState.status === "idle" ? (
                   <li className="text-xs text-text-muted">
                     OSCAL SSP validity has not been checked in this session.
                   </li>
@@ -320,8 +336,10 @@ export function ProjectOverview({
               </h3>
               {allComplete ? (
                 <div className="mt-2 border border-border bg-surface p-3 text-sm text-text-secondary">
-                  <p>All configured controls contain implementation text.</p>
+                  <p>All configured {itemTerms.plural} contain implementation text.</p>
                   <p className="mt-2">
+                    {oscalAvailable ? (
+                      <>
                     <button
                       type="button"
                       className="text-accent underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
@@ -330,12 +348,14 @@ export function ProjectOverview({
                       Review or validate the project
                     </button>
                     {" · "}
+                      </>
+                    ) : null}
                     <button
                       type="button"
                       className="text-accent underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                       onClick={() => onNavigate("controls")}
                     >
-                      Open Controls
+                      Open {itemsLabel}
                     </button>
                   </p>
                 </div>
@@ -359,7 +379,7 @@ export function ProjectOverview({
                       </button>
                       <span className="text-text-muted">
                         {" "}
-                        (first incomplete control)
+                        (first incomplete {itemSingular})
                       </span>
                     </li>
                   ) : null}
@@ -392,7 +412,7 @@ export function ProjectOverview({
                       className="text-accent underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                       onClick={() => onNavigate("controls")}
                     >
-                      Open Controls
+                      Open {itemsLabel}
                     </button>
                   </li>
                 </ul>
@@ -486,9 +506,11 @@ export function ProjectOverview({
 
 function ValidationCheckRow({
   check,
+  itemPlural,
   onOpenIncomplete,
 }: {
   check: ValidationCheck;
+  itemPlural: string;
   onOpenIncomplete?: () => void;
 }) {
   const symbol = check.status === "pass" ? "✓" : "✕";
@@ -513,7 +535,7 @@ function ValidationCheckRow({
           className="mt-1 text-xs text-accent underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
           onClick={onOpenIncomplete}
         >
-          Open incomplete controls
+          Open incomplete {itemPlural}
         </button>
       ) : null}
     </div>
