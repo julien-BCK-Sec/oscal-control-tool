@@ -19,7 +19,10 @@ Responsibilities:
 - Framework derivation (pinned NIST SP 800-53 Rev. 5 Low / Moderate / High)
 
 Framework data is never persisted in application storage. Projects persist
-only an opaque `frameworkId`. Runtime views resolve that ID through the
+only an opaque `frameworkId` in `projects.framework_id`, which is the sole
+runtime authority (ADR-026). `project_json.project.frameworkId` is a
+schema v1 compatibility copy written from that column and is not used as an
+independent identity. Runtime views resolve the column ID through the
 registry rather than a global Moderate singleton.
 
 ---
@@ -143,6 +146,18 @@ Milestone 04A capabilities:
 - Control-scoped writes validate `controlId` against that framework
 - No plugin system, framework switching, or runtime standards downloads
 
+Milestone 04B capabilities:
+
+- `projects.framework_id` is the only runtime framework identity; JSON copy
+  is compatibility-only
+- Project save/autosave do not round-trip `frameworkId` from the client
+- Review transitions and workflow assign/status/due-date actions validate
+  `controlId` before creating operational rows
+- Project save rejects out-of-framework implementation keys
+- Registry-driven Low / Moderate / High presentation in project create, list,
+  overview, and workspace chrome
+- Moderate remains the create-form default and the omitted-API-field default
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 
@@ -265,7 +280,8 @@ invoked by business services (ADR-023).
 
 - Keep standards separate from operational metadata.
 - Keep framework data read-only and resolve it from the project's
-  `frameworkId` (ADR-026).
+  `projects.framework_id` column (ADR-026). Do not treat
+  `project_json.project.frameworkId` as an independent authority.
 - Keep the domain model independent of export formats.
 - Keep repositories database-specific.
 - Keep UI independent of persistence.

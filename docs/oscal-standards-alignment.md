@@ -204,6 +204,21 @@ evaluation; UUID persistence.
 
 These placeholders are labeled as gaps, not invented operational facts.
 
+## Intentionally retained NIST-specific behavior (04B)
+
+04B does not make Control Freak framework-agnostic. The following remain
+NIST SP 800-53 / OSCAL-specific by design:
+
+- Control identifier presentation (`ac-2`, `ac-2.1` → `AC-2 (1)`)
+- Control family grouping and enhancement nesting
+- Narrow OSCAL profile derivation from pinned Rev. 5 Low / Moderate / High
+- Client SSP export metadata via the NIST identity table (not `FrameworkRegistry`)
+- Demo/bootstrap content written against the Moderate baseline
+
+`FRAMEWORK` / `FRAMEWORK_CONTROLS` remain Moderate convenience exports for
+demo and historical tests. Project-scoped runtime paths must resolve through
+the Project's `frameworkId`.
+
 ## Gaps before FedRAMP support can be claimed
 
 1. No official FedRAMP OSCAL profile has been located and approved as an input to this project.

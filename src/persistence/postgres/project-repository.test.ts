@@ -6,8 +6,11 @@ import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
 } from "@/framework/nist-sp-800-53-rev5/identities";
-import { FRAMEWORK_IDENTITY_IMMUTABLE_MESSAGE } from "@/persistence/framework-identity";
-import { serializeProjectDocument } from "@/persistence/document";
+import { UNKNOWN_FRAMEWORK_CONTROL_MESSAGE } from "@/persistence/framework-identity";
+import {
+  parseProjectDocumentJson,
+  serializeProjectDocument,
+} from "@/persistence/document";
 import { closeDb, openTestDb } from "@/persistence/postgres/client";
 import { createTestProjectRepository } from "@/persistence/postgres/testing";
 import { projectSnapshots, projects } from "@/persistence/postgres/schema";
@@ -410,7 +413,7 @@ describe("snapshots and versions", () => {
     );
   });
 
-  it("rejects save attempts that change framework identity", async () => {
+  it("ignores a client-supplied frameworkId and keeps the column identity", async () => {
     const { repo } = await tempRepo();
     const created = await repo.create({
       name: "Immutable",
@@ -424,12 +427,11 @@ describe("snapshots and versions", () => {
       implementations: created.implementations,
       expectedRevision: created.revision,
     });
-    assert.equal(saved.ok, false);
-    if (saved.ok) {
+    assert.equal(saved.ok, true);
+    if (!saved.ok) {
       return;
     }
-    assert.equal(saved.reason, "validation");
-    assert.equal(saved.message, FRAMEWORK_IDENTITY_IMMUTABLE_MESSAGE);
+    assert.equal(saved.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
     const loaded = await repo.load(created.id);
     assert.equal(loaded.ok, true);
     if (loaded.ok) {
@@ -480,5 +482,177 @@ describe("snapshots and versions", () => {
       return;
     }
     assert.equal(restored.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
+  });
+
+  it("loads framework identity from the column even when the document copy differs", async () => {
+    const { repo, db } = await tempRepo();
+    const created = await repo.create({
+      name: "Column authority",
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+    });
+    const loadedBefore = await repo.load(created.id);
+    assert.equal(loadedBefore.ok, true);
+    if (!loadedBefore.ok) {
+      return;
+    }
+    const tampered = {
+      schemaVersion: 1 as const,
+      project: {
+        ...loadedBefore.project,
+        id: created.id,
+        name: created.name,
+        frameworkId: NIST_HIGH_FRAMEWORK_ID,
+        metadata: created.metadata,
+        implementations: created.implementations,
+      },
+    };
+    await db
+      .update(projects)
+      .set({ projectJson: serializeProjectDocument(tampered) })
+      .where(eq(projects.id, created.id));
+
+    const loaded = await repo.load(created.id);
+    assert.equal(loaded.ok, true);
+    if (!loaded.ok) {
+      return;
+    }
+    assert.equal(loaded.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
+
+    const rows = await db
+      .select({ projectJson: projects.projectJson })
+      .from(projects)
+      .where(eq(projects.id, created.id));
+    const parsed = parseProjectDocumentJson(rows[0]?.projectJson ?? "");
+    assert.equal(parsed.ok, true);
+    if (parsed.ok) {
+      assert.equal(parsed.document.project.frameworkId, NIST_HIGH_FRAMEWORK_ID);
+    }
+
+    const saved = await repo.save({
+      id: created.id,
+      name: created.name,
+      metadata: created.metadata,
+      implementations: created.implementations,
+      expectedRevision: created.revision,
+    });
+    assert.equal(saved.ok, true);
+    if (!saved.ok) {
+      return;
+    }
+    assert.equal(saved.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
+    const afterSave = parseProjectDocumentJson(
+      (
+        await db
+          .select({ projectJson: projects.projectJson })
+          .from(projects)
+          .where(eq(projects.id, created.id))
+      )[0]?.projectJson ?? "",
+    );
+    assert.equal(afterSave.ok, true);
+    if (afterSave.ok) {
+      assert.equal(
+        afterSave.document.project.frameworkId,
+        NIST_MODERATE_FRAMEWORK_ID,
+      );
+    }
+  });
+
+  it("restore keeps the live column framework when live JSON is tampered", async () => {
+    const { repo, db } = await tempRepo();
+    const created = await repo.create({
+      name: "Live JSON mismatch",
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+      implementations: {
+        "ac-1": { status: "not-started", narrative: "before" },
+      },
+    });
+    const version = await repo.createNamedVersion({
+      projectId: created.id,
+      name: "Checkpoint",
+      expectedRevision: 1,
+    });
+    assert.ok(version.ok);
+    if (!version.ok) {
+      return;
+    }
+
+    const loaded = await repo.load(created.id);
+    assert.equal(loaded.ok, true);
+    if (!loaded.ok) {
+      return;
+    }
+    const tamperedLive = {
+      schemaVersion: 1 as const,
+      project: {
+        id: created.id,
+        name: created.name,
+        frameworkId: NIST_HIGH_FRAMEWORK_ID,
+        metadata: created.metadata,
+        implementations: created.implementations,
+      },
+    };
+    await db
+      .update(projects)
+      .set({ projectJson: serializeProjectDocument(tamperedLive) })
+      .where(eq(projects.id, created.id));
+
+    const restored = await repo.restoreSnapshot({
+      projectId: created.id,
+      snapshotId: version.snapshot.id,
+      expectedRevision: 1,
+    });
+    assert.ok(restored.ok);
+    if (!restored.ok) {
+      return;
+    }
+    assert.equal(restored.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
+  });
+
+  it("fails closed when the authoritative column framework ID is unknown", async () => {
+    const { repo, db } = await tempRepo();
+    const created = await repo.create({
+      name: "Unknown column",
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+    });
+    await db
+      .update(projects)
+      .set({ frameworkId: "not-a-framework" })
+      .where(eq(projects.id, created.id));
+
+    const loaded = await repo.load(created.id);
+    assert.equal(loaded.ok, false);
+    if (loaded.ok) {
+      return;
+    }
+    assert.equal(loaded.error.kind, "unknown-framework");
+  });
+
+  it("rejects saves that include control IDs outside the project framework", async () => {
+    const { repo } = await tempRepo();
+    const created = await repo.create({
+      name: "Low",
+      frameworkId: NIST_LOW_FRAMEWORK_ID,
+    });
+    const saved = await repo.save({
+      id: created.id,
+      name: created.name,
+      metadata: created.metadata,
+      implementations: {
+        "ac-1": { status: "implemented", narrative: "ok" },
+        "not-a-control": { status: "not-started", narrative: "nope" },
+      },
+      expectedRevision: created.revision,
+    });
+    assert.equal(saved.ok, false);
+    if (saved.ok) {
+      return;
+    }
+    assert.equal(saved.reason, "validation");
+    assert.equal(saved.message, UNKNOWN_FRAMEWORK_CONTROL_MESSAGE);
+    const loaded = await repo.load(created.id);
+    assert.equal(loaded.ok, true);
+    if (loaded.ok) {
+      assert.deepEqual(loaded.project.implementations, {});
+    }
   });
 });

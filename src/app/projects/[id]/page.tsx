@@ -5,7 +5,8 @@ import {
 } from "@/app/actions/projects";
 import { listControlRecordsAction } from "@/app/actions/control-records";
 import { ProjectWorkspace } from "@/components/ProjectWorkspace";
-import { resolveFramework } from "@/data/framework";
+import { formatFrameworkLabel } from "@/components/framework/presentation";
+import { frameworkRegistry, resolveFramework } from "@/data/framework";
 import {
   parseCommentQueryParam,
   parseControlQueryParam,
@@ -74,11 +75,15 @@ export default async function ProjectPage({
     listSnapshotsAction(id),
     listControlRecordsAction(id),
   ]);
+  const frameworkDescriptor = frameworkRegistry.requireDescriptor(
+    loaded.project.frameworkId,
+  );
   return (
     <ProjectWorkspace
       key={loaded.project.id}
       initialProject={loaded.project}
       framework={resolveFramework(loaded.project.frameworkId)}
+      frameworkLabel={formatFrameworkLabel(frameworkDescriptor)}
       initialControlRecords={controlRecords}
       initialSnapshots={snapshots}
       initialView={initialControlId ? "controls" : initialView}

@@ -21,6 +21,7 @@ import {
 import { publishDomainEvents } from "./publish-domain-event";
 import {
   UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+  controlBelongsToProjectFramework,
   invalidProjectControlIds,
   loadOwnedProject,
 } from "./project-control-identity";
@@ -120,11 +121,19 @@ export async function transitionReviewForOrg(
     ctx.organizationId,
     reviewActionPermission(input.action),
   );
-  if (!(await projectBelongsToOrg(projectRepo, ctx, input.projectId))) {
+  const project = await loadOwnedProject(projectRepo, ctx, input.projectId);
+  if (!project) {
     return {
       ok: false,
       reason: "not-found",
       message: "Project not found.",
+    };
+  }
+  if (!controlBelongsToProjectFramework(project.frameworkId, input.controlId)) {
+    return {
+      ok: false,
+      reason: "validation",
+      message: UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
     };
   }
   return service.transitionReviewStatus(input, actor);

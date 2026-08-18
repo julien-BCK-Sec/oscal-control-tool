@@ -71,7 +71,7 @@ describe("authorized project framework identity", () => {
       name: "Stay Moderate",
       frameworkId: NIST_MODERATE_FRAMEWORK_ID,
     });
-    const result = await saveProjectForOrg(projects, ctx(org.id), {
+    const ignored = await saveProjectForOrg(projects, ctx(org.id), {
       id: created.id,
       name: created.name,
       frameworkId: NIST_LOW_FRAMEWORK_ID,
@@ -79,9 +79,22 @@ describe("authorized project framework identity", () => {
       implementations: created.implementations,
       expectedRevision: created.revision,
     });
-    assert.equal(result.ok, false);
-    if (!result.ok) {
-      assert.equal(result.reason, "validation");
+    assert.equal(ignored.ok, true);
+    if (ignored.ok) {
+      assert.equal(ignored.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
+    }
+
+    const omitted = await saveProjectForOrg(projects, ctx(org.id), {
+      id: created.id,
+      name: "Still Moderate",
+      metadata: created.metadata,
+      implementations: created.implementations,
+      expectedRevision: ignored.ok ? ignored.project.revision : created.revision,
+    });
+    assert.equal(omitted.ok, true);
+    if (omitted.ok) {
+      assert.equal(omitted.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
+      assert.equal(omitted.project.name, "Still Moderate");
     }
   });
 

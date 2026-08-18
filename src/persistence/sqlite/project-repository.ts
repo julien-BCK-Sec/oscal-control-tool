@@ -25,9 +25,13 @@ import type {
   StoredProjectDocument,
 } from "../types";
 import { DEFAULT_PROJECT_METADATA } from "@/data/project";
+import { isRegisteredFrameworkId } from "@/data/framework";
 import {
+  invalidFrameworkControlIds,
   parseRegisteredFrameworkId,
-  rejectFrameworkIdentityChange,
+  resolveAuthoritativeFrameworkId,
+  unknownFrameworkLoadError,
+  UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
 } from "../framework-identity";
 import type { AppDatabase } from "./client";
 import { projectSnapshots, projects } from "./schema";
@@ -50,7 +54,11 @@ function toStoredProject(
     name: document.project.name,
     // Legacy SQLite rows predate organization ownership (ADR-016 cutover).
     organizationId: null,
-    frameworkId: document.project.frameworkId,
+    frameworkId: resolveAuthoritativeFrameworkId({
+      projectId: row.id,
+      columnFrameworkId: row.frameworkId,
+      documentFrameworkId: document.project.frameworkId,
+    }),
     schemaVersion: document.schemaVersion,
     revision: row.revision,
     createdAt: row.createdAt,
@@ -178,7 +186,6 @@ export function createSqliteProjectRepository(
       const result = await saveProject({
         id: loaded.project.id,
         name: trimmed,
-        frameworkId: loaded.project.frameworkId,
         metadata: {
           ...loaded.project.metadata,
           systemName:
@@ -327,7 +334,6 @@ export function createSqliteProjectRepository(
       const saveResult = await saveProject({
         id: loaded.project.id,
         name: restoredName,
-        frameworkId: loaded.project.frameworkId,
         metadata: snapshot.document.project.metadata,
         implementations: snapshot.document.project.implementations,
         expectedRevision: loaded.project.revision,
@@ -359,6 +365,13 @@ export function createSqliteProjectRepository(
     const row = rows[0];
     if (!row) {
       return { ok: false, error: { kind: "not-found" } };
+    }
+
+    if (!isRegisteredFrameworkId(row.frameworkId)) {
+      return {
+        ok: false,
+        error: unknownFrameworkLoadError(row.frameworkId),
+      };
     }
 
     const parsed = parseProjectDocumentJson(row.projectJson);
@@ -417,22 +430,34 @@ export function createSqliteProjectRepository(
       };
     }
 
-    const identity = rejectFrameworkIdentityChange(
-      row.frameworkId,
-      input.frameworkId,
-    );
-    if (!identity.ok) {
+    let frameworkId: string;
+    try {
+      frameworkId = parseRegisteredFrameworkId(row.frameworkId);
+    } catch (error) {
       return {
         ok: false,
         reason: "validation",
-        message: identity.message,
+        message:
+          error instanceof Error ? error.message : "Unknown framework.",
+      };
+    }
+
+    const invalidControlIds = invalidFrameworkControlIds(
+      frameworkId,
+      Object.keys(input.implementations),
+    );
+    if (invalidControlIds.length > 0) {
+      return {
+        ok: false,
+        reason: "validation",
+        message: UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
       };
     }
 
     const document = buildStoredProjectDocumentV1({
       id: input.id,
       name,
-      frameworkId: identity.frameworkId,
+      frameworkId,
       metadata: input.metadata,
       implementations: input.implementations,
     });

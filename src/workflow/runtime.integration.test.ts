@@ -3,6 +3,12 @@ import { randomUUID } from "node:crypto";
 import { afterEach, describe, it } from "node:test";
 import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
 import {
+  NIST_HIGH_FRAMEWORK_ID,
+  NIST_LOW_FRAMEWORK_ID,
+} from "@/framework/nist-sp-800-53-rev5/identities";
+import { resolveFrameworkControls } from "@/data/framework";
+import { UNKNOWN_FRAMEWORK_CONTROL_MESSAGE } from "@/persistence/framework-identity";
+import {
   controlAssignedEvent,
   createDomainEventRuntime,
   setSharedDomainEventRuntime,
@@ -344,6 +350,76 @@ describe("workflow domain event integration", () => {
     assert.equal(
       (await env.notifications.listForRecipient(admin.id)).length,
       1,
+    );
+  });
+
+  it("does not create operational rows for control IDs outside the project framework", async () => {
+    const env = await setup();
+    const admin = await env.makeMember("admin5@example.com", "organization_admin");
+    const project = await env.projects.create({
+      name: "Low WF",
+      frameworkId: NIST_LOW_FRAMEWORK_ID,
+      organizationId: env.org.id,
+    });
+    const lowIds = new Set(
+      resolveFrameworkControls(NIST_LOW_FRAMEWORK_ID).map((control) => control.id),
+    );
+    const outsideId = resolveFrameworkControls(NIST_HIGH_FRAMEWORK_ID).find(
+      (control) => !lowIds.has(control.id),
+    )?.id;
+    assert.ok(outsideId);
+
+    await env.workflowRepo.createRule({
+      organizationId: env.org.id,
+      name: "Assign on event",
+      triggerType: "control_assigned",
+      conditions: [],
+      actions: [
+        {
+          type: "assign_user",
+          userId: admin.id,
+          assignmentRole: "owner",
+        },
+        {
+          type: "change_status",
+          implementationStatus: "in_review",
+        },
+        {
+          type: "set_due_date",
+          offsetDays: 7,
+        },
+      ],
+      createdByUserId: admin.id,
+    });
+
+    const event = controlAssignedEvent({
+      organizationId: env.org.id,
+      actorId: admin.id,
+      projectId: project.id,
+      controlId: outsideId,
+      assignmentId: "asg-invalid",
+      assigneeUserId: admin.id,
+      assignmentRole: "owner",
+    });
+
+    await processWorkflowDomainEvent(event, env.deps);
+
+    const executions = await env.workflowRepo.listExecutions(env.org.id);
+    assert.equal(executions.length, 1);
+    assert.equal(executions[0]?.status, "failed");
+    assert.equal(
+      executions[0]?.detail.actionResults[0]?.errorMessage,
+      UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+    );
+    assert.equal(
+      (await env.assignments.listByControl(env.org.id, project.id, outsideId))
+        .length,
+      0,
+    );
+    assert.equal(
+      (await env.controlRecords.getByProjectAndControl(project.id, outsideId)) ==
+        null,
+      true,
     );
   });
 });

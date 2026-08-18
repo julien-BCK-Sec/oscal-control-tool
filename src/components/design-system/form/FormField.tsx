@@ -29,6 +29,7 @@ export type FormHintProps = {
   children: ReactNode;
   tone?: "muted" | "warning" | "danger";
   className?: string;
+  id?: string;
   role?: "status" | "alert";
 };
 
@@ -36,6 +37,7 @@ export function FormHint({
   children,
   tone = "muted",
   className = "",
+  id,
   role,
 }: FormHintProps) {
   const toneClass =
@@ -45,7 +47,11 @@ export function FormHint({
         ? "text-danger"
         : "text-text-muted";
   return (
-    <p className={`mt-1 text-xs ${toneClass} ${className}`} role={role}>
+    <p
+      id={id}
+      className={`mt-1 text-xs ${toneClass} ${className}`}
+      role={role}
+    >
       {children}
     </p>
   );

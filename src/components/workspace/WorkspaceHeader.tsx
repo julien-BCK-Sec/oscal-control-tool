@@ -14,6 +14,7 @@ import {
 export type WorkspaceHeaderProps = {
   projectName: string;
   organizationName: string;
+  frameworkLabel: string;
   revision: number;
   autosaveStatus: AutosaveStatus;
   autosaveMessage: string | null;
@@ -32,6 +33,7 @@ export type WorkspaceHeaderProps = {
 export function WorkspaceHeader({
   projectName,
   organizationName,
+  frameworkLabel,
   revision,
   autosaveStatus,
   autosaveMessage,
@@ -86,6 +88,10 @@ export function WorkspaceHeader({
           </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-muted">
+            <span className="text-text-secondary">{frameworkLabel}</span>
+            <span aria-hidden="true" className="text-border-strong">
+              ·
+            </span>
             <span className="control-id text-text-secondary">
               {formatProjectRevisionLabel(revision)}
             </span>

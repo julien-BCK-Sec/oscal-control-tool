@@ -1,7 +1,10 @@
-import { isRegisteredFrameworkId } from "@/data/framework";
+import {
+  isFrameworkControlId,
+  isRegisteredFrameworkId,
+} from "@/data/framework";
 
-export const FRAMEWORK_IDENTITY_IMMUTABLE_MESSAGE =
-  "Framework identity cannot be changed after project creation.";
+export const UNKNOWN_FRAMEWORK_CONTROL_MESSAGE =
+  "Control is not part of this project's framework.";
 
 export function parseRegisteredFrameworkId(value: string): string {
   const frameworkId = value.trim();
@@ -14,16 +17,53 @@ export function parseRegisteredFrameworkId(value: string): string {
   return frameworkId;
 }
 
-export function rejectFrameworkIdentityChange(
-  existingFrameworkId: string,
-  requestedFrameworkId: string,
-): { ok: true; frameworkId: string } | { ok: false; message: string } {
-  const requested = requestedFrameworkId.trim();
-  if (!requested) {
-    return { ok: false, message: "frameworkId is required." };
+export function unknownFrameworkLoadError(frameworkId: string): {
+  kind: "unknown-framework";
+  frameworkId: string;
+  message: string;
+} {
+  const id = frameworkId.trim();
+  return {
+    kind: "unknown-framework",
+    frameworkId: id,
+    message: `Unknown framework: ${id || "(empty)"}`,
+  };
+}
+
+/**
+ * Runtime framework identity is always `projects.framework_id`.
+ * `project_json.project.frameworkId` is a compatibility copy only.
+ * Divergence is logged and ignored; the database is not mutated on load.
+ */
+export function resolveAuthoritativeFrameworkId(input: {
+  projectId: string;
+  columnFrameworkId: string;
+  documentFrameworkId: string;
+}): string {
+  const columnFrameworkId = input.columnFrameworkId.trim();
+  const documentFrameworkId = input.documentFrameworkId.trim();
+  if (documentFrameworkId !== columnFrameworkId) {
+    console.warn(
+      "Project document frameworkId diverged from projects.framework_id; using column value.",
+      {
+        projectId: input.projectId,
+        columnFrameworkId,
+        documentFrameworkId,
+      },
+    );
   }
-  if (requested !== existingFrameworkId) {
-    return { ok: false, message: FRAMEWORK_IDENTITY_IMMUTABLE_MESSAGE };
-  }
-  return { ok: true, frameworkId: existingFrameworkId };
+  return columnFrameworkId;
+}
+
+export function invalidFrameworkControlIds(
+  frameworkId: string,
+  controlIds: readonly string[],
+): string[] {
+  return [
+    ...new Set(
+      controlIds
+        .map((id) => id.trim())
+        .filter((id) => id && !isFrameworkControlId(frameworkId, id)),
+    ),
+  ];
 }

@@ -9,7 +9,7 @@ import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
 } from "@/framework/nist-sp-800-53-rev5/identities";
-import { FRAMEWORK_IDENTITY_IMMUTABLE_MESSAGE } from "@/persistence/framework-identity";
+import { UNKNOWN_FRAMEWORK_CONTROL_MESSAGE } from "@/persistence/framework-identity";
 import { closeDb, openDbAt } from "@/persistence/sqlite/client";
 import { createSqliteProjectRepository } from "@/persistence/sqlite/project-repository";
 
@@ -427,7 +427,7 @@ describe("snapshots and versions", () => {
     );
   });
 
-  it("rejects save attempts that change framework identity", async () => {
+  it("ignores a client-supplied frameworkId and keeps the column identity", async () => {
     const { repo } = tempRepo();
     const created = await repo.create({
       name: "Immutable",
@@ -441,11 +441,33 @@ describe("snapshots and versions", () => {
       implementations: created.implementations,
       expectedRevision: created.revision,
     });
+    assert.equal(saved.ok, true);
+    if (!saved.ok) {
+      return;
+    }
+    assert.equal(saved.project.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
+  });
+
+  it("rejects saves that include control IDs outside the project framework", async () => {
+    const { repo } = tempRepo();
+    const created = await repo.create({
+      name: "Low",
+      frameworkId: NIST_LOW_FRAMEWORK_ID,
+    });
+    const saved = await repo.save({
+      id: created.id,
+      name: created.name,
+      metadata: created.metadata,
+      implementations: {
+        "not-a-control": { status: "not-started", narrative: "nope" },
+      },
+      expectedRevision: created.revision,
+    });
     assert.equal(saved.ok, false);
     if (saved.ok) {
       return;
     }
     assert.equal(saved.reason, "validation");
-    assert.equal(saved.message, FRAMEWORK_IDENTITY_IMMUTABLE_MESSAGE);
+    assert.equal(saved.message, UNKNOWN_FRAMEWORK_CONTROL_MESSAGE);
   });
 });

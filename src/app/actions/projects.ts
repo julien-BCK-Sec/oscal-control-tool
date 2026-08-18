@@ -120,6 +120,11 @@ export async function createProjectAction(input: {
 }): Promise<StoredProject> {
   const ctx = await requireDefaultOrgContext();
   const name = requireNonEmptyString(input.name, "name");
+  /**
+   * Backwards-compatible API default when callers omit frameworkId.
+   * The create UI always sends an explicit selected value; Moderate is the
+   * default option in that selector, not an inferred architectural default.
+   */
   const frameworkId =
     typeof input.frameworkId === "string" && input.frameworkId.trim() !== ""
       ? input.frameworkId.trim()
@@ -160,12 +165,15 @@ export async function loadProjectAction(
   return loadProjectForOrg(repo, ctx, id);
 }
 
-export async function saveProjectAction(
-  input: SaveProjectInput,
-): Promise<SaveProjectResult> {
+export async function saveProjectAction(input: {
+  id: string;
+  name: string;
+  metadata: unknown;
+  implementations: unknown;
+  expectedRevision: number;
+}): Promise<SaveProjectResult> {
   const id = requireNonEmptyString(input.id, "id");
   const name = requireNonEmptyString(input.name, "name");
-  const frameworkId = requireNonEmptyString(input.frameworkId, "frameworkId");
   if (!isProjectMetadata(input.metadata)) {
     return {
       ok: false,
@@ -205,7 +213,6 @@ export async function saveProjectAction(
   const result = await saveProjectForOrg(repo, ctx, {
     id,
     name,
-    frameworkId,
     metadata: input.metadata,
     implementations,
     expectedRevision: input.expectedRevision,

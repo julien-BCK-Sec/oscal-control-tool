@@ -4,7 +4,11 @@ import {
   ProjectsHome,
   type ProjectListItem,
 } from "@/components/ProjectsHome";
-import { resolveFrameworkControls } from "@/data/framework";
+import {
+  DEFAULT_FRAMEWORK_ID,
+  frameworkRegistry,
+  resolveFrameworkControls,
+} from "@/data/framework";
 import { computeOverallCompletion } from "@/domain";
 import {
   getSessionUser,
@@ -54,16 +58,15 @@ export default async function ProjectsPage() {
           resolveFrameworkControls(loaded.project.frameworkId),
           loaded.project.implementations,
         )
-      : computeOverallCompletion(
-          resolveFrameworkControls(summary.frameworkId),
-          {},
-        );
+      : computeOverallCompletion([], {});
     projects.push({ ...summary, completion });
   }
 
   return (
     <ProjectsHome
       projects={projects}
+      frameworks={frameworkRegistry.list()}
+      defaultFrameworkId={DEFAULT_FRAMEWORK_ID}
       canCreate={roleHasPermission(ctx.role, "project.create")}
       account={{
         name: user.name?.trim() || user.email,
