@@ -68,7 +68,12 @@ export type CreateProjectInput = {
 export type SaveProjectInput = {
   id: string;
   name: string;
-  frameworkId: string;
+  /**
+   * Ignored when present. Framework identity is server-owned
+   * `projects.framework_id` and is not changed by save (ADR-026).
+   * New callers should omit this field.
+   */
+  frameworkId?: string;
   metadata: ProjectMetadata;
   implementations: Record<string, ControlImplementation>;
   /** Must match the current database revision or save returns conflict. */
@@ -78,7 +83,8 @@ export type SaveProjectInput = {
 export type LoadProjectError =
   | { kind: "not-found" }
   | { kind: "corrupt"; message: string }
-  | { kind: "unsupported-schema"; schemaVersion: number };
+  | { kind: "unsupported-schema"; schemaVersion: number }
+  | { kind: "unknown-framework"; frameworkId: string; message: string };
 
 export type ProjectLoadResult =
   | { ok: true; project: StoredProject }

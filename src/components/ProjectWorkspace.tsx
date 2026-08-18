@@ -66,6 +66,7 @@ import type {
 export type ProjectWorkspaceProps = {
   initialProject: StoredProject;
   framework: Framework;
+  frameworkLabel: string;
   initialControlRecords: ControlRecord[];
   initialSnapshots: ProjectSnapshotSummary[];
   initialView?: WorkspaceTabId;
@@ -93,6 +94,7 @@ function initialWorkingCopy(
 export function ProjectWorkspace({
   initialProject,
   framework,
+  frameworkLabel,
   initialControlRecords,
   initialSnapshots,
   initialView = DEFAULT_WORKSPACE_TAB,
@@ -124,7 +126,6 @@ export function ProjectWorkspace({
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [revision, setRevision] = useState(initialProject.revision);
   const [updatedAt, setUpdatedAt] = useState(initialProject.updatedAt);
-  const frameworkId = initialProject.frameworkId;
   const projectId = initialProject.id;
 
   const [autosaveStatus, setAutosaveStatus] = useState<AutosaveStatus>("clean");
@@ -303,7 +304,6 @@ export function ProjectWorkspace({
             const result = await saveProjectAction({
               id: projectId,
               name: current.name,
-              frameworkId,
               metadata: current.metadata,
               implementations: current.implementations,
               expectedRevision: revisionRef.current,
@@ -757,6 +757,7 @@ export function ProjectWorkspace({
       <WorkspaceHeader
         projectName={name}
         organizationName={metadata.organizationName}
+        frameworkLabel={frameworkLabel}
         revision={revision}
         autosaveStatus={autosaveStatus}
         autosaveMessage={autosaveMessage}
@@ -794,6 +795,7 @@ export function ProjectWorkspace({
           {activeTab === "overview" ? (
             <ProjectOverview
               framework={framework}
+              frameworkLabel={frameworkLabel}
               metadata={metadata}
               implementations={implementations}
               revision={revision}

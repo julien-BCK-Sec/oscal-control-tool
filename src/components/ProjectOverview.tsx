@@ -36,6 +36,7 @@ import { formatProjectRevisionLabel } from "@/components/projectHistory/presenta
 
 export type ProjectOverviewProps = {
   framework: Framework;
+  frameworkLabel: string;
   metadata: ProjectMetadata;
   implementations: Record<string, ControlImplementation>;
   revision: number;
@@ -52,6 +53,7 @@ export type ProjectOverviewProps = {
 
 export function ProjectOverview({
   framework,
+  frameworkLabel,
   metadata,
   implementations,
   revision,
@@ -162,7 +164,7 @@ export function ProjectOverview({
             </div>
             <div>
               <dt className="text-text-muted">Framework</dt>
-              <dd className="text-text-secondary">{framework.title}</dd>
+              <dd className="text-text-secondary">{frameworkLabel}</dd>
             </div>
             <div>
               <dt className="text-text-muted">Revision</dt>

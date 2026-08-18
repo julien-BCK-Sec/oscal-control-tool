@@ -22,6 +22,8 @@ import type { ControlRecordRepository } from "@/persistence/control-record-repos
 import type { ControlRecordService } from "@/persistence/control-record-service";
 import type { NotificationService } from "@/persistence/notification-service";
 import type { OrganizationRepository } from "@/persistence/postgres/organization-repository";
+import { isFrameworkControlId } from "@/data/framework";
+import { UNKNOWN_FRAMEWORK_CONTROL_MESSAGE } from "@/persistence/framework-identity";
 import { publishDomainEvent } from "@/server/publish-domain-event";
 import type { ActionExecutorMap, WorkflowActionContext } from "./registries";
 import type { ActionExecutionResult } from "./types";
@@ -58,6 +60,29 @@ function requireProjectControl(
     );
   }
   return { projectId, controlId };
+}
+
+function requireValidProjectControl(
+  ctx: WorkflowActionContext,
+  actionType: ActionExecutionResult["type"],
+):
+  | { projectId: string; controlId: string }
+  | ActionExecutionResult {
+  const ids = requireProjectControl(ctx, actionType);
+  if ("status" in ids) {
+    return ids;
+  }
+  const frameworkId = ctx.evaluation.frameworkId?.trim() ?? "";
+  if (!frameworkId) {
+    return fail(
+      actionType,
+      "Action requires a project framework.",
+    );
+  }
+  if (!isFrameworkControlId(frameworkId, ids.controlId)) {
+    return fail(actionType, UNKNOWN_FRAMEWORK_CONTROL_MESSAGE);
+  }
+  return ids;
 }
 
 function dueDateFromOffset(occurredAt: string, offsetDays: number): string {
@@ -206,7 +231,7 @@ export function createWorkflowActionExecutors(
     },
 
     async assign_user(ctx, config) {
-      const ids = requireProjectControl(ctx, "assign_user");
+      const ids = requireValidProjectControl(ctx, "assign_user");
       if ("status" in ids) {
         return ids;
       }
@@ -229,7 +254,7 @@ export function createWorkflowActionExecutors(
     },
 
     async assign_role(ctx, config) {
-      const ids = requireProjectControl(ctx, "assign_role");
+      const ids = requireValidProjectControl(ctx, "assign_role");
       if ("status" in ids) {
         return ids;
       }
@@ -253,7 +278,7 @@ export function createWorkflowActionExecutors(
     },
 
     async set_due_date(ctx, config) {
-      const ids = requireProjectControl(ctx, "set_due_date");
+      const ids = requireValidProjectControl(ctx, "set_due_date");
       if ("status" in ids) {
         return ids;
       }
@@ -302,7 +327,7 @@ export function createWorkflowActionExecutors(
     },
 
     async change_status(ctx, config) {
-      const ids = requireProjectControl(ctx, "change_status");
+      const ids = requireValidProjectControl(ctx, "change_status");
       if ("status" in ids) {
         return ids;
       }

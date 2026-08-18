@@ -11,6 +11,7 @@ import {
 import { AuthenticatedHeaderActions } from "@/components/auth/AuthenticatedHeaderActions";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Button } from "@/components/design-system/button/Button";
+import { FormHint } from "@/components/design-system/form/FormField";
 import {
   AppShell,
   PageContent,
@@ -22,10 +23,10 @@ import {
   CardContent,
 } from "@/components/design-system/card/Card";
 import {
-  DEFAULT_FRAMEWORK_ID,
-  NIST_SP80053_REV5_IDENTITIES,
-  findFrameworkIdentity,
-} from "@/framework/nist-sp-800-53-rev5/identities";
+  findFrameworkDescriptor,
+  formatFrameworkLabel,
+} from "@/components/framework/presentation";
+import type { FrameworkDescriptor } from "@/data/framework/types";
 import { formatCompletionCount, type CompletionProgress } from "@/domain";
 import { formatSnapshotTimestamp } from "@/components/projectHistory/presentation";
 import type { ProjectSummary } from "@/persistence/types";
@@ -44,6 +45,8 @@ export type ProjectsHomeAccount = {
 
 export type ProjectsHomeProps = {
   projects: ProjectListItem[];
+  frameworks: readonly FrameworkDescriptor[];
+  defaultFrameworkId: string;
   /** When false, project creation controls are hidden (server still enforces). */
   canCreate?: boolean;
   account?: ProjectsHomeAccount;
@@ -51,13 +54,15 @@ export type ProjectsHomeProps = {
 
 export function ProjectsHome({
   projects: initialProjects,
+  frameworks,
+  defaultFrameworkId,
   canCreate = true,
   account,
 }: ProjectsHomeProps) {
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [name, setName] = useState("");
-  const [frameworkId, setFrameworkId] = useState(DEFAULT_FRAMEWORK_ID);
+  const [frameworkId, setFrameworkId] = useState(defaultFrameworkId);
   const [showCreate, setShowCreate] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -74,7 +79,7 @@ export function ProjectsHome({
     try {
       const project = await createProjectAction({ name, frameworkId });
       setName("");
-      setFrameworkId(DEFAULT_FRAMEWORK_ID);
+      setFrameworkId(defaultFrameworkId);
       setShowCreate(false);
       router.push(`/projects/${project.id}`);
     } catch (err) {
@@ -183,13 +188,17 @@ export function ProjectsHome({
                 value={frameworkId}
                 onChange={(event) => setFrameworkId(event.target.value)}
                 className="field mt-1.5"
+                aria-describedby="new-project-framework-hint"
               >
-                {NIST_SP80053_REV5_IDENTITIES.map((identity) => (
-                  <option key={identity.id} value={identity.id}>
-                    {identity.source}
+                {frameworks.map((descriptor) => (
+                  <option key={descriptor.id} value={descriptor.id}>
+                    {formatFrameworkLabel(descriptor)}
                   </option>
                 ))}
               </select>
+              <FormHint id="new-project-framework-hint">
+                Framework cannot be changed after project creation.
+              </FormHint>
             </div>
             <Button
               type="submit"
@@ -203,7 +212,7 @@ export function ProjectsHome({
               onClick={() => {
                 setShowCreate(false);
                 setName("");
-                setFrameworkId(DEFAULT_FRAMEWORK_ID);
+                setFrameworkId(defaultFrameworkId);
               }}
             >
               Cancel
@@ -244,15 +253,26 @@ export function ProjectsHome({
           />
         ) : (
           <ul className="mt-3 flex flex-col gap-3">
-            {projects.map((project) => (
+            {projects.map((project) => {
+              const descriptor = findFrameworkDescriptor(
+                frameworks,
+                project.frameworkId,
+              );
+              return (
               <li key={project.id}>
                 <ProjectCard
                   project={project}
+                  frameworkLabel={
+                    descriptor
+                      ? formatFrameworkLabel(descriptor)
+                      : project.frameworkId
+                  }
                   onRename={() => void handleRename(project.id, project.name)}
                   onDelete={() => void handleDelete(project.id, project.name)}
                 />
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </section>
@@ -285,10 +305,12 @@ function AccountBar({ account }: { account: ProjectsHomeAccount }) {
 
 function ProjectCard({
   project,
+  frameworkLabel,
   onRename,
   onDelete,
 }: {
   project: ProjectListItem;
+  frameworkLabel: string;
   onRename: () => void;
   onDelete: () => void;
 }) {
@@ -312,8 +334,7 @@ function ProjectCard({
             {project.organizationName.trim() || "No organization"}
           </p>
           <p className="mt-1 text-xs text-text-muted">
-            {findFrameworkIdentity(project.frameworkId)?.source ??
-              project.frameworkId}
+            {frameworkLabel}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

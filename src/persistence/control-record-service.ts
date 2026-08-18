@@ -43,11 +43,16 @@ export type TransitionReviewStatusResult =
       message: string;
       currentReviewStatus: ControlReviewStatus;
     }
-  | {
-      ok: false;
-      reason: "not-found";
-      message: string;
-    };
+      | {
+          ok: false;
+          reason: "not-found";
+          message: string;
+        }
+      | {
+          ok: false;
+          reason: "validation";
+          message: string;
+        };
 
 export type ControlReviewStatusCounts = Record<ControlReviewStatus, number>;
 

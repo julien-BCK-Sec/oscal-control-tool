@@ -3,11 +3,14 @@ import {
   resolveFrameworkControlIdSet,
 } from "@/data/framework";
 import type { OrgContext } from "@/authz/authorize";
+import {
+  invalidFrameworkControlIds,
+  UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
+} from "@/persistence/framework-identity";
 import type { ProjectRepository } from "@/persistence/repository";
 import type { StoredProject } from "@/persistence/types";
 
-export const UNKNOWN_FRAMEWORK_CONTROL_MESSAGE =
-  "Control is not part of this project's framework.";
+export { UNKNOWN_FRAMEWORK_CONTROL_MESSAGE };
 
 export async function loadOwnedProject(
   projectRepo: ProjectRepository,
@@ -32,13 +35,7 @@ export function invalidProjectControlIds(
   frameworkId: string,
   controlIds: readonly string[],
 ): string[] {
-  return [
-    ...new Set(
-      controlIds
-        .map((id) => id.trim())
-        .filter((id) => id && !isFrameworkControlId(frameworkId, id)),
-    ),
-  ];
+  return invalidFrameworkControlIds(frameworkId, controlIds);
 }
 
 export function projectFrameworkControlIds(frameworkId: string): string[] {

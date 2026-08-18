@@ -74,6 +74,14 @@ export resolve the project's selected framework. See
 `docs/milestones/04A-multi-framework-foundation.md`, ADR-002 amendment, and
 ADR-026.
 
+**Milestone 04B – Framework UX and Runtime Hardening** (implemented)
+
+Canonical `projects.framework_id` runtime identity, control-write validation
+(including review and workflow), registry-driven Low / Moderate / High
+presentation, and compatibility for existing documents and named versions.
+See `docs/milestones/04B-framework-ux-and-hardening.md` and ADR-026
+amendment.
+
 ## Next
 
 **Word/PDF export** — portable authoring outputs beyond OSCAL JSON.
@@ -86,7 +94,7 @@ ADR-026.
 - Scheduled Evidence reminders (missing required, due soon, overdue)
 - Email / Slack / Teams notifications
 - Durable domain event store / outbox / external broker
-- Additional compliance frameworks beyond the 04A NIST Rev. 5 Low / Moderate /
+- Additional compliance frameworks beyond the 04A/04B NIST Rev. 5 Low / Moderate /
   High registry (ISO, CIS, PCI DSS, CMMC, CSF, mappings)
 - AI-assisted authoring
 - Async / queued workflow execution, approvals, SLA timers

@@ -725,12 +725,27 @@ after creation: save/autosave must not change it, and named-version restore
 must keep the live project's `frameworkId`. There is no framework-switch
 operation in 04A.
 
+**Amendment (Milestone 04B, 2026-08-17):**
+
+`projects.framework_id` is the sole authoritative runtime framework identity.
+`project_json.project.frameworkId` remains a schema v1 compatibility copy:
+required by the existing parser, written into documents and snapshots from the
+column, and never independently authoritative. Load uses the column and ignores
+a divergent JSON value (logged as a diagnostic; the row is not rewritten on
+load). The next legitimate save or restore rewrites the JSON copy from the
+column. Named-version restore always preserves the live column identity.
+Unknown column `frameworkId` values fail closed. Save/autosave no longer
+require the client to send `frameworkId`; the server uses the existing row.
+There is still no framework-switch operation.
+
 Operational control identity remains `(projectId, controlId)`. Do not
 duplicate `frameworkId` onto ControlRecord, Evidence association, discussion,
 assignment, or activity rows. `controlId` is meaningful only within the
-framework owned by its Project. Control-scoped writes validate `controlId`
-against that project's registered control set. Lazy ControlRecord creation
-is unchanged.
+framework owned by its Project. Control-scoped writes — including review
+transitions and workflow actions that create control-scoped operational state —
+validate `controlId` against that project's registered control set. Project
+save rejects implementation keys that are not in the selected framework.
+Lazy ControlRecord creation is unchanged for valid framework controls.
 
 The registry is not a plugin system. NIST Rev. 5 Low/Moderate/High are
 derived with the existing narrow OSCAL resolver from the same pinned
@@ -753,6 +768,8 @@ Reason:
   export behavior that a later framework switch would create.
 - Keeping operational keys as `(projectId, controlId)` avoids redundant
   columns while still preventing `ac-2` from being treated as globally unique.
+- Treating the JSON copy as compatibility-only closes the dual-authority
+  gap without a document schema bump or snapshot rewrite.
 
 Date:
 2026-08-17

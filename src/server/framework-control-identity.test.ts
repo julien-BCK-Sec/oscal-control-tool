@@ -19,7 +19,11 @@ import {
   associateEvidenceForOrg,
   createEvidenceForOrg,
 } from "@/server/authorized-evidence";
-import { upsertControlRecordsForOrg } from "@/server/authorized-controls";
+import {
+  transitionReviewForOrg,
+  upsertControlRecordsForOrg,
+} from "@/server/authorized-controls";
+import { saveProjectForOrg } from "@/server/authorized-projects";
 import { UNKNOWN_FRAMEWORK_CONTROL_MESSAGE } from "@/server/project-control-identity";
 
 afterEach(async () => {
@@ -194,6 +198,115 @@ describe("project framework control identity", () => {
     assert.equal(result.ok, false);
     if (!result.ok) {
       assert.equal(result.reason, "not-found");
+    }
+  });
+
+  it("rejects review transitions for controls outside the project's framework", async () => {
+    const { projects, org, controlService } = await setup();
+    const project = await projects.create({
+      name: "Low",
+      organizationId: org.id,
+      frameworkId: NIST_LOW_FRAMEWORK_ID,
+    });
+    const outsideId = highOnlyControlId();
+    const result = await transitionReviewForOrg(
+      projects,
+      controlService,
+      ctx(org.id),
+      {
+        projectId: project.id,
+        controlId: outsideId,
+        action: "submit_for_review",
+        expectedCurrentStatus: "not_reviewed",
+      },
+      SYSTEM_ACTOR,
+    );
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.reason, "validation");
+      assert.equal(result.message, UNKNOWN_FRAMEWORK_CONTROL_MESSAGE);
+    }
+    const records = await controlService.listByProject(project.id);
+    assert.equal(records.some((record) => record.controlId === outsideId), false);
+  });
+
+  it("still lazily creates a ControlRecord for a valid framework control on review", async () => {
+    const { projects, org, controlService } = await setup();
+    const project = await projects.create({
+      name: "Low",
+      organizationId: org.id,
+      frameworkId: NIST_LOW_FRAMEWORK_ID,
+    });
+    const result = await transitionReviewForOrg(
+      projects,
+      controlService,
+      ctx(org.id),
+      {
+        projectId: project.id,
+        controlId: "ac-2",
+        action: "submit_for_review",
+        expectedCurrentStatus: "not_reviewed",
+      },
+      SYSTEM_ACTOR,
+    );
+    assert.equal(result.ok, true);
+    if (result.ok) {
+      assert.equal(result.created, true);
+      assert.equal(result.record.controlId, "ac-2");
+    }
+  });
+
+  it("does not leak another organization's project on invalid review control IDs", async () => {
+    const { projects, org, controlService } = await setup();
+    const project = await projects.create({
+      name: "Low",
+      organizationId: org.id,
+      frameworkId: NIST_LOW_FRAMEWORK_ID,
+    });
+    const outsider: OrgContext = {
+      userId: "u-other",
+      organizationId: "org-other",
+      role: "organization_admin",
+    };
+    const result = await transitionReviewForOrg(
+      projects,
+      controlService,
+      outsider,
+      {
+        projectId: project.id,
+        controlId: highOnlyControlId(),
+        action: "submit_for_review",
+        expectedCurrentStatus: "not_reviewed",
+      },
+      SYSTEM_ACTOR,
+    );
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.reason, "not-found");
+    }
+  });
+
+  it("rejects project saves that include out-of-framework implementation keys", async () => {
+    const { projects, org } = await setup();
+    const project = await projects.create({
+      name: "Low",
+      organizationId: org.id,
+      frameworkId: NIST_LOW_FRAMEWORK_ID,
+    });
+    const result = await saveProjectForOrg(projects, ctx(org.id), {
+      id: project.id,
+      name: project.name,
+      metadata: project.metadata,
+      implementations: {
+        "ac-1": { status: "implemented", narrative: "ok" },
+        "not-a-control": { status: "not-started", narrative: "nope" },
+      },
+      expectedRevision: project.revision,
+    });
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.reason, "validation");
+      assert.equal(result.message, UNKNOWN_FRAMEWORK_CONTROL_MESSAGE);
     }
   });
 });

@@ -337,7 +337,6 @@ export function ControlBrowser({
             <h2 className="text-sm font-semibold tracking-tight text-foreground">
               Controls
             </h2>
-            <p className="mt-0.5 text-xs text-text-muted">{framework.title}</p>
             <div className="mt-2">
               <div className="flex items-baseline justify-between gap-2 text-xs">
                 <span className="text-text-secondary">

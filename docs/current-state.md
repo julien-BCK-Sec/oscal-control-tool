@@ -5,11 +5,11 @@ Date: 2026-08-17
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application built around
-OSCAL. Milestone 04A (Multi-Framework Foundation) adds a project-scoped
-framework registry and NIST SP 800-53 Rev. 5 Low / Moderate / High selection
-on top of Evidence Coverage (03D), Evidence Versions (03B), Workflow
-Automation (02C), Domain Events (02B), Collaboration (02A), and Platform
-Foundation.
+OSCAL. Milestone 04B (Framework UX and Runtime Hardening) completes the
+project-scoped NIST SP 800-53 Rev. 5 Low / Moderate / High architecture
+introduced in Milestone 04A, on top of Evidence Coverage (03D), Evidence
+Versions (03B), Workflow Automation (02C), Domain Events (02B), Collaboration
+(02A), and Platform Foundation.
 
 The application currently provides:
 
@@ -202,7 +202,13 @@ baseline. New projects may select Low, Moderate, or High.
 - Supported frameworks: NIST SP 800-53 Rev. 5 Low, Moderate, and High
   (opaque `frameworkId` values `nist-sp-800-53-rev5-low|moderate|high`)
 - Framework source of truth: pinned Low / Moderate / High profiles + SP 800-53
-  catalog, selected per project via `FrameworkRegistry` (ADR-026)
+  catalog, selected per project via `FrameworkRegistry` (ADR-026). Runtime
+  identity is `projects.framework_id`; `project_json.project.frameworkId` is a
+  schema v1 compatibility copy only.
+- Create UI defaults to Moderate and always sends an explicit `frameworkId`.
+  Omitting `frameworkId` on the create API still selects Moderate for
+  backwards-compatible callers; that default is API compatibility, not the
+  architectural source of framework identity.
 - Demo/bootstrap projects remain Moderate with that `frameworkId` explicit
 - Existing projects continue as Moderate; no SQL backfill was required
 - Current product does not claim FedRAMP support
@@ -284,14 +290,17 @@ cutover only.
 - Durable domain event store / outbox / external broker not implemented
 - Named version restore does not roll back ControlRecord metadata, activity,
   or collaboration rows; it also does not change the live project's
-  `frameworkId` (ADR-026)
+  `frameworkId` column (ADR-026)
+- Intentionally NIST-specific behavior remains: control families, enhancement
+  IDs (`ac-2.1`), family grouping, and client SSP export via the NIST identity
+  table rather than `FrameworkRegistry`
 - Per-control UI action hiding is coarse; server authorization is authoritative
 - Favicon remains the light-mark asset (not theme-switched)
 
 ## Next approved milestone
 
-Word/PDF export remains the next roadmap item after Multi-Framework Foundation
-(Milestone 04A). Assessment management, Evidence approval, and an
+Word/PDF export remains the next roadmap item after Framework UX and Runtime
+Hardening (Milestone 04B). Assessment management, Evidence approval, and an
 organization-wide library are later. See `docs/roadmap.md`.
 
 ## Required verification for each milestone
