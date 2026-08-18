@@ -9,7 +9,13 @@ import { organizationClient } from "better-auth/client/plugins";
  * organization queries and switching the active organization.
  */
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
+  // Production images omit NEXT_PUBLIC_APP_URL so the client uses the current
+  // origin. Local bootstrap inlines localhost; skip that in development so a
+  // LAN host (allowedDevOrigins) can sign in same-origin.
+  baseURL:
+    process.env.NODE_ENV === "development"
+      ? undefined
+      : process.env.NEXT_PUBLIC_APP_URL,
   plugins: [organizationClient()],
 });
 

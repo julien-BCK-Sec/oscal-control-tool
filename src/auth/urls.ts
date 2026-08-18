@@ -13,24 +13,39 @@ export function resolveAuthBaseUrl(
   );
 }
 
+function addOrigin(origins: Set<string>, raw: string | undefined): void {
+  const value = raw?.trim();
+  if (!value) {
+    return;
+  }
+  try {
+    origins.add(new URL(value).origin);
+  } catch {
+    // Invalid URLs are rejected by production env validation / Better Auth.
+  }
+}
+
 /**
  * Origins derived from configured public URLs. Better Auth also trusts
  * `baseURL` and comma-separated BETTER_AUTH_TRUSTED_ORIGINS.
+ *
+ * In `next dev` only, also trust the LAN host from `allowedDevOrigins` so
+ * sign-in from http://192.168.211.160:3000 is same-origin CSRF-safe. Production
+ * never receives this origin.
  */
 export function resolveConfiguredTrustedOrigins(
   env: Record<string, string | undefined> = process.env,
 ): string[] {
   const origins = new Set<string>();
   for (const raw of [env.BETTER_AUTH_URL, env.NEXT_PUBLIC_APP_URL]) {
-    const value = raw?.trim();
-    if (!value) {
-      continue;
-    }
-    try {
-      origins.add(new URL(value).origin);
-    } catch {
-      // Invalid URLs are rejected by production env validation / Better Auth.
-    }
+    addOrigin(origins, raw);
+  }
+  for (const raw of env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") ?? []) {
+    addOrigin(origins, raw);
+  }
+  if (env.NODE_ENV === "development") {
+    const port = env.PORT?.trim() || "3000";
+    addOrigin(origins, `http://192.168.211.160:${port}`);
   }
   return [...origins];
 }

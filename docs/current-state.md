@@ -125,7 +125,8 @@ Shared local demo password: `ControlFreakDemo123!` (override with
 `DEMO_BOOTSTRAP_PASSWORD`). Olivia’s prompt label “Contributor” maps to the
 existing `author` role. There is no FedRAMP Moderate importer; the flagship
 uses the pinned NIST Moderate baseline. CMMC demo content does not export
-OSCAL.
+OSCAL. Local `npm run dev` allows LAN origin `192.168.211.160` via Next.js
+`allowedDevOrigins` (development only; omitted from production builds).
 
 See `docs/demo-data.md` for organizations, projects, maturity intent, and
 safety/idempotency rules.

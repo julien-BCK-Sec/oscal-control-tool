@@ -34,6 +34,34 @@ describe("auth public URL helpers", () => {
     );
   });
 
+  it("includes comma-separated BETTER_AUTH_TRUSTED_ORIGINS", () => {
+    assert.deepEqual(
+      resolveConfiguredTrustedOrigins({
+        BETTER_AUTH_URL: "https://app.example.com",
+        BETTER_AUTH_TRUSTED_ORIGINS:
+          "https://www.example.com, https://app.example.com",
+      }),
+      ["https://app.example.com", "https://www.example.com"],
+    );
+  });
+
+  it("trusts the local LAN origin only during development", () => {
+    assert.deepEqual(
+      resolveConfiguredTrustedOrigins({
+        NODE_ENV: "development",
+        BETTER_AUTH_URL: "http://localhost:3000",
+      }),
+      ["http://localhost:3000", "http://192.168.211.160:3000"],
+    );
+    assert.deepEqual(
+      resolveConfiguredTrustedOrigins({
+        NODE_ENV: "production",
+        BETTER_AUTH_URL: "https://app.example.com",
+      }),
+      ["https://app.example.com"],
+    );
+  });
+
   it("does not enable trusted proxy headers by default", () => {
     assert.equal(shouldTrustProxyHeaders({}), false);
     assert.equal(
