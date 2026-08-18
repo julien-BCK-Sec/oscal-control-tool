@@ -124,6 +124,7 @@ describe("canonical demo seed (integration)", () => {
     const second = await seedOnce(db);
     assert.equal(second.identity.orgs.cgds.created, false);
     assert.equal(second.identity.orgs.contoso.created, false);
+    assert.equal(second.identity.orgs.firstdoor.created, false);
     assert.ok(
       Object.values(second.identity.users).every(
         (user) => user.created === false,
@@ -144,6 +145,9 @@ describe("canonical demo seed (integration)", () => {
     const contosoMembers = await orgRepo.listMembers(
       first.identity.orgs.contoso.id,
     );
+    const firstdoorMembers = await orgRepo.listMembers(
+      first.identity.orgs.firstdoor.id,
+    );
     assert.equal(
       cgdsMembers.some((m) => m.email === "oscar@example.com"),
       false,
@@ -152,13 +156,33 @@ describe("canonical demo seed (integration)", () => {
       contosoMembers.some((m) => m.email === "alice@example.com"),
       false,
     );
+    assert.equal(
+      firstdoorMembers.some((m) => m.email === "alice@example.com"),
+      false,
+    );
+    assert.equal(
+      cgdsMembers.some((m) => m.email === "julien@example.com"),
+      false,
+    );
+    assert.equal(firstdoorMembers.length, 7);
+    assert.ok(
+      firstdoorMembers.every((m) => m.role === "organization_admin"),
+    );
+    assert.ok(
+      firstdoorMembers.some((m) => m.email === "julien@example.com"),
+    );
+    assert.ok(firstdoorMembers.some((m) => m.email === "test@example.com"));
 
     const cgdsProjects = await repository.list(first.identity.orgs.cgds.id);
     const contosoProjects = await repository.list(
       first.identity.orgs.contoso.id,
     );
+    const firstdoorProjects = await repository.list(
+      first.identity.orgs.firstdoor.id,
+    );
     assert.equal(cgdsProjects.length, 5);
     assert.equal(contosoProjects.length, 1);
+    assert.equal(firstdoorProjects.length, 1);
     assert.ok(
       cgdsProjects.some((p) => p.name === CANONICAL_PROJECTS.flagship.name),
     );
@@ -166,6 +190,15 @@ describe("canonical demo seed (integration)", () => {
       contosoProjects.some(
         (p) => p.name === CANONICAL_PROJECTS.contosoCloud.name,
       ),
+    );
+    assert.ok(
+      firstdoorProjects.some(
+        (p) => p.name === CANONICAL_PROJECTS.firstdoorCloud.name,
+      ),
+    );
+    assert.equal(
+      first.projects.firstdoorCloud.frameworkId,
+      NIST_MODERATE_FRAMEWORK_ID,
     );
 
     const discussions = createPostgresDiscussionService(db);

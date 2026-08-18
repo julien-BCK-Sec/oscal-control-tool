@@ -89,16 +89,19 @@ function demoDeps() {
 async function orgProjectCounts(db: AppDatabase): Promise<{
   cgds: number;
   contoso: number;
-  other: number;
+  firstdoor: number;
 }> {
   const orgs = createPostgresOrganizationRepository(db);
   const projects = createPostgresProjectRepository(db);
   const cgds = await orgs.getOrganizationBySlug(CANONICAL_ORGS.cgds.slug);
   const contoso = await orgs.getOrganizationBySlug(CANONICAL_ORGS.contoso.slug);
+  const firstdoor = await orgs.getOrganizationBySlug(
+    CANONICAL_ORGS.firstdoor.slug,
+  );
   return {
     cgds: cgds ? (await projects.list(cgds.id)).length : 0,
     contoso: contoso ? (await projects.list(contoso.id)).length : 0,
-    other: 0,
+    firstdoor: firstdoor ? (await projects.list(firstdoor.id)).length : 0,
   };
 }
 
@@ -181,14 +184,20 @@ async function run(): Promise<void> {
   const contoso = await demoOrgs.getOrganizationBySlug(
     CANONICAL_ORGS.contoso.slug,
   );
+  const firstdoor = await demoOrgs.getOrganizationBySlug(
+    CANONICAL_ORGS.firstdoor.slug,
+  );
   assert.ok(cgds);
   assert.equal(cgds.name, CANONICAL_ORGS.cgds.name);
   assert.ok(contoso);
+  assert.ok(firstdoor);
   const demoProjects = createPostgresProjectRepository(demoDb);
   const cgdsProjects = await demoProjects.list(cgds.id);
   const contosoProjects = await demoProjects.list(contoso.id);
+  const firstdoorProjects = await demoProjects.list(firstdoor.id);
   assert.equal(cgdsProjects.length, 5);
   assert.equal(contosoProjects.length, 1);
+  assert.equal(firstdoorProjects.length, 1);
   assert.ok(
     cgdsProjects.some((p) => p.name === CANONICAL_PROJECTS.flagship.name),
   );
@@ -199,12 +208,21 @@ async function run(): Promise<void> {
   );
   assert.ok(cgdsProjects.some((p) => p.name === CANONICAL_PROJECTS.high.name));
   assert.ok(
-    contosoProjects.some((p) => p.name === CANONICAL_PROJECTS.contosoCloud.name),
+    firstdoorProjects.some(
+      (p) => p.name === CANONICAL_PROJECTS.firstdoorCloud.name,
+    ),
   );
   const members = await demoOrgs.listMembers(cgds.id);
   for (const spec of DEMO_USERS.filter((u) => u.org === "cgds")) {
     assert.ok(members.some((m) => m.email === spec.email));
   }
+  const firstdoorMembers = await demoOrgs.listMembers(firstdoor.id);
+  for (const spec of DEMO_USERS.filter((u) => u.org === "firstdoor")) {
+    assert.ok(firstdoorMembers.some((m) => m.email === spec.email));
+  }
+  assert.ok(
+    firstdoorMembers.every((m) => m.role === "organization_admin"),
+  );
   await closeDb();
   console.log("  PASS");
 
@@ -218,6 +236,7 @@ async function run(): Promise<void> {
   const counts = await orgProjectCounts(demoDb2);
   assert.equal(counts.cgds, 5);
   assert.equal(counts.contoso, 1);
+  assert.equal(counts.firstdoor, 1);
   await closeDb();
   console.log("  PASS");
 

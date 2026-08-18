@@ -96,12 +96,19 @@ Demo accounts (shared password `ControlFreakDemo123!`):
 | olivia@example.com | Author (Contributor) | Canadian Goose Defence System |
 | oscar@example.com | Organization Admin | Contoso Industries |
 | rachel@example.com | Reviewer | Contoso Industries |
+| julien@example.com | Organization Admin | FirstDoor |
+| isabel@example.com | Organization Admin | FirstDoor |
+| ruth@example.com | Organization Admin | FirstDoor |
+| jason@example.com | Organization Admin | FirstDoor |
+| michael@example.com | Organization Admin | FirstDoor |
+| chad@example.com | Organization Admin | FirstDoor |
+| test@example.com | Organization Admin | FirstDoor |
 
 Flagship: Strategic Goose Operations Platform (Demo) (NIST SP 800-53 Rev. 5
 Moderate). Supporting CGDS projects cover CMMC Level 2, NIST Low, an
 evidence-gap Moderate system, and NIST High. Contoso Cloud Platform is a
-second-tenant Moderate project. New projects can select Low, Moderate, High,
-or CMMC Level 2.
+second-tenant Moderate project. FirstDoor Platform (Demo) is a third-tenant
+Moderate sample. New projects can select Low, Moderate, High, or CMMC Level 2.
 
 Migrations vs demo data: `npm run db:migrate` applies schema only.
 `bootstrap:demo` runs migrations, then seeds identity and demo content.

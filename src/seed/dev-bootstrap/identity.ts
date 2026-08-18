@@ -28,6 +28,7 @@ export type BootstrapIdentityResult = {
   orgs: {
     cgds: EnsuredOrg;
     contoso: EnsuredOrg;
+    firstdoor: EnsuredOrg;
   };
   users: Record<string, EnsuredUser>;
 };
@@ -130,17 +131,27 @@ export async function ensureDemoIdentity(
     ORGS.contoso.name,
     ORGS.contoso.slug,
   );
+  const firstdoor = await ensureOrganization(
+    orgRepo,
+    ORGS.firstdoor.name,
+    ORGS.firstdoor.slug,
+  );
+
+  const orgIds: Record<DemoUserSpec["org"], string> = {
+    cgds: cgds.id,
+    contoso: contoso.id,
+    firstdoor: firstdoor.id,
+  };
 
   const users: Record<string, EnsuredUser> = {};
   for (const spec of DEMO_USERS) {
     const ensured = await ensureUser(db, spec, password);
     users[spec.email.toLowerCase()] = ensured;
-    const organizationId = spec.org === "cgds" ? cgds.id : contoso.id;
-    await ensureMembership(orgRepo, organizationId, ensured.id, spec.role);
+    await ensureMembership(orgRepo, orgIds[spec.org], ensured.id, spec.role);
   }
 
   return {
-    orgs: { cgds, contoso },
+    orgs: { cgds, contoso, firstdoor },
     users,
   };
 }

@@ -32,8 +32,8 @@ Milestone 05C demo, are in `docs/deploy-render.md`.
 
 `DEPLOYMENT_MODE=demo` is the only production demo switch. It creates the
 **entire** canonical dataset (Canadian Goose Defence System, supporting
-projects including CMMC Level 2, Contoso Industries, identities, collaboration,
-and Evidence) — not only the Goose flagship.
+projects including CMMC Level 2, Contoso Industries, FirstDoor, identities,
+collaboration, and Evidence) — not only the Goose flagship.
 
 ## Normal lifecycle
 

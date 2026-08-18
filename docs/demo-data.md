@@ -41,6 +41,7 @@ or when `DEPLOYMENT_MODE=demo`.
 | --- | --- | --- |
 | **Canadian Goose Defence System** | `canadian-goose-defence-system` | Canonical demo tenant. Hosts the Goose flagship and supporting CGDS projects. |
 | **Contoso Industries** | `contoso-industries` | Second tenant for isolation. Not a CGDS system. |
+| **FirstDoor** | `firstdoor` | Operator tenant. Hosts a FedRAMP Moderate sample project for FirstDoor logins. |
 
 Acme Corporation (`acme-corporation`) was generic bootstrap scaffolding that
 hosted a misnamed Goose project. It is **no longer created**. Routine
@@ -71,6 +72,7 @@ Protocol, Gary's Annual Performance Review, and so on) lives in
 | **Coconut Logistics Inventory System (Demo)** | NIST SP 800-53 Rev. 5 Moderate | Many implementation statements, weak Evidence | Shows documenting a control vs substantiating it |
 | **National Honk Operations Centre High Baseline (Demo)** | NIST SP 800-53 Rev. 5 High | Mid-maturity High overlay | Different baseline/profile from the Moderate flagship |
 | **Contoso Cloud Platform** | NIST SP 800-53 Rev. 5 Moderate | Thin, other tenant | Organization isolation |
+| **FirstDoor Platform (Demo)** | NIST SP 800-53 Rev. 5 Moderate | Placeholder Moderate package | Operator-tenant walkthrough; not a real FedRAMP ATO |
 
 There is no multi-framework project: a Project has exactly one `frameworkId`
 (ADR-026). CMMC projects do not export OSCAL.
@@ -91,6 +93,13 @@ ControlRecord owner labels; they are not separate login accounts.
 | olivia@example.com | Author | Canadian Goose Defence System |
 | oscar@example.com | Organization admin | Contoso Industries |
 | rachel@example.com | Reviewer | Contoso Industries |
+| julien@example.com | Organization admin | FirstDoor |
+| isabel@example.com | Organization admin | FirstDoor |
+| ruth@example.com | Organization admin | FirstDoor |
+| jason@example.com | Organization admin | FirstDoor |
+| michael@example.com | Organization admin | FirstDoor |
+| chad@example.com | Organization admin | FirstDoor |
+| test@example.com | Organization admin | FirstDoor |
 
 Local default password: `ControlFreakDemo123!`.
 

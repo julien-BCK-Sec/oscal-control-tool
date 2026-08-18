@@ -173,6 +173,7 @@ describe("dev bootstrap constants", () => {
     assert.equal(DEMO_PASSWORD, "ControlFreakDemo123!");
     assert.equal(ORGS.cgds.slug, "canadian-goose-defence-system");
     assert.equal(ORGS.contoso.slug, "contoso-industries");
+    assert.equal(ORGS.firstdoor.slug, "firstdoor");
     assert.equal(
       PROJECT_NAMES.flagship,
       CANONICAL_PROJECTS.flagship.name,

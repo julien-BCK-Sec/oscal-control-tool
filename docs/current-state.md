@@ -42,7 +42,8 @@ The application currently provides:
 - Idempotent demo project seeding into a demo organization
 - Canonical demo bootstrap (`npm run bootstrap:demo`) for a local
   multi-tenant environment: Canadian Goose Defence System (Goose flagship
-  plus supporting projects, including CMMC Level 2) and Contoso Industries
+  plus supporting projects, including CMMC Level 2), Contoso Industries, and
+  FirstDoor.
 
 
 OSCAL is an export/interchange format, not the internal editing model.
@@ -108,10 +109,11 @@ editing, invitations, or hand-built demo data. It:
 1. Ensures `.env.local` (create from `.env.example` or fill missing keys only)
 2. Refuses production / non-local databases (local orchestrator only)
 3. Runs `npm run db:migrate`
-4. Creates **Canadian Goose Defence System** and **Contoso Industries** with
-   RBAC memberships
+4. Creates **Canadian Goose Defence System**, **Contoso Industries**, and
+   **FirstDoor** with RBAC memberships
 5. Seeds the Goose flagship plus supporting projects (NIST Low / Moderate /
-   High and CMMC Level 2)
+   High and CMMC Level 2), Contoso Cloud Platform, and FirstDoor Platform
+   (Demo)
 6. Populates collaboration, ControlRecord metadata, and Evidence
    (markers keep seeds idempotent; existing user edits are preserved)
 

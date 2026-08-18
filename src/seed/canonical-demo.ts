@@ -45,6 +45,7 @@ export async function ensureCanonicalDemoEnvironment(
     {
       cgds: identity.orgs.cgds.id,
       contoso: identity.orgs.contoso.id,
+      firstdoor: identity.orgs.firstdoor.id,
     },
     { validateOscal: options.validateOscal },
   );
@@ -78,20 +79,40 @@ export async function ensureCanonicalDemoEnvironment(
   });
 
   const orgRepo = createPostgresOrganizationRepository(db);
-  const cgdsMembers = await orgRepo.listMembers(identity.orgs.cgds.id);
-  const contosoMembers = await orgRepo.listMembers(identity.orgs.contoso.id);
-  const cgdsEmails = new Set(cgdsMembers.map((m) => m.email.toLowerCase()));
-  const contosoEmails = new Set(
-    contosoMembers.map((m) => m.email.toLowerCase()),
-  );
+  const membersByOrg: Record<(typeof DEMO_USERS)[number]["org"], Set<string>> = {
+    cgds: new Set(
+      (await orgRepo.listMembers(identity.orgs.cgds.id)).map((m) =>
+        m.email.toLowerCase(),
+      ),
+    ),
+    contoso: new Set(
+      (await orgRepo.listMembers(identity.orgs.contoso.id)).map((m) =>
+        m.email.toLowerCase(),
+      ),
+    ),
+    firstdoor: new Set(
+      (await orgRepo.listMembers(identity.orgs.firstdoor.id)).map((m) =>
+        m.email.toLowerCase(),
+      ),
+    ),
+  };
   for (const demoUser of DEMO_USERS) {
     const email = demoUser.email.toLowerCase();
-    if (demoUser.org === "cgds") {
-      if (!cgdsEmails.has(email) || contosoEmails.has(email)) {
-        throw new Error(`Tenant isolation failed for CGDS user ${email}.`);
+    for (const orgKey of Object.keys(membersByOrg) as Array<
+      (typeof DEMO_USERS)[number]["org"]
+    >) {
+      const belongs = membersByOrg[orgKey].has(email);
+      if (orgKey === demoUser.org) {
+        if (!belongs) {
+          throw new Error(
+            `Tenant isolation failed: ${email} missing from ${orgKey}.`,
+          );
+        }
+      } else if (belongs) {
+        throw new Error(
+          `Tenant isolation failed: ${email} unexpectedly in ${orgKey}.`,
+        );
       }
-    } else if (!contosoEmails.has(email) || cgdsEmails.has(email)) {
-      throw new Error(`Tenant isolation failed for Contoso user ${email}.`);
     }
   }
 
@@ -108,6 +129,7 @@ export function canonicalDemoOrgNames(result: CanonicalDemoResult): string[] {
   const names: string[] = [];
   if (result.identity.orgs.cgds.created) names.push(ORGS.cgds.name);
   if (result.identity.orgs.contoso.created) names.push(ORGS.contoso.name);
+  if (result.identity.orgs.firstdoor.created) names.push(ORGS.firstdoor.name);
   return names;
 }
 
