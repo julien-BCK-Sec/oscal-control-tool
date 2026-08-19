@@ -13,6 +13,7 @@ coverage
 .vscode
 *.md
 !README.md
+!docs/user-guide/*.md
 
 # Env and local secrets
 .env
@@ -29,9 +30,12 @@ data
 *.db-wal
 deploy-data
 
-# Tests and tooling not needed in the image build context
+# Tests and tooling not needed in the image build context.
+# Keep docs/user-guide: Help reads those Markdown files at runtime.
 **/*.test.ts
-docs
+docs/**
+!docs/user-guide/
+!docs/user-guide/**
 agent-transcripts
 
 # Misc
