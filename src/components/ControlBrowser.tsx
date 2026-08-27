@@ -669,6 +669,7 @@ export function ControlBrowser({
         onFocusCommentHandled={() => setPendingCommentId(null)}
         evidenceCoverage={coverageForControl(selected.id)}
         canEditEvidence={canEditEvidence}
+        itemTerms={itemTerms}
         onUpdateImplementation={(patch) =>
           updateImplementation(selected.id, patch)
         }

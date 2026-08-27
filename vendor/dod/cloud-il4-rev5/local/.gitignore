@@ -1,0 +1,5 @@
+# Ignore local copies of the DCCS Addendum workbook.
+# The authoritative file is not redistributed in this repository.
+# See SOURCES.md.
+*
+!.gitignore

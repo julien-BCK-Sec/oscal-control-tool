@@ -72,6 +72,7 @@ export async function ensureCanonicalDemoEnvironment(
       earlyId: projects.early.id,
       evidenceGapId: projects.evidenceGap.id,
       highId: projects.high.id,
+      il4Id: projects.il4.id,
     },
     actor: bob
       ? { actorId: bob.id, actorDisplayName: bob.name }

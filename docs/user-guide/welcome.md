@@ -40,8 +40,11 @@ Freak:
   created and cannot be changed afterward.
 - **Control** or **requirement** — one item from the selected framework.
   NIST SP 800-53 projects call these **controls**; CMMC Level 2 projects
-  call the same kind of item a **requirement**. The underlying workflow is
-  identical either way — see [Choose and understand frameworks](/help/frameworks).
+  call the same kind of item a **requirement**. DoD Cloud Impact Level 4
+  projects use **control** for NIST items and **General Readiness
+  Requirement** for DoD GRRs. The underlying workflow is identical — see
+  [Choose and understand frameworks](/help/frameworks) and
+  [DoD Cloud Impact Level 4](/help/dod-cloud-il4).
 - **Implementation** — the narrative text you write describing how your
   organization satisfies a control or requirement.
 - **Evidence** — a record (optionally with an uploaded file) that

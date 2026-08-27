@@ -1,7 +1,7 @@
 # OSCAL and FedRAMP Standards Alignment
 
-Date: 2026-08-17  
-Status: Active design guidance (NIST Rev. 5 Low / Moderate / High derivation complete; FedRAMP still not claimed).
+Date: 2026-08-27
+Status: Active design guidance (NIST Rev. 5 Low / Moderate / High derivation complete; CMMC Level 2 derived from SP 800-171 R2; DoD IL4 overlay registered and product-selectable; FedRAMP authorization still not claimed).
 
 ## Official sources used
 
@@ -75,8 +75,10 @@ The UI no longer uses a handwritten MVP control list.
 | NIST Rev. 5 derivation | `src/framework/nist-sp-800-53-rev5/derive.ts` |
 | CMMC Level 2 identity | `src/framework/cmmc-level-2-nist-sp-800-171-r2/identities.ts` |
 | CMMC Level 2 derivation | `src/framework/cmmc-level-2-nist-sp-800-171-r2/derive.ts` (pinned NIST SP 800-171 R2 CSV) |
-| Generated app framework JSON | `src/data/framework/generated/nist-sp-800-53-rev5-{low,moderate,high}.json`, `cmmc-level-2-nist-sp-800-171-r2.json` |
-| Derive script | `npm run derive:framework` (NIST 800-53 then CMMC) |
+| DoD IL4 identity | `src/framework/dod-cloud-il4-rev5/identities.ts` |
+| DoD IL4 overlay mapping | `src/framework/dod-cloud-il4-rev5/runtime.ts` (generated overlay JSON → `Framework`) |
+| Generated app framework JSON | `src/data/framework/generated/nist-sp-800-53-rev5-{low,moderate,high}.json`, `cmmc-level-2-nist-sp-800-171-r2.json`, `dod-cloud-il4-rev5.json` (overlay artifact; registered and product-selectable) |
+| Derive script | `npm run derive:framework` (NIST 800-53, CMMC, then DoD IL4 overlay) |
 
 **Source of truth for which 800-53 controls appear:** the pinned Low / Moderate / High profile `imports[].include-controls[].with-ids` for the project's `frameworkId`.
 
@@ -119,6 +121,16 @@ This is **not** a universal OSCAL profile engine. Derivation fails clearly if th
 
 Do **not** treat FedRAMP Rules `CTL` or KSI `controls` arrays as the framework catalog.
 
+DoD IL4 Moderate / MMx (`dod-cloud-il4-rev5`) is derived from the official
+FedRAMP Security Controls Baseline **workbook** plus the DoD SSP Addendum
+extract and the NIST catalog (ADR-029). That is **not** an official FedRAMP
+or DoD OSCAL profile. Do not point IL4 export at the NIST Moderate profile
+or fabricate a FedRAMP/DoD profile. IL4 OSCAL SSP export remains disabled
+(`frameworkHasOscalSspExport("dod-cloud-il4-rev5") === false`). Direct
+export fails closed and does not fall back to the NIST Moderate profile.
+
+Pins and hashes: `vendor/dod/cloud-il4-rev5/SOURCES.md`.
+
 ## SSP `import-profile` (current export)
 
 The exporter emits:
@@ -139,7 +151,12 @@ Do **not** import the catalog directly, FedRAMP Rules, a fabricated FedRAMP prof
 
 Single SSP JSON file for NIST SP 800-53 Low / Moderate / High projects. The SSP references a commit-pinned external NIST profile via back-matter `rlink` for the project's selected baseline. Implemented requirements cover the full derived control set for that profile.
 
-CMMC Level 2 projects do not export OSCAL. There is no official CMMC or NIST SP 800-171 Rev. 2 OSCAL catalog/profile pinned in this repository. Do not fabricate one. Revisit only if an authoritative source is available in a later milestone.
+CMMC Level 2 and DoD Cloud IL4 projects do not export OSCAL. There is no
+official CMMC, NIST SP 800-171 Rev. 2, FedRAMP, or DoD IL4 OSCAL
+profile pinned in this repository. Help explains this as a Control Freak
+pinning limitation (`docs/user-guide/dod-cloud-il4.md`,
+`docs/user-guide/oscal-export.md`). Do not describe OSCAL as inherently
+incapable of overlays. Do not fabricate a profile.
 
 ### Future target
 
@@ -175,7 +192,7 @@ docs/                         # vision, architecture, this alignment note
 1. **Domain model** — `Project` (metadata + `frameworkId` + framework controls + implementations); no OSCAL types.
 2. **FrameworkRegistry / FrameworkProvider** — application `Framework` derived from pinned official artifacts selected by `frameworkId` (OSCAL for 800-53; NIST CSV for CMMC L2).
 3. **User implementation** — status/narrative keyed by control ID.
-4. **OSCAL exporter** — pure `Project` → SSP JSON in `src/oscal/` for frameworks with an approved OSCAL representation. Unavailable for CMMC.
+4. **OSCAL exporter** — pure `Project` → SSP JSON in `src/oscal/` for frameworks with an approved OSCAL representation. Unavailable for CMMC and DoD Cloud IL4 (no approved/pinned profile for those frameworks; not a claim that OSCAL cannot represent overlays).
 5. **Validation** — AJV against pinned SSP schema (structural only).
 6. **FedRAMP policy evaluation (later)** — Consolidated Rules; never replaces catalog/profile.
 
@@ -186,7 +203,7 @@ pinned official artifacts (OSCAL profiles/catalog and/or NIST 800-171 R2 CSV)
 generated Framework JSON ──► FrameworkRegistry ──► FrameworkProvider ──► UI / domain Project
                                                       │
                                                       ▼
-                              OSCAL SSP exporter (800-53 only; disabled for CMMC)
+                              OSCAL SSP exporter (800-53 only; disabled for CMMC and IL4)
                                                       │
                                                       ▼
                                                AJV / pinned SSP schema

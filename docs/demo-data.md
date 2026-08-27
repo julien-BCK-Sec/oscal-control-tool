@@ -71,6 +71,10 @@ Protocol, Gary's Annual Performance Review, and so on) lives in
 | **Honkwater Visitor Network (Demo)** | NIST SP 800-53 Rev. 5 Low | Early-stage: metadata plus a handful of controls | Contrast with the flagship on dashboards and project lists |
 | **Coconut Logistics Inventory System (Demo)** | NIST SP 800-53 Rev. 5 Moderate | Many implementation statements, weak Evidence | Shows documenting a control vs substantiating it |
 | **National Honk Operations Centre High Baseline (Demo)** | NIST SP 800-53 Rev. 5 High | Mid-maturity High overlay | Different baseline/profile from the Moderate flagship |
+| **Snow Goose Cloud Impact Level 4 (Demo)** | DoD Cloud Impact Level 4 (`dod-cloud-il4-rev5`, 345 items) | Representative overlay sample: AC-2, AC-7, IA-5(1), SC-17, SC-46, GRR-1, plus one active Evidence record | Complements the Moderate Goose flagship. Shows FedRAMP/DoD layers, GRRs, unresolved DSPAV, source conflict, and CDS conditionality. Not an authorization package. No OSCAL export. |
+
+There is no multi-framework project: a Project has exactly one `frameworkId`
+(ADR-026). CMMC and DoD Cloud IL4 projects do not export OSCAL.
 | **Contoso Cloud Platform** | NIST SP 800-53 Rev. 5 Moderate | Thin, other tenant | Organization isolation |
 | **FirstDoor Platform (Demo)** | NIST SP 800-53 Rev. 5 Moderate | Placeholder Moderate package | Operator-tenant walkthrough; not a real FedRAMP ATO |
 
@@ -150,6 +154,8 @@ kept after `npm run bootstrap:demo`.
 
 - Findings, risks, tasks (not in the domain model)
 - CMMC OSCAL export
+- DoD Cloud IL4 OSCAL export
+- Invented DSPAV / RMF Knowledge Service values
 - Fake assessment results, SPRS scores, or certification status
 - Shared production credentials
 - Automatic seeding on normal application bootstrap

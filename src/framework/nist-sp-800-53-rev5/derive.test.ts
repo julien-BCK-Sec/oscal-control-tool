@@ -80,8 +80,45 @@ describe("deriveNistSp80053Rev5Framework Low/Moderate/High", () => {
       );
       assert.ok(selectedIds.includes("ac-1"));
       assert.ok(selectedIds.includes("ac-2"));
+      const ac1 = result.framework.controls.find((control) => control.id === "ac-1");
+      assert.ok(ac1);
+      const odp03 = ac1.parameters?.organizationDefined.find(
+        (param) => param.id === "ac-01_odp.03",
+      );
+      assert.ok(odp03);
+      assert.deepEqual(odp03.select?.choices, [
+        "organization-level",
+        "mission/business process-level",
+        "system-level",
+      ]);
     });
   }
+
+  it("preserves AC-6(1) catalog parameter labels for authoring", () => {
+    const moderate = deriveNistSp80053Rev5Framework(
+      loadJson(
+        "vendor/oscal/v1.2.2/profiles/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json",
+      ),
+      catalogRoot,
+      NIST_MODERATE_IDENTITY,
+    );
+    assert.equal(moderate.ok, true);
+    if (!moderate.ok) {
+      return;
+    }
+    const ac61 = moderate.framework.controls.find((control) => control.id === "ac-6.1");
+    assert.ok(ac61);
+    assert.match(ac61.statement, /\{\{\s*insert:\s*param,\s*ac-06\.01_odp\.01/);
+    const byId = new Map(
+      (ac61.parameters?.organizationDefined ?? []).map((param) => [param.id, param]),
+    );
+    assert.equal(byId.get("ac-06.01_odp.01")?.label, "individuals and roles");
+    assert.equal(
+      byId.get("ac-6.1_prm_2")?.label,
+      "organization-defined security functions (deployed in hardware, software, and firmware)",
+    );
+    assert.equal(byId.get("ac-06.01_odp.05")?.label, "security-relevant information");
+  });
 
   it("keeps Low a subset of Moderate and Moderate a subset of High", () => {
     const low = deriveNistSp80053Rev5Framework(

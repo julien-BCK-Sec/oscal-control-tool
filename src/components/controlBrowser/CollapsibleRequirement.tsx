@@ -2,7 +2,7 @@
 
 import { useCallback, useSyncExternalStore, type ReactNode } from "react";
 
-const STORAGE_KEY = "control-freak:requirement-expanded";
+const DEFAULT_STORAGE_KEY = "control-freak:requirement-expanded";
 const listeners = new Set<() => void>();
 
 function emitChange() {
@@ -18,9 +18,9 @@ function subscribe(listener: () => void): () => void {
   };
 }
 
-function getSnapshot(): boolean {
+function readExpanded(key: string): boolean {
   try {
-    return window.localStorage.getItem(STORAGE_KEY) === "1";
+    return window.localStorage.getItem(key) === "1";
   } catch {
     return false;
   }
@@ -33,16 +33,28 @@ function getServerSnapshot(): boolean {
 export type CollapsibleRequirementProps = {
   controlId: string;
   children: ReactNode;
+  heading?: string;
+  headingId?: string;
+  showHint?: string;
+  hideHint?: string;
+  /** Presentation-only localStorage flag. Defaults collapsed. */
+  storageKey?: string;
 };
 
 /**
- * Collapsible OSCAL requirement reference. Collapsed by default; preference
- * remembered in localStorage (presentation only).
+ * Collapsible catalog reference. Collapsed by default; preference remembered
+ * in localStorage (presentation only).
  */
 export function CollapsibleRequirement({
   controlId,
   children,
+  heading = "Requirement",
+  headingId = "requirement-heading",
+  showHint = "Show OSCAL text",
+  hideHint = "Hide reference",
+  storageKey = DEFAULT_STORAGE_KEY,
 }: CollapsibleRequirementProps) {
+  const getSnapshot = useCallback(() => readExpanded(storageKey), [storageKey]);
   const expanded = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -50,22 +62,22 @@ export function CollapsibleRequirement({
   );
 
   const toggle = useCallback(() => {
-    const next = !getSnapshot();
+    const next = !readExpanded(storageKey);
     try {
-      window.localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
+      window.localStorage.setItem(storageKey, next ? "1" : "0");
     } catch {
       // Ignore quota / private mode failures.
     }
     emitChange();
-  }, []);
+  }, [storageKey]);
 
-  const panelId = `requirement-panel-${controlId}`;
+  const panelId = `${headingId}-panel-${controlId}`;
 
   return (
-    <section aria-labelledby="requirement-heading" className="min-w-0">
+    <section aria-labelledby={headingId} className="min-w-0">
       <button
         type="button"
-        id="requirement-heading"
+        id={headingId}
         aria-expanded={expanded}
         aria-controls={panelId}
         onClick={toggle}
@@ -78,10 +90,10 @@ export function CollapsibleRequirement({
           {expanded ? "▼" : "▶"}
         </span>
         <span className="text-sm font-semibold tracking-tight text-text-secondary group-hover:text-foreground">
-          Requirement
+          {heading}
         </span>
         <span className="text-xs text-text-muted">
-          {expanded ? "Hide reference" : "Show OSCAL text"}
+          {expanded ? hideHint : showHint}
         </span>
       </button>
 

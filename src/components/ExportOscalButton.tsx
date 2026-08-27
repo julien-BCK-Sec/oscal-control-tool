@@ -5,6 +5,8 @@ import type { Framework } from "@/data/framework";
 import type { ControlImplementation } from "@/data/implementation";
 import type { ProjectMetadata } from "@/data/project";
 import { assembleProject } from "@/domain";
+import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
+import { DOD_CLOUD_IL4_FRAMEWORK_ID } from "@/framework/dod-cloud-il4-rev5/identities";
 import { frameworkHasOscalSspExport } from "@/framework/nist-sp-800-53-rev5/identities";
 import {
   buildSspExportFilename,
@@ -13,6 +15,7 @@ import {
   validateOscalSspDocument,
 } from "@/oscal";
 import { HelpLink } from "@/components/help/HelpLink";
+import { oscalExportUnavailableCopy } from "@/components/framework/presentation";
 
 export type ExportOscalButtonProps = {
   framework: Framework;
@@ -51,11 +54,17 @@ export function ExportOscalButton({
   }
 
   if (!oscalAvailable) {
+    const cmmcHelp = framework.id === CMMC_LEVEL_2_FRAMEWORK_ID;
+    const il4Help = framework.id === DOD_CLOUD_IL4_FRAMEWORK_ID;
+    const unavailableHash = cmmcHelp
+      ? "cmmc-projects-dont-have-this-button"
+      : il4Help
+        ? "dod-cloud-il4-projects-do-not-have-this-button"
+        : undefined;
     return (
       <p className="max-w-md text-left text-xs leading-relaxed text-text-secondary">
-        OSCAL SSP export is available for NIST SP 800-53 projects. No official
-        CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned.{" "}
-        <HelpLink slug="oscal-export" hash="cmmc-projects-dont-have-this-button">
+        {oscalExportUnavailableCopy(framework.id)}{" "}
+        <HelpLink slug="oscal-export" hash={unavailableHash}>
           Learn more
         </HelpLink>
       </p>

@@ -9,7 +9,7 @@ import { ReviewStatusBadge } from "@/components/design-system/badge/statusMaps";
 import { Button } from "@/components/design-system/button/Button";
 import { CardFooter } from "@/components/design-system/card/Card";
 import { SidebarCard } from "@/components/controlBrowser/SidebarCard";
-import { REVIEW_HELPER_TEXT } from "@/components/controlBrowser/useControlReviewTransition";
+import { reviewHelperText } from "@/components/controlBrowser/useControlReviewTransition";
 
 export type ControlReviewSectionProps = {
   reviewStatus: ControlReviewStatus;
@@ -24,6 +24,7 @@ export type ControlReviewSectionProps = {
    * control header already exposes it. Mobile always shows all actions here.
    */
   omitPrimaryOnDesktop?: boolean;
+  itemSingular?: string;
 };
 
 /**
@@ -38,8 +39,9 @@ export function ControlReviewSection({
   error,
   onAction,
   omitPrimaryOnDesktop = true,
+  itemSingular = "control",
 }: ControlReviewSectionProps) {
-  const helper = REVIEW_HELPER_TEXT[reviewStatus];
+  const helper = reviewHelperText(reviewStatus, itemSingular);
 
   return (
     <SidebarCard title="Review" titleId="control-review-heading" prominent>

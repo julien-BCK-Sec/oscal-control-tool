@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import type { OrgContext } from "@/authz/authorize";
 import { resolveFrameworkControls } from "@/data/framework";
+import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
+import { DOD_CLOUD_IL4_FRAMEWORK_ID } from "@/framework/dod-cloud-il4-rev5/identities";
 import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
@@ -38,6 +40,8 @@ describe("project framework coverage denominators", () => {
       NIST_LOW_FRAMEWORK_ID,
       NIST_MODERATE_FRAMEWORK_ID,
       NIST_HIGH_FRAMEWORK_ID,
+      CMMC_LEVEL_2_FRAMEWORK_ID,
+      DOD_CLOUD_IL4_FRAMEWORK_ID,
     ] as const;
 
     for (const frameworkId of cases) {
@@ -102,5 +106,13 @@ describe("project framework coverage denominators", () => {
       false,
     );
     assert.ok(coverage.controls.some((row) => row.controlId === "ac-2"));
+    assert.equal(
+      coverage.controls.some((row) => row.controlId === "grr-1"),
+      false,
+    );
+    assert.equal(
+      coverage.controls.some((row) => row.controlId === "sc-46"),
+      false,
+    );
   });
 });

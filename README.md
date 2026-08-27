@@ -106,9 +106,10 @@ Demo accounts (shared password `ControlFreakDemo123!`):
 
 Flagship: Strategic Goose Operations Platform (Demo) (NIST SP 800-53 Rev. 5
 Moderate). Supporting CGDS projects cover CMMC Level 2, NIST Low, an
-evidence-gap Moderate system, and NIST High. Contoso Cloud Platform is a
-second-tenant Moderate project. FirstDoor Platform (Demo) is a third-tenant
-Moderate sample. New projects can select Low, Moderate, High, or CMMC Level 2.
+evidence-gap Moderate system, NIST High, and DoD Cloud Impact Level 4.
+Contoso Cloud Platform is a second-tenant Moderate project. FirstDoor Platform
+(Demo) is a third-tenant Moderate sample. New projects can select Low,
+Moderate, High, CMMC Level 2, or DoD Cloud Impact Level 4.
 
 Migrations vs demo data: `npm run db:migrate` applies schema only.
 `bootstrap:demo` runs migrations, then seeds identity and demo content.

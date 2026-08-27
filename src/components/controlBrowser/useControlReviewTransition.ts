@@ -11,12 +11,31 @@ import {
   type ControlReviewAction,
 } from "@/data/control-review";
 
+export function reviewHelperText(
+  reviewStatus: ControlReviewStatus,
+  itemSingular = "control",
+): string {
+  if (reviewStatus === "not_reviewed") {
+    return `This ${itemSingular} has not entered the review workflow yet.`;
+  }
+  if (reviewStatus === "ready_for_review") {
+    return "Waiting for a reviewer.";
+  }
+  if (reviewStatus === "under_review") {
+    return `Reviewer is evaluating this ${itemSingular}.`;
+  }
+  if (reviewStatus === "changes_requested") {
+    return "Address the requested changes, then resubmit.";
+  }
+  return "Approved.";
+}
+
 export const REVIEW_HELPER_TEXT: Record<ControlReviewStatus, string> = {
-  not_reviewed: "This control has not entered the review workflow yet.",
-  ready_for_review: "Waiting for a reviewer.",
-  under_review: "Reviewer is evaluating this control.",
-  changes_requested: "Address the requested changes, then resubmit.",
-  approved: "Approved.",
+  not_reviewed: reviewHelperText("not_reviewed"),
+  ready_for_review: reviewHelperText("ready_for_review"),
+  under_review: reviewHelperText("under_review"),
+  changes_requested: reviewHelperText("changes_requested"),
+  approved: reviewHelperText("approved"),
 };
 
 /**
@@ -38,6 +57,7 @@ export type UseControlReviewTransitionArgs = {
   reviewStatus: ControlReviewStatus;
   onReviewStatusChange: (next: ControlReviewStatus) => void;
   onTransitionSuccess: () => void;
+  itemSingular?: string;
 };
 
 /**
@@ -50,6 +70,7 @@ export function useControlReviewTransition({
   reviewStatus,
   onReviewStatusChange,
   onTransitionSuccess,
+  itemSingular = "control",
 }: UseControlReviewTransitionArgs) {
   const [pendingAction, setPendingAction] = useState<ControlReviewAction | null>(
     null,
@@ -59,7 +80,7 @@ export function useControlReviewTransition({
   const actions = getAvailableReviewActions(reviewStatus);
   const primaryAction = getPrimaryReviewAction(reviewStatus);
   const pending = pendingAction !== null;
-  const helper = REVIEW_HELPER_TEXT[reviewStatus];
+  const helper = reviewHelperText(reviewStatus, itemSingular);
 
   const runAction = useCallback(
     async (action: ControlReviewAction) => {

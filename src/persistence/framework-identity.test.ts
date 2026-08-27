@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it, mock } from "node:test";
+import { DOD_CLOUD_IL4_FRAMEWORK_ID } from "@/framework/dod-cloud-il4-rev5/identities";
 import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
@@ -17,6 +18,10 @@ describe("framework identity helpers", () => {
     assert.equal(
       parseRegisteredFrameworkId(` ${NIST_MODERATE_FRAMEWORK_ID} `),
       NIST_MODERATE_FRAMEWORK_ID,
+    );
+    assert.equal(
+      parseRegisteredFrameworkId(DOD_CLOUD_IL4_FRAMEWORK_ID),
+      DOD_CLOUD_IL4_FRAMEWORK_ID,
     );
     assert.throws(
       () => parseRegisteredFrameworkId("not-a-framework"),

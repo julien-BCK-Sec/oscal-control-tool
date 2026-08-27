@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   splitRequirementSegments,
+  statementHasParamInsert,
 } from "./requirementText";
 
 describe("splitRequirementSegments", () => {
@@ -24,5 +25,13 @@ describe("splitRequirementSegments", () => {
     assert.deepEqual(splitRequirementSegments("Plain requirement."), [
       { kind: "text", value: "Plain requirement." },
     ]);
+  });
+
+  it("detects catalog parameter insert tokens", () => {
+    assert.equal(
+      statementHasParamInsert("Use {{ insert: param, ac-01_odp.01 }} here."),
+      true,
+    );
+    assert.equal(statementHasParamInsert("No parameters."), false);
   });
 });

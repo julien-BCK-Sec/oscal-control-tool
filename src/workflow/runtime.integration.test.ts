@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, it } from "node:test";
 import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
+import { DOD_CLOUD_IL4_FRAMEWORK_ID } from "@/framework/dod-cloud-il4-rev5/identities";
 import { NIST_MODERATE_FRAMEWORK_ID } from "@/framework/nist-moderate/derive";
 import {
   NIST_HIGH_FRAMEWORK_ID,
@@ -522,6 +523,105 @@ describe("workflow domain event integration", () => {
       assigned.some(
         (row) =>
           row.assigneeUserId === admin.id && row.assignmentRole === "reviewer",
+      ),
+    );
+  });
+
+  it("allows valid IL4 IDs including GRRs and rejects cross-framework IDs before writes", async () => {
+    const env = await setup();
+    const admin = await env.makeMember("admin8@example.com", "organization_admin");
+    const il4 = await env.projects.create({
+      name: "IL4 WF",
+      frameworkId: DOD_CLOUD_IL4_FRAMEWORK_ID,
+      organizationId: env.org.id,
+    });
+    const moderate = await env.projects.create({
+      name: "Moderate WF",
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+      organizationId: env.org.id,
+    });
+    const cmmc = await env.projects.create({
+      name: "CMMC WF IL4",
+      frameworkId: CMMC_LEVEL_2_FRAMEWORK_ID,
+      organizationId: env.org.id,
+    });
+
+    await env.workflowRepo.createRule({
+      organizationId: env.org.id,
+      name: "Assign on event",
+      triggerType: "control_assigned",
+      conditions: [],
+      actions: [
+        {
+          type: "assign_user",
+          userId: admin.id,
+          assignmentRole: "reviewer",
+        },
+      ],
+      createdByUserId: admin.id,
+    });
+
+    for (const controlId of ["ac-2", "sc-24", "sc-46", "grr-1", "grr-10"] as const) {
+      const event = controlAssignedEvent({
+        organizationId: env.org.id,
+        actorId: admin.id,
+        projectId: il4.id,
+        controlId,
+        assignmentId: `asg-il4-${controlId}`,
+        assigneeUserId: admin.id,
+        assignmentRole: "owner",
+      });
+      await processWorkflowDomainEvent(event, env.deps);
+      const assigned = await env.assignments.listByControl(
+        env.org.id,
+        il4.id,
+        controlId,
+      );
+      assert.ok(
+        assigned.some(
+          (row) =>
+            row.assigneeUserId === admin.id && row.assignmentRole === "reviewer",
+        ),
+        `expected workflow assignment for ${controlId}`,
+      );
+    }
+
+    for (const [project, controlId] of [
+      [moderate, "sc-24"],
+      [moderate, "grr-1"],
+      [cmmc, "grr-1"],
+      [il4, "AC.L2-3.1.1"],
+    ] as const) {
+      const event = controlAssignedEvent({
+        organizationId: env.org.id,
+        actorId: admin.id,
+        projectId: project.id,
+        controlId,
+        assignmentId: `asg-invalid-${project.id}-${controlId}`,
+        assigneeUserId: admin.id,
+        assignmentRole: "owner",
+      });
+      await processWorkflowDomainEvent(event, env.deps);
+      assert.equal(
+        (await env.assignments.listByControl(env.org.id, project.id, controlId))
+          .length,
+        0,
+      );
+      assert.equal(
+        (await env.controlRecords.getByProjectAndControl(project.id, controlId)) ==
+          null,
+        true,
+      );
+    }
+
+    const executions = await env.workflowRepo.listExecutions(env.org.id);
+    const failed = executions.filter((row) => row.status === "failed");
+    assert.ok(failed.length >= 4);
+    assert.ok(
+      failed.every(
+        (row) =>
+          row.detail.actionResults[0]?.errorMessage ===
+          UNKNOWN_FRAMEWORK_CONTROL_MESSAGE,
       ),
     );
   });

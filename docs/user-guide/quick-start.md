@@ -30,6 +30,11 @@ Pick the catalog this project will document against:
   items **controls**, and they can export an OSCAL SSP.
 - **CMMC Level 2** — the 110 NIST SP 800-171 Rev. 2 requirements. These
   projects call items **requirements**, and they cannot export OSCAL.
+- **DoD Cloud Impact Level 4** — FedRAMP Rev. 5 Moderate plus the DoD IL4
+  overlay (345 framework items). These projects call NIST items
+  **controls** and DoD GRRs **General Readiness Requirements**, and they
+  cannot export OSCAL. See
+  [DoD Cloud Impact Level 4](/help/dod-cloud-il4).
 
 Choosing a framework does not confer certification, assessment, MET / NOT
 MET, an SPRS score, or FedRAMP authorization. See
@@ -95,6 +100,6 @@ control metadata, collaboration, or Evidence. See
 ## 12. Export OSCAL only when the framework supports it
 
 On NIST SP 800-53 projects, **Export OSCAL SSP** on Project details
-downloads a structurally validated SSP. CMMC projects do not offer this
-button. Schema validation proves structure, not policy compliance. See
-[OSCAL export](/help/oscal-export).
+downloads a structurally validated SSP. CMMC and DoD Cloud Impact Level 4
+projects do not offer this button. Schema validation proves structure, not
+policy compliance. See [OSCAL export](/help/oscal-export).

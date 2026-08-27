@@ -45,6 +45,32 @@ derived at build time from the pinned NIST SP 800-171 Rev. 2 CSV (PDF is the
 normative publication). This is not a general standards DSL or plugin
 architecture.
 
+**Amendment (Milestone 06A WP2, 2026-08-27):**
+
+A framework may also be materialized as a **base + overlay** generated
+artifact (ADR-029) from pinned FedRAMP and DoD workbooks plus the NIST
+catalog. That path is not a general OSCAL `modify` engine.
+
+**Amendment (Milestone 06A WP3, 2026-08-27):**
+
+`dod-cloud-il4-rev5` is registered as a `FrameworkProvider` that maps the
+WP2 overlay artifact onto application `Framework` / `FrameworkControl`
+types. Overlay assignments, supplements, selection provenance, DSPAV
+status, and applicability are optional generic read-model fields; they are
+not merged into the normative NIST `statement`. The IL4 descriptor sets
+`productSelectable: false` so registration does not expose a
+half-integrated create/authoring experience. OSCAL SSP export remains
+disabled (NIST identity table only).
+
+**Amendment (Milestone 06A WP4, 2026-08-27):**
+
+After overlay authoring presentation exists in the Control Browser, IL4
+sets `productSelectable: true`. New projects may select DoD Cloud →
+Impact Level 4. Moderate remains the create default. Overlay UI keeps
+NIST statement text separate from FedRAMP/DoD layers and does not
+compute assignment winners.
+
+
 ## ADR-003
 
 Decision:
@@ -798,6 +824,25 @@ export OSCAL. Operational identity remains `(projectId, controlId)` with no
 NIST SP 800-171 Rev. 3 must become a new durable framework identity rather
 than silently changing this ID.
 
+**Amendment (Milestone 06A WP3, 2026-08-27):**
+
+The registry now includes DoD Cloud Impact Level 4 (`dod-cloud-il4-rev5`).
+Optional descriptor field `productSelectable` (omitted or true by default)
+keeps a registered framework off new-project product surfaces. IL4 is
+registered and resolvable, with `productSelectable: false`, until WP4
+authorizes user-facing integration. OSCAL descriptor fields remain omitted;
+`frameworkHasOscalSspExport("dod-cloud-il4-rev5")` is false. Overlay
+parameter and provenance metadata live on the read-model `FrameworkControl`
+and are not persisted.
+
+**Amendment (Milestone 06A WP4, 2026-08-27):**
+
+WP4 sets `productSelectable: true` for `dod-cloud-il4-rev5` after overlay
+authoring presentation is available. `createProjectAction` accepts the IL4
+ID; `createProjectForOrg` continues to accept any registered ID.
+`listProductSelectableFrameworks()` includes IL4 under DoD Cloud →
+Impact Level 4. Moderate remains `DEFAULT_FRAMEWORK_ID`.
+
 ## ADR-027
 
 Decision:
@@ -869,4 +914,103 @@ Reason:
 
 Date:
 2026-08-18
+
+## ADR-029
+
+Decision:
+DoD Impact Level 4 (Moderate / MMx) is derived as a **base + overlay**
+read-only framework artifact, not by extending the NIST Moderate
+`FrameworkProvider` and not by adding a general OSCAL profile `modify`
+engine.
+
+Composition:
+
+```
+NIST SP 800-53 Rev. 5 catalog (normative text and ODPs)
+        +
+FedRAMP Rev. 5 Moderate selection, assignments, and extra guidance
+        +
+DoD SSP Addendum IL4 Moderate additions, assignments, supplements, GRRs,
+and conditionality
+        +
+CSP SRG V1R7 Appendix D as provenance / DSPAV-pointer cross-check
+        =
+generated DoD IL4 overlay artifact (`dod-cloud-il4-rev5`)
+```
+
+Normative NIST statements are not rewritten as DoD-authored prose.
+Parameter assignments, supplements, selection provenance, DSPAV status, and
+applicability are structured overlay metadata.
+
+Unresolved authoritative parameters (including inaccessible RMF Knowledge
+Service DSPAVs) are represented explicitly
+(`authoritative-value-required` or `source-conflict`). They do not block
+derivation or future project creation.
+
+Overlay metadata remains framework/read-model data. 06A does not add
+database columns for impact level, parameters, or `frameworkId` on
+operational tables. `projects.framework_id` remains the one immutable
+project identity (ADR-026).
+
+Framework materialization may write generated JSON under
+`src/data/framework/generated/`, as with NIST and CMMC.
+
+OSCAL SSP export for IL4 remains disabled until an authoritative
+machine-readable IL4/FedRAMP+ profile exists. Existing NIST
+Low/Moderate/High export is unchanged.
+
+This decision does **not** approve runtime Mission Owner/AO tailoring,
+privacy/NSS overlays, IL4 High / IL5 / IL6, or a universal overlay engine
+for arbitrary customer profiles.
+
+Reason:
+- WP1 showed FedRAMP Moderate is a strict superset of NIST Moderate and
+  is the correct IL4 base.
+- The current NIST OSCAL resolver rejects `modify` / `set-parameters`.
+- IL4 requires layered provenance that `FrameworkControl` statement text
+  cannot carry alone.
+- Keeping overlay data out of PostgreSQL preserves ADR-004 (framework
+  content is not stored as operational state).
+
+Date:
+2026-08-27
+
+**Amendment (Milestone 06A WP3, 2026-08-27):**
+
+The WP2 overlay artifact is mapped at runtime onto generic
+`FrameworkControl` fields (`parameters`, `selectionProvenance`,
+`supplements`, `applicability`, `itemKind`). FedRAMP-specific and
+DoD-specific assignment facts are preserved as baseline vs overlay
+provenance text, not as IL4-only property names. The provider fails closed
+if the generated artifact is invalid. IL4 is registered in
+`FrameworkRegistry`. WP4 sets `productSelectable: true` after overlay
+authoring presentation exists. Overlay UI does not merge FedRAMP/DoD text
+into the NIST statement and does not compute assignment winners.
+
+**Amendment (Milestone 06A WP5, 2026-08-27):**
+
+Existing Evidence, Evidence Coverage, review, assignments, discussions,
+activity, domain events, and workflow control-ID validation operate on
+the 345 IL4 item IDs, including GRR-1…GRR-10. Overlay assignments, DSPAV
+status, source conflict, supplements, and CDS applicability remain
+read-only `FrameworkControl` fields. They do not persist onto
+ControlRecord, do not auto-fail review, do not change evidenceRequirement,
+and do not remove items from the coverage denominator.
+
+**Amendment (Milestone 06A WP6, 2026-08-27):**
+
+IL4 OSCAL SSP export remains disabled via the NIST identity table
+(`frameworkHasOscalSspExport` / `requireFrameworkIdentity`). Direct export
+fails closed and does not fall back to NIST Moderate. Named-version restore
+uses the live `projects.framework_id` column and cannot switch framework
+identity from historical project JSON.
+
+**Amendment (Milestone 06A WP7, 2026-08-27):**
+
+Help documents the implemented IL4 composition (NIST catalog → FedRAMP
+Moderate → DoD overlay → Control Freak framework) from
+`docs/user-guide/dod-cloud-il4.md`. Canonical demo adds Snow Goose Cloud
+Impact Level 4 under Canadian Goose Defence System without replacing the
+Moderate flagship. No schema change. Overlay metadata remains read-only
+framework data.
 

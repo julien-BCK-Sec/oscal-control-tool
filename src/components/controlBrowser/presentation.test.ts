@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { FrameworkControl } from "@/data/framework";
+import { dodCloudIl4FrameworkProvider } from "@/data/framework";
+import { DOD_GRR_FAMILY } from "@/framework/dod-cloud-il4-rev5/identities";
 import {
   buildControlTree,
   filterControlTree,
@@ -34,7 +36,13 @@ describe("formatControlIdDisplay", () => {
     assert.equal(isEnhancementId("ac-2"), false);
     assert.equal(isEnhancementId("AC.L2-3.1.1"), false);
     assert.equal(isEnhancementId("3.1.1"), false);
+    assert.equal(isEnhancementId("grr-1"), false);
+    assert.equal(isEnhancementId("grr-10"), false);
+    assert.equal(parentControlId("grr-1"), null);
+    assert.equal(parentControlId("grr-10"), null);
     assert.equal(parentControlId("AC.L2-3.1.1"), null);
+    assert.equal(formatControlIdDisplay("grr-1"), "GRR-1");
+    assert.equal(formatControlIdDisplay("grr-10"), "GRR-10");
   });
 });
 
@@ -115,5 +123,48 @@ describe("buildControlTree and filterControlTree", () => {
     );
     const byOrigin = filterControlTree(tree, "3.1.2");
     assert.equal(byOrigin[0]?.nodes[0]?.control.id, "AC.L2-3.1.2");
+  });
+
+  it("keeps IL4 GRRs as a top-level family without enhancement nesting", () => {
+    const controls = dodCloudIl4FrameworkProvider.getFramework().controls;
+    const tree = buildControlTree(controls);
+    assert.equal(controls.length, 345);
+    const grrFamily = tree.find((group) => group.family === DOD_GRR_FAMILY);
+    assert.ok(grrFamily);
+    assert.equal(grrFamily.nodes.length, 10);
+    assert.ok(grrFamily.nodes.every((node) => node.enhancements.length === 0));
+    assert.deepEqual(
+      grrFamily.nodes.map((node) => node.control.id),
+      [
+        "grr-1",
+        "grr-2",
+        "grr-3",
+        "grr-4",
+        "grr-5",
+        "grr-6",
+        "grr-7",
+        "grr-8",
+        "grr-9",
+        "grr-10",
+      ],
+    );
+    const byGrr = filterControlTree(tree, "grr-1");
+    assert.equal(byGrr[0]?.family, DOD_GRR_FAMILY);
+    assert.equal(byGrr[0]?.nodes[0]?.control.id, "grr-1");
+    const byPki = filterControlTree(tree, "DoD PKI");
+    assert.ok(
+      byPki.some((group) =>
+        group.nodes.some((node) => node.control.id === "grr-1"),
+      ),
+    );
+    const sc46 = tree
+      .flatMap((group) => group.nodes)
+      .find((node) => node.control.id === "sc-46");
+    assert.ok(sc46);
+    const nistFamily = tree.find((group) => group.family === "Access Control");
+    assert.ok(nistFamily);
+    const ac2 = nistFamily.nodes.find((node) => node.control.id === "ac-2");
+    assert.ok(ac2);
+    assert.ok(ac2.enhancements.length > 0);
   });
 });

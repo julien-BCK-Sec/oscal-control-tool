@@ -3,11 +3,14 @@ import { afterEach, describe, it } from "node:test";
 import { AuthorizationError } from "@/authz/authorize";
 import type { OrgContext } from "@/authz/authorize";
 import type { OrgRole } from "@/authz/permissions";
+import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
+import { DOD_CLOUD_IL4_FRAMEWORK_ID } from "@/framework/dod-cloud-il4-rev5/identities";
 import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
   NIST_MODERATE_FRAMEWORK_ID,
 } from "@/framework/nist-sp-800-53-rev5/identities";
+import { resolveFrameworkControls } from "@/data/framework";
 import { closeDb, openTestDb } from "@/persistence/postgres/client";
 import { createPostgresOrganizationRepository } from "@/persistence/postgres/organization-repository";
 import { createPostgresProjectRepository } from "@/persistence/postgres/project-repository";
@@ -51,6 +54,22 @@ describe("authorized project framework identity", () => {
     assert.equal(low.frameworkId, NIST_LOW_FRAMEWORK_ID);
     assert.equal(moderate.frameworkId, NIST_MODERATE_FRAMEWORK_ID);
     assert.equal(high.frameworkId, NIST_HIGH_FRAMEWORK_ID);
+  });
+
+  it("creates a DoD IL4 project with the 345-item framework", async () => {
+    const { projects, org } = await setup();
+    const created = await createProjectForOrg(projects, ctx(org.id), {
+      name: "IL4",
+      frameworkId: DOD_CLOUD_IL4_FRAMEWORK_ID,
+    });
+    assert.equal(created.frameworkId, DOD_CLOUD_IL4_FRAMEWORK_ID);
+    assert.equal(resolveFrameworkControls(created.frameworkId).length, 345);
+    const cmmc = await createProjectForOrg(projects, ctx(org.id), {
+      name: "CMMC",
+      frameworkId: CMMC_LEVEL_2_FRAMEWORK_ID,
+    });
+    assert.equal(cmmc.frameworkId, CMMC_LEVEL_2_FRAMEWORK_ID);
+    assert.equal(resolveFrameworkControls(cmmc.frameworkId).length, 110);
   });
 
   it("rejects unknown framework IDs", async () => {

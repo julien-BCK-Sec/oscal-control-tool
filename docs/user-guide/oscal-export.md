@@ -1,9 +1,9 @@
 ---
 title: OSCAL export
-summary: How to export a System Security Plan, why CMMC projects don't offer it, and what schema validation does and doesn't prove.
+summary: How to export a System Security Plan, why some frameworks don't offer it, and what schema validation does and doesn't prove.
 section: frameworks
 order: 20
-related: frameworks, limitations
+related: frameworks, dod-cloud-il4, limitations
 ---
 
 ## Exporting an SSP
@@ -24,6 +24,21 @@ details and Overview tabs explain this directly:
 
 > **Limitation:** OSCAL SSP export is available for NIST SP 800-53
 > projects. No official CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned.
+
+## DoD Cloud IL4 projects do not have this button
+
+DoD Cloud Impact Level 4 projects also do not offer OSCAL export. Control
+Freak does not currently have an approved, pinned authoritative OSCAL
+profile capable of representing the implemented IL4 framework. That is
+not a claim that OSCAL cannot represent overlays.
+
+Control Freak will not export IL4 against the NIST Moderate profile or
+invent a FedRAMP or DoD OSCAL profile. See
+[DoD Cloud Impact Level 4](/help/dod-cloud-il4).
+
+> **Limitation:** OSCAL SSP export is available for NIST SP 800-53
+> projects. Control Freak has no approved OSCAL profile pinned for DoD
+> Cloud Impact Level 4.
 
 ## What "valid" means here
 

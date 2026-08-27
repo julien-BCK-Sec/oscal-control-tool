@@ -23,6 +23,8 @@ export type ControlEditorHeaderProps = {
   title: string;
   family: string;
   originId?: string;
+  originCatalogLabel?: string;
+  itemKindLabel?: string;
   fields: ControlRecordFields;
   reviewStatus: ControlReviewStatus;
   narrativeComplete: boolean;
@@ -40,6 +42,8 @@ export function ControlEditorHeader({
   title,
   family,
   originId,
+  originCatalogLabel,
+  itemKindLabel,
   fields,
   reviewStatus,
   narrativeComplete,
@@ -63,9 +67,12 @@ export function ControlEditorHeader({
             {title}
           </h2>
           <p className="mt-1 text-xs text-text-muted">{family}</p>
-          {originId ? (
+          {itemKindLabel ? (
+            <p className="mt-1 text-xs text-text-secondary">{itemKindLabel}</p>
+          ) : null}
+          {originId && originCatalogLabel ? (
             <p className="mt-1 text-xs text-text-muted">
-              NIST SP 800-171{" "}
+              {originCatalogLabel}{" "}
               <span className="control-id">{originId}</span>
             </p>
           ) : null}

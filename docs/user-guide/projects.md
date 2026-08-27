@@ -10,13 +10,14 @@ related: frameworks, authoring-controls, version-history
 
 From your projects list, select **New project**, give it a name, and choose
 a framework. The framework choice is grouped by family — **NIST SP 800-53
-Rev. 5** (Low, Moderate, or High) and **CMMC** (Level 2) — and defaults to
-NIST SP 800-53 Rev. 5 Moderate.
+Rev. 5** (Low, Moderate, or High), **CMMC** (Level 2), and **DoD Cloud**
+(Impact Level 4) — and defaults to NIST SP 800-53 Rev. 5 Moderate.
 
 > **Warning:** A framework cannot be changed after the project is created,
-> and choosing one is not a certification or assessment status. See
-> [Choose and understand frameworks](/help/frameworks) before you create a
-> project if you're unsure which one applies.
+> and choosing one is not a certification, assessment, or authorization
+> status. See [Choose and understand frameworks](/help/frameworks) before
+> you create a project if you're unsure which one applies. For DoD Cloud
+> Impact Level 4, see [DoD Cloud Impact Level 4](/help/dod-cloud-il4).
 
 Creating a project requires the `project.create` permission (organization
 administrators and project managers). Everyone with project access can open

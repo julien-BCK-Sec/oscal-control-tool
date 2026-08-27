@@ -19,6 +19,12 @@ For CMMC projects, Evidence Coverage is not:
 - an SPRS score
 - certification status
 
+For DoD Cloud Impact Level 4 projects, the coverage denominator is the
+345 framework items, including General Readiness Requirements. Evidence
+Coverage is not a compliance score, an assessment result, authorization
+readiness, or an ATO determination. See
+[DoD Cloud Impact Level 4](/help/dod-cloud-il4).
+
 Control Freak does not show coverage as a percentage or as a pass/fail
 compliance rating.
 

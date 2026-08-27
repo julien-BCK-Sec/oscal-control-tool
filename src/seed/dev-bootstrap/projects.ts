@@ -20,6 +20,8 @@ import {
   buildFirstDoorImplementations,
   buildHighImplementations,
   buildHighProjectDescription,
+  buildIl4Implementations,
+  buildIl4ProjectDescription,
   buildSupportingMetadata,
 } from "@/seed/demo/supporting";
 
@@ -29,6 +31,7 @@ export type DemoProjectsResult = {
   early: StoredProject;
   evidenceGap: StoredProject;
   high: StoredProject;
+  il4: StoredProject;
   contosoCloud: StoredProject;
   firstdoorCloud: StoredProject;
   created: string[];
@@ -140,6 +143,15 @@ export async function ensureDemoProjects(
   );
   if (high.created) created.push(CANONICAL_PROJECTS.high.name);
 
+  const il4 = await ensureSupporting(
+    repository,
+    organizationIds.cgds,
+    "il4",
+    buildIl4Implementations(),
+    buildIl4ProjectDescription(),
+  );
+  if (il4.created) created.push(CANONICAL_PROJECTS.il4.name);
+
   const contosoCloud = await ensureSupporting(
     repository,
     organizationIds.contoso,
@@ -166,6 +178,7 @@ export async function ensureDemoProjects(
     early: early.project,
     evidenceGap: evidenceGap.project,
     high: high.project,
+    il4: il4.project,
     contosoCloud: contosoCloud.project,
     firstdoorCloud: firstdoorCloud.project,
     created,

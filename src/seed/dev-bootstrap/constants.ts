@@ -132,6 +132,7 @@ export const PROJECT_NAMES = {
   early: CANONICAL_PROJECTS.early.name,
   evidenceGap: CANONICAL_PROJECTS.evidenceGap.name,
   high: CANONICAL_PROJECTS.high.name,
+  il4: CANONICAL_PROJECTS.il4.name,
   contosoCloud: CANONICAL_PROJECTS.contosoCloud.name,
   firstdoorCloud: CANONICAL_PROJECTS.firstdoorCloud.name,
 } as const;

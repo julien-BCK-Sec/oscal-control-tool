@@ -14,9 +14,11 @@ Responsibilities:
 
 - FrameworkRegistry (in-process catalog of supported providers, ADR-026)
 - FrameworkProvider
-- FrameworkControl
-- Framework metadata (catalog, revision, profile, optional item terms, optional OSCAL export fields)
-- Framework derivation (pinned NIST SP 800-53 Rev. 5 Low / Moderate / High OSCAL; pinned NIST SP 800-171 Rev. 2 CSV for CMMC Level 2)
+- FrameworkControl (optional overlay parameter, provenance, supplement, and applicability metadata; ADR-029)
+- Framework metadata (catalog, revision, profile, optional item terms, optional OSCAL export fields, optional `productSelectable`)
+- Control Browser overlay presentation (effective requirement when known assignments can be inlined; untouched source statement; supplements; DSPAV and source-conflict notices)
+- Generic Evidence/workflow/collaboration against registered framework item IDs, including IL4 GRRs (WP5); overlay metadata is not operational state
+- Framework derivation (pinned NIST SP 800-53 Rev. 5 Low / Moderate / High OSCAL; pinned NIST SP 800-171 Rev. 2 CSV for CMMC Level 2; DoD IL4 Moderate / MMx overlay artifact from FedRAMP Moderate + Addendum extract, ADR-029)
 
 Framework data is never persisted in application storage. Projects persist
 only an opaque `frameworkId` in `projects.framework_id`, which is the sole
@@ -168,8 +170,18 @@ Milestone 04C capabilities:
 - CMMC Level 2 (`cmmc-level-2-nist-sp-800-171-r2`) as a registered FrameworkProvider
 - 110 NIST SP 800-171 Rev. 2 requirements, CMMC IDs `DD.L2-REQ`, origin IDs retained
 - User-facing requirement/requirements terms; internal `controlId` unchanged
-- OSCAL SSP export remains NIST SP 800-53 only (disabled for CMMC)
+- OSCAL SSP export remains NIST SP 800-53 only (disabled for CMMC and IL4)
 - No assessment objectives, MET/NOT MET, scoring, or certification fields
+
+Milestone 06A capabilities:
+
+- DoD Cloud Impact Level 4 (`dod-cloud-il4-rev5`) as a product-selectable FrameworkProvider
+- 345-item overlay population (FedRAMP Moderate + DoD Addendum IL4 Moderate + 10 GRRs)
+- Overlay presentation separate from NIST statements (DSPAV, source-conflict, CDS applicability)
+- Generic Evidence/workflow/collaboration against all 345 IDs, including GRRs
+- OSCAL SSP export disabled (no approved/pinned IL4 OSCAL profile)
+- Canonical demo project Snow Goose Cloud Impact Level 4 (does not replace the Moderate flagship)
+- User-guide topic `docs/user-guide/dod-cloud-il4.md` as the canonical Help source
 
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
@@ -220,7 +232,7 @@ Transforms the domain model into standards-based exports.
 
 Examples:
 
-- OSCAL SSP (NIST SP 800-53 Low / Moderate / High only; unavailable for CMMC)
+- OSCAL SSP (NIST SP 800-53 Low / Moderate / High only; unavailable for CMMC and IL4)
 
 - Word (future)
 - PDF (future)
