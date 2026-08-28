@@ -72,6 +72,10 @@ describe("getHelpManifest", () => {
       getHelpPage("frameworks")?.title,
       "Choose and understand frameworks",
     );
+    assert.equal(
+      getHelpPage("dod-cloud-il4")?.title,
+      "DoD Cloud Impact Level 4",
+    );
     assert.equal(getHelpPage("invitations-and-team")?.title, "Manage your team");
     assert.equal(getHelpPage("limitations")?.title, "Product limitations");
     assert.equal(
@@ -198,5 +202,49 @@ describe("getHelpSearchIndex", () => {
     for (const doc of index) {
       assert.ok(doc.bodyText.length > 0, `${doc.slug} has empty body text`);
     }
+  });
+
+  it("makes DoD Cloud Impact Level 4 Help discoverable", () => {
+    const manifest = getHelpManifest();
+    const frameworks = manifest.sections.find(
+      (entry) => entry.section.id === "frameworks",
+    );
+    assert.ok(frameworks);
+    const slugs = frameworks!.pages.map((page) => page.slug);
+    const frameworksIndex = slugs.indexOf("frameworks");
+    const il4Index = slugs.indexOf("dod-cloud-il4");
+    const oscalIndex = slugs.indexOf("oscal-export");
+    assert.ok(frameworksIndex !== -1);
+    assert.ok(il4Index !== -1);
+    assert.ok(oscalIndex !== -1);
+    assert.ok(frameworksIndex < il4Index);
+    assert.ok(il4Index < oscalIndex);
+
+    const page = getHelpPage("dod-cloud-il4");
+    assert.ok(page);
+    assert.ok(
+      page!.headings.some(
+        (heading) => heading.id === "how-nist-fedramp-and-dod-layers-appear",
+      ),
+    );
+    assert.ok(
+      page!.headings.some((heading) => heading.id === "dod-assignment-required"),
+    );
+    assert.ok(
+      page!.headings.some(
+        (heading) => heading.id === "source-interpretation-requires-review",
+      ),
+    );
+    const indexed = getHelpSearchIndex().find(
+      (doc) => doc.slug === "dod-cloud-il4",
+    );
+    assert.ok(indexed);
+    assert.match(indexed!.bodyText, /345/);
+    assert.match(indexed!.bodyText, /General Readiness Requirement/);
+    assert.match(
+      indexed!.bodyText,
+      /not a claim that OSCAL cannot represent overlays/,
+    );
+    assert.doesNotMatch(indexed!.bodyText, /OSCAL cannot represent IL4/i);
   });
 });

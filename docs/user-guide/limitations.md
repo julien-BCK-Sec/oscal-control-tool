@@ -3,7 +3,7 @@ title: Product limitations
 summary: A single, honest list of what's out of scope today, gathered from across the guide.
 section: reference
 order: 10
-related: welcome, frameworks, oscal-export
+related: welcome, frameworks, dod-cloud-il4, oscal-export
 ---
 
 Control Freak is deliberately scoped to compliance authoring and control
@@ -12,27 +12,33 @@ limitations mentioned throughout the guide in one place.
 
 > **Limitation:** Control Freak is not an assessment or certification tool.
 > It does not produce MET / NOT MET determinations, SPRS scores, CMMC
-> certification status, or a FedRAMP authorization to operate.
+> certification status, FedRAMP authorization, DoD authorization,
+> Provisional Authorization, or an Authority to Operate.
 
 ## Not a compliance or assessment tool
 
 - Control Freak does not certify, assess, or authorize anything. It does
   not produce MET / NOT MET determinations, SPRS scores, CMMC certification
-  status, or a FedRAMP authorization to operate.
+  status, FedRAMP authorization, DoD authorization, Provisional
+  Authorization, or an Authority to Operate.
 - Evidence coverage and implementation completion are program-management
   counts about your documentation, never a compliance score. See
   [Track Evidence coverage](/help/evidence-coverage).
-- There is no FedRAMP-specific policy layer, profile, or rules engine. The
-  NIST SP 800-53 Moderate baseline is used for realism in places, but
-  choosing it does not make a project a FedRAMP package. See
-  [Choose and understand frameworks](/help/frameworks).
+- A NIST SP 800-53 Moderate project is a NIST Moderate project, not a
+  FedRAMP package. DoD Cloud Impact Level 4 includes FedRAMP Moderate as a
+  source layer of a DoD overlay; selecting it is still not authorization.
+  See [Choose and understand frameworks](/help/frameworks) and
+  [DoD Cloud Impact Level 4](/help/dod-cloud-il4).
 
 ## Standards and OSCAL
 
-- Only NIST SP 800-53 Rev. 5 (Low/Moderate/High) and CMMC Level 2 are
-  supported. There is no FedRAMP-specific, DISA, or other framework support.
-- CMMC Level 2 projects cannot export OSCAL — no official profile exists to
-  export against. See [OSCAL export](/help/oscal-export).
+- Supported frameworks are NIST SP 800-53 Rev. 5 (Low/Moderate/High),
+  CMMC Level 2, and DoD Cloud Impact Level 4. Other baselines, including
+  IL5, IL6, and additional CMMC levels, are not implemented.
+- CMMC Level 2 and DoD Cloud Impact Level 4 projects cannot export OSCAL.
+  Control Freak has no approved OSCAL profile pinned for those frameworks.
+  That is not a claim that OSCAL cannot represent overlays. See
+  [OSCAL export](/help/oscal-export).
 - OSCAL schema validation is structural only. It does not prove semantic
   correctness, cross-reference integrity, or policy compliance.
 - There is no OSCAL import. You cannot bring an existing SSP into Control

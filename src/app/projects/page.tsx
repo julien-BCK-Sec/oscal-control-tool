@@ -6,7 +6,7 @@ import {
 } from "@/components/ProjectsHome";
 import {
   DEFAULT_FRAMEWORK_ID,
-  frameworkRegistry,
+  listProductSelectableFrameworks,
   resolveFrameworkControls,
 } from "@/data/framework";
 import { computeOverallCompletion } from "@/domain";
@@ -65,7 +65,7 @@ export default async function ProjectsPage() {
   return (
     <ProjectsHome
       projects={projects}
-      frameworks={frameworkRegistry.list()}
+      frameworks={listProductSelectableFrameworks()}
       defaultFrameworkId={DEFAULT_FRAMEWORK_ID}
       canCreate={roleHasPermission(ctx.role, "project.create")}
       account={{

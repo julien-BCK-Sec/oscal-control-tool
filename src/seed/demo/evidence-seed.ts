@@ -201,6 +201,21 @@ const EVIDENCE_GAP_EVIDENCE: readonly DemoEvidenceSpec[] = [
   },
 ];
 
+const IL4_EVIDENCE: readonly DemoEvidenceSpec[] = [
+  {
+    marker: "il4:snow-goose-pki",
+    title: "Snow Goose Cloud DoD PKI authentication note",
+    description:
+      "Demo note describing CAC/Alt-token authentication for Snow Goose Cloud operators. Not a DoD authorization artifact or DSPAV value.",
+    owner: DEMO_PEOPLE.priyaSharma.name,
+    evidenceType: "document",
+    status: "active",
+    collectionDate: "2026-05-01",
+    reviewDueDate: "2026-11-01",
+    controlIds: ["ac-2", "grr-1"],
+  },
+];
+
 const HIGH_EVIDENCE: readonly DemoEvidenceSpec[] = [
   {
     marker: "high:nhoc-sctm",
@@ -266,6 +281,7 @@ export async function ensureCanonicalDemoEvidence(input: {
     earlyId: string;
     evidenceGapId: string;
     highId: string;
+    il4Id: string;
   };
   actor: ActorIdentity;
 }): Promise<{ created: number }> {
@@ -293,11 +309,22 @@ export async function ensureCanonicalDemoEvidence(input: {
     specs: HIGH_EVIDENCE,
     actor: input.actor,
   });
+  const il4 = await ensureEvidenceList({
+    db: input.db,
+    projectId: input.projects.il4Id,
+    specs: IL4_EVIDENCE,
+    actor: input.actor,
+  });
 
   void CANONICAL_PROJECTS.early;
   void input.projects.earlyId;
 
   return {
-    created: flagship.created + cmmc.created + gap.created + high.created,
+    created:
+      flagship.created +
+      cmmc.created +
+      gap.created +
+      high.created +
+      il4.created,
   };
 }

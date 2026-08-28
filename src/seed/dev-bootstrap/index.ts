@@ -132,6 +132,7 @@ export function formatBootstrapSummary(result: BootstrapDemoResult): string {
     CANONICAL_PROJECTS.early.name,
     CANONICAL_PROJECTS.evidenceGap.name,
     CANONICAL_PROJECTS.high.name,
+    CANONICAL_PROJECTS.il4.name,
     CANONICAL_PROJECTS.contosoCloud.name,
     CANONICAL_PROJECTS.firstdoorCloud.name,
     "",

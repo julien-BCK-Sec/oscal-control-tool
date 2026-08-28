@@ -5,16 +5,20 @@ import { createPostgresProjectRepository } from "@/persistence/postgres/project-
 import { createPostgresOrganizationRepository } from "@/persistence/postgres/organization-repository";
 import { createPostgresDiscussionService } from "@/persistence/postgres/discussion-service";
 import { createPostgresEvidenceService } from "@/persistence/postgres/evidence-service";
-import { FRAMEWORK_CONTROLS } from "@/data/framework";
+import { FRAMEWORK_CONTROLS, resolveFrameworkControls } from "@/data/framework";
 import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
 import { CMMC_LEVEL_2_REQUIREMENT_COUNT } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/families";
+import {
+  DOD_CLOUD_IL4_FRAMEWORK_ID,
+  IL4_TOTAL_COUNT,
+} from "@/framework/dod-cloud-il4-rev5/identities";
 import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
   NIST_MODERATE_FRAMEWORK_ID,
 } from "@/framework/nist-sp-800-53-rev5/identities";
 import { CANONICAL_ORGS, CANONICAL_PROJECTS } from "@/seed/demo/catalog";
-import { cmmcAddressedCount } from "@/seed/demo/supporting";
+import { cmmcAddressedCount, il4RepresentativeIds } from "@/seed/demo/supporting";
 import { ensureCanonicalDemoEnvironment } from "@/seed/canonical-demo";
 import { resetActivityTimestampClock } from "@/persistence/activity-clock";
 
@@ -74,11 +78,29 @@ describe("canonical demo seed (integration)", () => {
         Object.keys(projects.flagship.implementations).length,
     );
 
+    assert.equal(projects.il4.name, CANONICAL_PROJECTS.il4.name);
+    assert.equal(projects.il4.frameworkId, DOD_CLOUD_IL4_FRAMEWORK_ID);
+    assert.equal(
+      resolveFrameworkControls(projects.il4.frameworkId).length,
+      IL4_TOTAL_COUNT,
+    );
+    const il4Ids = new Set(il4RepresentativeIds());
+    for (const id of il4Ids) {
+      assert.ok(projects.il4.implementations[id], `IL4 demo missing ${id}`);
+    }
+    assert.ok(Object.keys(projects.il4.implementations).length < IL4_TOTAL_COUNT);
+    assert.notEqual(projects.il4.implementations["sc-46"]?.status, "not-applicable");
+    assert.match(
+      projects.il4.implementations["ac-7"]?.narrative ?? "",
+      /has not invented a DSPAV/i,
+    );
+
     const evidence = createPostgresEvidenceService(db);
     const flagshipEvidence = await evidence.listByProject(projects.flagship.id);
     const gapEvidence = await evidence.listByProject(projects.evidenceGap.id);
     const earlyEvidence = await evidence.listByProject(projects.early.id);
     const cmmcEvidence = await evidence.listByProject(projects.cmmc.id);
+    const il4Evidence = await evidence.listByProject(projects.il4.id);
     assert.ok(flagshipEvidence.length >= 8);
     assert.ok(flagshipEvidence.length > gapEvidence.length);
     assert.equal(earlyEvidence.length, 0);
@@ -87,6 +109,13 @@ describe("canonical demo seed (integration)", () => {
     assert.ok(
       flagshipEvidence.some((row) =>
         row.controlIds.includes("ac-2"),
+      ),
+    );
+    assert.ok(il4Evidence.some((row) => row.status === "active"));
+    assert.ok(
+      il4Evidence.some(
+        (row) =>
+          row.controlIds.includes("ac-2") && row.controlIds.includes("grr-1"),
       ),
     );
   });
@@ -180,11 +209,14 @@ describe("canonical demo seed (integration)", () => {
     const firstdoorProjects = await repository.list(
       first.identity.orgs.firstdoor.id,
     );
-    assert.equal(cgdsProjects.length, 5);
+    assert.equal(cgdsProjects.length, 6);
     assert.equal(contosoProjects.length, 1);
     assert.equal(firstdoorProjects.length, 1);
     assert.ok(
       cgdsProjects.some((p) => p.name === CANONICAL_PROJECTS.flagship.name),
+    );
+    assert.ok(
+      cgdsProjects.some((p) => p.name === CANONICAL_PROJECTS.il4.name),
     );
     assert.ok(
       contosoProjects.some(

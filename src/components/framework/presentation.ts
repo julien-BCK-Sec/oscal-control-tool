@@ -83,6 +83,17 @@ export function sentenceCase(value: string): string {
   return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1)}`;
 }
 
+export function oscalExportUnavailableCopy(frameworkId?: string): string {
+  const id = frameworkId?.trim() ?? "";
+  if (id === "cmmc-level-2-nist-sp-800-171-r2") {
+    return "OSCAL SSP export is available for NIST SP 800-53 Rev. 5 projects. No official CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned.";
+  }
+  if (id === "dod-cloud-il4-rev5") {
+    return "OSCAL SSP export is available for NIST SP 800-53 Rev. 5 projects. Control Freak has no approved OSCAL profile pinned for DoD Cloud Impact Level 4.";
+  }
+  return "OSCAL SSP export is available for NIST SP 800-53 Rev. 5 projects. This framework does not have an approved OSCAL profile.";
+}
+
 export function evidenceCoverageDisclaimer(terms: FrameworkItemTerms): string {
   const item = terms.singular;
   const base = `Evidence coverage is not a compliance score. Counts describe linked active Evidence against each ${item}'s Evidence requirement.`;

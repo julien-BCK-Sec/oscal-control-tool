@@ -3,6 +3,7 @@ import generatedLow from "@/data/framework/generated/nist-sp-800-53-rev5-low.jso
 import generatedModerate from "@/data/framework/generated/nist-sp-800-53-rev5-moderate.json";
 import generatedHigh from "@/data/framework/generated/nist-sp-800-53-rev5-high.json";
 import generatedCmmcLevel2 from "@/data/framework/generated/cmmc-level-2-nist-sp-800-171-r2.json";
+export { dodCloudIl4FrameworkProvider } from "@/framework/dod-cloud-il4-rev5/runtime";
 
 /**
  * FrameworkProvider backed by a build-time derived application JSON document.

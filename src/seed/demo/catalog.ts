@@ -6,6 +6,7 @@
  */
 
 import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
+import { DOD_CLOUD_IL4_FRAMEWORK_ID } from "@/framework/dod-cloud-il4-rev5/identities";
 import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
@@ -48,6 +49,7 @@ export type CanonicalProjectKey =
   | "early"
   | "evidenceGap"
   | "high"
+  | "il4"
   | "contosoCloud"
   | "firstdoorCloud";
 
@@ -63,6 +65,7 @@ export type CanonicalProjectSpec = {
     | "early-stage"
     | "evidence-gap"
     | "high-baseline"
+    | "il4-overlay"
     | "tenant-isolation"
     | "operator-demo";
   purpose: string;
@@ -122,6 +125,16 @@ export const CANONICAL_PROJECTS: Record<
     purpose:
       "NIST SP 800-53 Rev. 5 High profile with mid-maturity coverage, contrasting the Moderate flagship and Low early-stage projects.",
   },
+  il4: {
+    key: "il4",
+    name: "Snow Goose Cloud Impact Level 4 (Demo)",
+    organization: "cgds",
+    frameworkId: DOD_CLOUD_IL4_FRAMEWORK_ID,
+    systemName: "Snow Goose Cloud Impact Level 4",
+    maturity: "il4-overlay",
+    purpose:
+      "Demonstrate DoD Cloud Impact Level 4 overlay presentation: FedRAMP and DoD layers, GRRs, unresolved DSPAV, IA-5(1) source conflict, SC-46 CDS conditionality, and Evidence against the 345-item population. Complements the Moderate Goose flagship; not an authorization package.",
+  },
   contosoCloud: {
     key: "contosoCloud",
     name: "Contoso Cloud Platform",
@@ -150,6 +163,7 @@ export const CGDS_PROJECT_KEYS = [
   "early",
   "evidenceGap",
   "high",
+  "il4",
 ] as const satisfies readonly CanonicalProjectKey[];
 
 export const SUPPORTING_PROJECT_KEYS = [
@@ -157,6 +171,7 @@ export const SUPPORTING_PROJECT_KEYS = [
   "early",
   "evidenceGap",
   "high",
+  "il4",
   "contosoCloud",
   "firstdoorCloud",
 ] as const satisfies readonly CanonicalProjectKey[];

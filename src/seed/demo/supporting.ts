@@ -12,6 +12,10 @@ import { resolveFrameworkControls } from "@/data/framework";
 import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
 import { CMMC_LEVEL_2_REQUIREMENT_COUNT } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/families";
 import {
+  DOD_CLOUD_IL4_FRAMEWORK_ID,
+  IL4_TOTAL_COUNT,
+} from "@/framework/dod-cloud-il4-rev5/identities";
+import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
   NIST_MODERATE_FRAMEWORK_ID,
@@ -88,6 +92,15 @@ export function buildHighProjectDescription(): string {
     `${CANONICAL_PROJECTS.high.systemName} tracks a High baseline overlay for ${DEMO_LOCATIONS.nhoc.name}.`,
     `Overlapping Moderate controls reuse SGOP narratives; High-only enhancements remain largely unaddressed.`,
     `${DEMO_PEOPLE.margotChen.name} requested the High profile after the Goose Readiness Exercise increased availability expectations.`,
+  ].join(" ");
+}
+
+export function buildIl4ProjectDescription(): string {
+  return [
+    `${CANONICAL_PROJECTS.il4.systemName} is a DoD Cloud Impact Level 4 documentation project for ${DEMO_ORGANIZATION.name}.`,
+    `It demonstrates FedRAMP Rev. 5 Moderate plus the DoD IL4 overlay for a fictional Goose cloud offering associated with ${DEMO_LOCATIONS.nhoc.name}.`,
+    `${DEMO_PEOPLE.priyaSharma.name} is the ISSO. Representative items show overlay layers, General Readiness Requirements, unresolved DSPAV, the IA-5(1) source conflict, and SC-46 CDS conditionality.`,
+    `This project is not FedRAMP authorization, DoD authorization, Provisional Authorization, an Authority to Operate, or a compliance determination. OSCAL SSP export is not available.`,
   ].join(" ");
 }
 
@@ -214,6 +227,88 @@ export function buildHighImplementations(): Record<string, ControlImplementation
     reused += 1;
   }
   return out;
+}
+
+const IL4_REPRESENTATIVE_IDS = [
+  "ac-2",
+  "ac-7",
+  "ia-5.1",
+  "sc-17",
+  "sc-46",
+  "grr-1",
+] as const;
+
+function il4Narrative(controlId: string): string {
+  const system = CANONICAL_PROJECTS.il4.systemName;
+  const isso = DEMO_PEOPLE.priyaSharma.name;
+  const location = DEMO_LOCATIONS.nhoc.name;
+  switch (controlId) {
+    case "ac-2":
+      return [
+        `Account management for ${system} is documented against the FedRAMP Moderate assignment layer shown beside the NIST AC-2 statement.`,
+        `${isso} reviews privileged and non-privileged Goose cloud accounts using FeatherAuth at ${location}.`,
+        `FedRAMP assignment values remain overlay metadata. This statement is implementation documentation only.`,
+      ].join(" ");
+    case "ac-7":
+      return [
+        `Unsuccessful logon attempts for ${system} are documented using the DoD IL4 overlay assignment that is present in the public Addendum.`,
+        `Control Freak also shows DoD assignment required for a DSPAV that is not available in the public source material.`,
+        `${isso} has not invented a DSPAV value. This narrative does not supply one.`,
+      ].join(" ");
+    case "ia-5.1":
+      return [
+        `Authenticator management enhancement IA-5(1) for ${system} displays both the FedRAMP Moderate layer and the DoD IL4 layer.`,
+        `The in-product notice is Source interpretation requires review. This demo does not choose a winner between those sources.`,
+        `${isso} records that human review is required; Control Freak has no effective assignment.`,
+      ].join(" ");
+    case "sc-17":
+      return [
+        `Public key infrastructure certificates for ${system} are documented against the NIST SC-17 statement plus the separate DoD IL4 supplemental requirement.`,
+        `${isso} treats the supplement as overlay material, not a rewrite of the NIST control text.`,
+      ].join(" ");
+    case "sc-46":
+      return [
+        `Cross Domain Policy Enforcement (SC-46) remains in the ${IL4_TOTAL_COUNT}-item IL4 population for ${system}.`,
+        `It is identified as conditionally applicable when a Cross Domain Solution is used.`,
+        `${isso} has not marked this item not applicable. Control Freak does not auto-N/A it.`,
+      ].join(" ");
+    case "grr-1":
+      return [
+        `GRR-1 (DoD PKI authentication) is documented as a General Readiness Requirement for ${system}, not as a NIST control.`,
+        `${isso} describes CAC/Alt-token authentication for privileged and non-privileged Goose cloud operators at ${location}.`,
+        `This is implementation documentation for a first-class framework item. It is not a DoD readiness determination.`,
+      ].join(" ");
+    default:
+      return `${controlId} is documented for ${system} by ${isso}.`;
+  }
+}
+
+/**
+ * Small representative IL4 overlay sample. Intentionally far short of 345.
+ * Does not invent inaccessible DSPAV values.
+ */
+export function buildIl4Implementations(): Record<string, ControlImplementation> {
+  const allowed = new Set(
+    resolveFrameworkControls(DOD_CLOUD_IL4_FRAMEWORK_ID).map(
+      (control) => control.id,
+    ),
+  );
+  const out: Record<string, ControlImplementation> = {};
+  for (const controlId of IL4_REPRESENTATIVE_IDS) {
+    if (!allowed.has(controlId)) {
+      continue;
+    }
+    const status: ImplementationStatus =
+      controlId === "ac-2" || controlId === "sc-17" || controlId === "grr-1"
+        ? "implemented"
+        : "in-progress";
+    out[controlId] = implementation(status, il4Narrative(controlId));
+  }
+  return out;
+}
+
+export function il4RepresentativeIds(): readonly string[] {
+  return IL4_REPRESENTATIVE_IDS;
 }
 
 export function buildContosoImplementations(): Record<string, ControlImplementation> {

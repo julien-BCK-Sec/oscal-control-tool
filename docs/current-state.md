@@ -1,13 +1,14 @@
 # Current Project State
 
-Date: 2026-08-18
+Date: 2026-08-27
 
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application.
-Milestone 05C hosts the Milestone 05B `DEPLOYMENT_MODE=normal|demo`
-production startup on Render, on top of Milestone 05A (canonical demo
-dataset), Milestone 04C (CMMC Level 2 Framework Support), Milestone 04B
+Milestone 06A adds DoD Cloud Impact Level 4 as a product-selectable
+framework on top of Milestone 05C (Render demo hosting), Milestone 05B
+(`DEPLOYMENT_MODE=normal|demo`), Milestone 05A (canonical demo dataset),
+Milestone 04C (CMMC Level 2 Framework Support), Milestone 04B
 (Framework UX and Runtime Hardening), and the project-scoped NIST SP 800-53
 Rev. 5 Low / Moderate / High architecture introduced in Milestone 04A, on
 top of Evidence Coverage (03D), Evidence Versions (03B), Workflow Automation
@@ -38,15 +39,17 @@ The application currently provides:
   evidence link/unlink events)
 - Version history
 - OSCAL SSP export and schema validation for NIST SP 800-53 projects
-  (unavailable for CMMC; no official CMMC / SP 800-171 Rev. 2 OSCAL profile)
+  (unavailable for CMMC and DoD Cloud IL4; no official CMMC / SP 800-171
+  Rev. 2, FedRAMP, or DoD IL4 OSCAL profile)
 - Idempotent demo project seeding into a demo organization
 - Canonical demo bootstrap (`npm run bootstrap:demo`) for a local
   multi-tenant environment: Canadian Goose Defence System (Goose flagship
-  plus supporting projects, including CMMC Level 2), Contoso Industries, and
-  FirstDoor.
+  plus supporting projects, including CMMC Level 2 and DoD Cloud Impact
+  Level 4), Contoso Industries, and FirstDoor.
 - In-app Help / user guide (`/help`, `/help/{slug}`) rendering Markdown
   content from `docs/user-guide/` for authenticated users, with contextual
-  links from the control editor, Evidence tab, OSCAL export, and workflow
+  links from the control editor, overlay metadata panel, Evidence tab, OSCAL
+  export, and workflow
   automation screens
 
 
@@ -116,8 +119,8 @@ editing, invitations, or hand-built demo data. It:
 4. Creates **Canadian Goose Defence System**, **Contoso Industries**, and
    **FirstDoor** with RBAC memberships
 5. Seeds the Goose flagship plus supporting projects (NIST Low / Moderate /
-   High and CMMC Level 2), Contoso Cloud Platform, and FirstDoor Platform
-   (Demo)
+   High, CMMC Level 2, and DoD Cloud Impact Level 4), Contoso Cloud Platform,
+   and FirstDoor Platform (Demo)
 6. Populates collaboration, ControlRecord metadata, and Evidence
    (markers keep seeds idempotent; existing user edits are preserved)
 
@@ -257,8 +260,9 @@ Production deployments use `DEPLOYMENT_MODE` (`docs/deployment.md`, ADR-028).
 - Discoverability: a persistent **Help** link in the authenticated header
   (`AuthenticatedHeaderActions`); the Help header logo and a **Back to
   projects** link return to `/projects`; targeted contextual links
-  (`HelpLink`) on the control editor (the three status fields), the Evidence
-  tab (coverage/freshness), the OSCAL export control, and the workflow
+  (`HelpLink`) on the control editor (the three status fields), the overlay
+  metadata panel (IL4 Help), the Evidence tab (coverage/freshness), the OSCAL
+  export control (including IL4-unavailable copy), and the workflow
   automation rule list — not added to every screen. Contextual links stay
   in-app (same tab) and deep-link to the relevant heading where one exists
 - Tests validate manifest loading/ordering, path-traversal-safe slug
@@ -281,17 +285,32 @@ Production deployments use `DEPLOYMENT_MODE` (`docs/deployment.md`, ADR-028).
     (`cmmc-level-2-nist-sp-800-171-r2`): 110 requirements identical to
     NIST SP 800-171 Revision 2 (February 2020, updates as of 28 January 2021),
     as adopted by 32 CFR Part 170. Do not substitute Rev. 3.
+  - DoD Cloud Impact Level 4 (`dod-cloud-il4-rev5`): 345 framework items
+    (183 NIST bases, 152 enhancements, 10 General Readiness Requirements).
+    Product-selectable under DoD Cloud → Impact Level 4. Known non-conflicting
+    overlay assignments may appear as a derived Effective requirement, and
+    unresolved organization-defined parameters use their NIST catalog
+    descriptions in the authoring view; the NIST source statement remains
+    available. Overlay supplements, DSPAV notices, and CDS applicability stay
+    separate. Evidence, coverage, review,
+    and collaboration use the generic 345-item population, including GRRs.
+    OSCAL SSP export is disabled.
 - Framework source of truth: `FrameworkRegistry` (ADR-026). NIST entries are
   derived from pinned OSCAL profiles + SP 800-53 catalog. CMMC is derived from
   pinned NIST SP 800-171 R2 CSV with the official PDF as the normative
-  publication. Runtime identity is `projects.framework_id`;
+  publication. DoD IL4 is derived from the FedRAMP Moderate workbook, DoD
+  SSP Addendum extract, NIST catalog, and SRG Appendix D extract (ADR-029).
+  Runtime identity is `projects.framework_id`;
   `project_json.project.frameworkId` is a schema v1 compatibility copy only.
 - Create UI defaults to Moderate and always sends an explicit `frameworkId`.
   Omitting `frameworkId` on the create API still selects Moderate for
   backwards-compatible callers; that default is API compatibility, not the
-  architectural source of framework identity.
+  architectural source of framework identity. IL4 is product-selectable.
+  `createProjectAction` rejects unknown IDs and descriptors with
+  `productSelectable: false`. `createProjectForOrg` accepts any registered ID.
 - Demo/bootstrap projects: the Goose flagship remains Moderate; supporting
-  demo projects cover Low, High, and CMMC Level 2. See `docs/demo-data.md`.
+  demo projects cover Low, High, CMMC Level 2, and DoD Cloud Impact Level 4
+  (Snow Goose Cloud Impact Level 4). See `docs/demo-data.md`.
 - Existing projects continue as Moderate; no SQL backfill was required.
 - Current product does not claim FedRAMP, CMMC certification, C3PAO
   assessment, MET / NOT MET, or SPRS scoring.
@@ -400,16 +419,30 @@ cutover only.
 - Intentionally NIST-specific behavior remains for 800-53 projects: control
   families, enhancement IDs (`ac-2.1`), family grouping, and client SSP export
   via the NIST identity table rather than `FrameworkRegistry`. CMMC projects
-  use requirement terminology and have no OSCAL SSP export.
+  use requirement terminology and have no OSCAL SSP export. DoD IL4 is
+  product-selectable with overlay metadata on the framework read model;
+  OSCAL SSP export is disabled
+  (`frameworkHasOscalSspExport("dod-cloud-il4-rev5") === false`).
 - Per-control UI action hiding is coarse; server authorization is authoritative
 - Production Docker image must not statically import PGlite (devDependency;
   pruned from the image). Tests load it only inside `openTestDb()`.
+- DoD IL4 Moderate / MMx (`dod-cloud-il4-rev5`) is a product-selectable
+  `FrameworkProvider` (WP4) with generic Evidence/workflow/collaboration
+  on all 345 item IDs including GRRs (WP5). Overlay parameter/provenance
+  metadata remains framework read-model data only; it does not mutate
+  ControlRecord, review, evidenceRequirement, or coverage population.
+  OSCAL export remains disabled and named versions preserve live
+  `frameworkId` (WP6). Help documents the implemented overlay model in
+  `docs/user-guide/dod-cloud-il4.md`. Canonical demo includes Snow Goose
+  Cloud Impact Level 4 without replacing the Moderate flagship (WP7).
+  See ADR-029 and `vendor/dod/cloud-il4-rev5/SOURCES.md`.
 
 ## Next approved milestone
 
-Word/PDF export remains on the roadmap. Milestone 05C is the verified
-hosted seeded demo on Render. See `docs/roadmap.md`, `docs/deployment.md`,
-and `docs/deploy-render.md`.
+Milestone 06A (DoD Impact Level 4 Framework Support) is implemented.
+Word/PDF authorization-package export and future IL5/IL6 work remain on
+the roadmap. See `docs/roadmap.md` and
+`docs/milestones/06A-dod-impact-level-4-framework-support.md`.
 
 ## Required verification for each milestone
 

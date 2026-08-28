@@ -43,8 +43,10 @@ import type { EvidenceAttentionFilter } from "@/components/workspace/presentatio
 import { HelpLink } from "@/components/help/HelpLink";
 import {
   evidenceCoverageDisclaimer,
+  sentenceCase,
   type FrameworkItemTerms,
 } from "@/components/framework/presentation";
+import { frameworkItemKindLabel } from "@/components/controlBrowser/overlayPresentation";
 import { resolveEvidenceListSelection } from "@/components/evidence/selection";
 
 export type EvidenceBrowserProps = {
@@ -152,6 +154,16 @@ export function EvidenceBrowser({
     }
     return map;
   }, [framework.controls]);
+  const itemKindLabelById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const control of framework.controls) {
+      map.set(
+        control.id,
+        sentenceCase(frameworkItemKindLabel(control, itemTerms)),
+      );
+    }
+    return map;
+  }, [framework.controls, itemTerms]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -573,7 +585,9 @@ export function EvidenceBrowser({
                         {formatControlIdDisplay(row.controlId)}
                       </span>
                       <span className="mt-0.5 block text-sm text-text-secondary">
-                        {controlTitleById.get(row.controlId) ?? "Control"}
+                        {controlTitleById.get(row.controlId) ??
+                          itemKindLabelById.get(row.controlId) ??
+                          sentenceCase(itemTerms.singular)}
                       </span>
                     </span>
                     <EvidenceCoverageBadge

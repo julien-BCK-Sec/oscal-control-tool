@@ -3,17 +3,22 @@
  * Parameter insert tokens from the catalog are highlighted; source text is not altered.
  */
 
-const PARAM_TOKEN =
+export const PARAM_INSERT_PATTERN =
   /\{\{\s*insert:\s*param,\s*([^}]+?)\s*\}\}/gi;
 
 export type RequirementSegment =
   | { kind: "text"; value: string }
   | { kind: "param"; value: string; name: string };
 
+export function statementHasParamInsert(statement: string): boolean {
+  PARAM_INSERT_PATTERN.lastIndex = 0;
+  return PARAM_INSERT_PATTERN.test(statement);
+}
+
 export function splitRequirementSegments(statement: string): RequirementSegment[] {
   const segments: RequirementSegment[] = [];
   let lastIndex = 0;
-  const pattern = new RegExp(PARAM_TOKEN.source, PARAM_TOKEN.flags);
+  const pattern = new RegExp(PARAM_INSERT_PATTERN.source, PARAM_INSERT_PATTERN.flags);
 
   for (const match of statement.matchAll(pattern)) {
     const index = match.index ?? 0;

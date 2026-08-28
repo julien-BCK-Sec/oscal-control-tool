@@ -34,6 +34,7 @@ import {
 import type { ProjectSnapshotSummary } from "@/persistence/types";
 import {
   sentenceCase,
+  oscalExportUnavailableCopy,
   type FrameworkItemTerms,
 } from "@/components/framework/presentation";
 import { formatControlIdDisplay } from "@/components/controlBrowser/presentation";
@@ -284,7 +285,7 @@ export function ProjectOverview({
                   <p className="mt-0.5 text-xs text-text-muted">
                     {oscalAvailable
                       ? "Domain checks update live. OSCAL schema validation runs on demand."
-                      : "Domain checks update live. OSCAL SSP export and schema validation are available for NIST SP 800-53 projects. No official CMMC / SP 800-171 Rev. 2 OSCAL profile is pinned."}
+                      : `Domain checks update live. ${oscalExportUnavailableCopy(framework.id)}`}
                   </p>
                 </div>
                 {oscalAvailable ? (

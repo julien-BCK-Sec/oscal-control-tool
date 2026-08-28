@@ -214,6 +214,8 @@ describe("runProductionLifecycle with PGlite", () => {
       projects.firstdoorCloud.name,
       CANONICAL_PROJECTS.firstdoorCloud.name,
     );
+    assert.equal(projects.il4.name, CANONICAL_PROJECTS.il4.name);
+    assert.equal(projects.il4.frameworkId, CANONICAL_PROJECTS.il4.frameworkId);
 
     const repository = createPostgresProjectRepository(db);
     const loaded = await repository.load(projects.flagship.id);
@@ -246,6 +248,6 @@ describe("runProductionLifecycle with PGlite", () => {
     const listed = await repository.list(
       first.demoBootstrap.identity.orgs.cgds.id,
     );
-    assert.equal(listed.length, 5);
+    assert.equal(listed.length, 6);
   });
 });

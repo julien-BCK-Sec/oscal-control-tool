@@ -195,7 +195,7 @@ async function run(): Promise<void> {
   const cgdsProjects = await demoProjects.list(cgds.id);
   const contosoProjects = await demoProjects.list(contoso.id);
   const firstdoorProjects = await demoProjects.list(firstdoor.id);
-  assert.equal(cgdsProjects.length, 5);
+  assert.equal(cgdsProjects.length, 6);
   assert.equal(contosoProjects.length, 1);
   assert.equal(firstdoorProjects.length, 1);
   assert.ok(
@@ -207,6 +207,7 @@ async function run(): Promise<void> {
     cgdsProjects.some((p) => p.name === CANONICAL_PROJECTS.evidenceGap.name),
   );
   assert.ok(cgdsProjects.some((p) => p.name === CANONICAL_PROJECTS.high.name));
+  assert.ok(cgdsProjects.some((p) => p.name === CANONICAL_PROJECTS.il4.name));
   assert.ok(
     firstdoorProjects.some(
       (p) => p.name === CANONICAL_PROJECTS.firstdoorCloud.name,

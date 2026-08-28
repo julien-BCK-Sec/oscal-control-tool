@@ -1,6 +1,9 @@
 "use server";
 
-import { DEFAULT_FRAMEWORK_ID, isRegisteredFrameworkId } from "@/data/framework";
+import {
+  DEFAULT_FRAMEWORK_ID,
+  assertProductSelectableFrameworkId,
+} from "@/data/framework";
 import { isControlImplementation } from "@/data/implementation";
 import { isProjectMetadata } from "@/data/project";
 import { getProjectRepository } from "@/persistence/server";
@@ -129,9 +132,7 @@ export async function createProjectAction(input: {
     typeof input.frameworkId === "string" && input.frameworkId.trim() !== ""
       ? input.frameworkId.trim()
       : DEFAULT_FRAMEWORK_ID;
-  if (!isRegisteredFrameworkId(frameworkId)) {
-    throw new Error("Unknown framework.");
-  }
+  assertProductSelectableFrameworkId(frameworkId);
   const metadata =
     input.metadata === undefined
       ? undefined

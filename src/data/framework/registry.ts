@@ -7,11 +7,13 @@ import type {
 } from "./types";
 import {
   cmmcLevel2FrameworkProvider,
+  dodCloudIl4FrameworkProvider,
   nistHighFrameworkProvider,
   nistLowFrameworkProvider,
   nistModerateFrameworkProvider,
 } from "./provider";
 import { CMMC_LEVEL_2_IDENTITY } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
+import { DOD_CLOUD_IL4_IDENTITY } from "@/framework/dod-cloud-il4-rev5/identities";
 import {
   DEFAULT_FRAMEWORK_ID,
   NIST_HIGH_IDENTITY,
@@ -68,6 +70,21 @@ const ENTRIES: readonly {
       itemPlural: CMMC_LEVEL_2_IDENTITY.itemPlural,
     },
     provider: cmmcLevel2FrameworkProvider,
+  },
+  {
+    descriptor: {
+      id: DOD_CLOUD_IL4_IDENTITY.id,
+      title: DOD_CLOUD_IL4_IDENTITY.title,
+      catalog: DOD_CLOUD_IL4_IDENTITY.catalog,
+      revision: DOD_CLOUD_IL4_IDENTITY.revision,
+      profile: DOD_CLOUD_IL4_IDENTITY.profile,
+      provider: DOD_CLOUD_IL4_IDENTITY.provider,
+      source: DOD_CLOUD_IL4_IDENTITY.source,
+      itemSingular: DOD_CLOUD_IL4_IDENTITY.itemSingular,
+      itemPlural: DOD_CLOUD_IL4_IDENTITY.itemPlural,
+      productSelectable: DOD_CLOUD_IL4_IDENTITY.productSelectable,
+    },
+    provider: dodCloudIl4FrameworkProvider,
   },
 ];
 
@@ -126,6 +143,36 @@ export { DEFAULT_FRAMEWORK_ID };
 
 export function isRegisteredFrameworkId(id: string): boolean {
   return frameworkRegistry.has(id);
+}
+
+export function isProductSelectableFramework(
+  descriptor: FrameworkDescriptor,
+): boolean {
+  return descriptor.productSelectable !== false;
+}
+
+export function listProductSelectableFrameworks(): readonly FrameworkDescriptor[] {
+  return frameworkRegistry.list().filter(isProductSelectableFramework);
+}
+
+export function isProductSelectableFrameworkId(id: string): boolean {
+  const descriptor = frameworkRegistry.getDescriptor(id);
+  return descriptor !== undefined && isProductSelectableFramework(descriptor);
+}
+
+/**
+ * New-project create accepts registered, product-selectable IDs only.
+ * Registered-but-gated frameworks remain resolvable for runtime/tests.
+ */
+export function assertProductSelectableFrameworkId(id: string): string {
+  const frameworkId = id.trim();
+  if (!isRegisteredFrameworkId(frameworkId)) {
+    throw new Error("Unknown framework.");
+  }
+  if (!isProductSelectableFrameworkId(frameworkId)) {
+    throw new Error("Framework is not available for new projects.");
+  }
+  return frameworkId;
 }
 
 export function resolveFramework(frameworkId: string): Framework {

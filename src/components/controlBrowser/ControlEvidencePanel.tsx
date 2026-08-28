@@ -39,6 +39,7 @@ export type ControlEvidencePanelProps = {
   canEdit: boolean;
   coverage?: ControlEvidenceCoverage | null;
   onActivity?: () => void;
+  itemSingular?: string;
 };
 
 export function ControlEvidencePanel({
@@ -48,6 +49,7 @@ export function ControlEvidencePanel({
   canEdit,
   coverage = null,
   onActivity,
+  itemSingular = "control",
 }: ControlEvidencePanelProps) {
   const [items, setItems] = useState<EvidenceWithControlIds[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -155,7 +157,7 @@ export function ControlEvidencePanel({
         Evidence
       </h3>
       <p className="mt-1 text-xs text-text-muted">
-        Logical evidence records linked to this control. Open a linked
+        Logical evidence records linked to this {itemSingular}. Open a linked
         record from its title to inspect metadata, versions, and files on
         the project Evidence tab. Draft Evidence does not satisfy coverage;
         active Evidence without a file still does.
@@ -330,7 +332,7 @@ export function ControlEvidencePanel({
             </button>
           </div>
           <FormHint className="mt-2">
-            Creates active evidence and links it to this control.
+            Creates active evidence and links it to this {itemSingular}.
           </FormHint>
         </div>
       ) : null}

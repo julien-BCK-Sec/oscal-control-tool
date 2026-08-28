@@ -1,8 +1,13 @@
-import type { Framework, FrameworkControl } from "@/data/framework/types";
+import type {
+  Framework,
+  FrameworkControl,
+  FrameworkOrganizationDefinedParameter,
+} from "@/data/framework/types";
 import {
   NIST_MODERATE_IDENTITY,
   type NistSp80053Rev5Identity,
 } from "./identities";
+import { extractOrganizationDefinedParameters } from "./parameters";
 
 /**
  * Profile features supported by this narrow resolver.
@@ -49,6 +54,12 @@ type CatalogControlNode = {
   id?: string;
   title?: string;
   class?: string;
+  params?: Array<{
+    id?: string;
+    label?: string;
+    guidelines?: Array<{ prose?: string }>;
+    select?: { "how-many"?: string; choice?: unknown[] };
+  }>;
   parts?: CatalogPart[];
   controls?: CatalogControlNode[];
 };
@@ -65,6 +76,7 @@ type IndexedControl = {
   family: string;
   statementPart: CatalogPart | undefined;
   class: string | undefined;
+  parameters: FrameworkOrganizationDefinedParameter[];
 };
 
 export type FrameworkDerivationFailure = {
@@ -178,6 +190,7 @@ function indexCatalog(catalogRoot: unknown): {
         family: familyTitle,
         statementPart,
         class: node.class,
+        parameters: extractOrganizationDefinedParameters(node.params),
       });
 
       indexControls(node.controls, familyTitle);
@@ -390,6 +403,13 @@ export function deriveNistSp80053Rev5Framework(
       statement,
       source: identity.source,
       sourceVersion,
+      ...(indexed.parameters.length > 0
+        ? {
+            parameters: {
+              organizationDefined: indexed.parameters,
+            },
+          }
+        : {}),
     });
   }
 

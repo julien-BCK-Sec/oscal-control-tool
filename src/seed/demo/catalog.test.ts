@@ -4,6 +4,10 @@ import { resolveFrameworkControls } from "@/data/framework";
 import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
 import { CMMC_LEVEL_2_REQUIREMENT_COUNT } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/families";
 import {
+  DOD_CLOUD_IL4_FRAMEWORK_ID,
+  IL4_TOTAL_COUNT,
+} from "@/framework/dod-cloud-il4-rev5/identities";
+import {
   NIST_HIGH_FRAMEWORK_ID,
   NIST_LOW_FRAMEWORK_ID,
   NIST_MODERATE_FRAMEWORK_ID,
@@ -21,7 +25,9 @@ import {
   buildEvidenceGapImplementations,
   buildFirstDoorImplementations,
   buildHighImplementations,
+  buildIl4Implementations,
   cmmcAddressedCount,
+  il4RepresentativeIds,
 } from "./supporting";
 
 describe("canonical demo catalog", () => {
@@ -34,7 +40,7 @@ describe("canonical demo catalog", () => {
       CANONICAL_PROJECTS.flagship.frameworkId,
       NIST_MODERATE_FRAMEWORK_ID,
     );
-    assert.equal(SUPPORTING_PROJECT_KEYS.length, 6);
+    assert.equal(SUPPORTING_PROJECT_KEYS.length, 7);
   });
 
   it("assigns CMMC Level 2 to the CUI enclave with partial progress", () => {
@@ -53,6 +59,44 @@ describe("canonical demo catalog", () => {
     assert.ok(statuses.has("in-progress"));
     assert.ok(statuses.has("not-applicable"));
     assert.ok(implementations["AC.L2-3.1.1"]);
+  });
+
+  it("assigns DoD Cloud IL4 to Snow Goose Cloud with representative overlay state", () => {
+    const controls = resolveFrameworkControls(DOD_CLOUD_IL4_FRAMEWORK_ID);
+    assert.equal(controls.length, IL4_TOTAL_COUNT);
+    assert.equal(IL4_TOTAL_COUNT, 345);
+    assert.equal(
+      CANONICAL_PROJECTS.il4.frameworkId,
+      DOD_CLOUD_IL4_FRAMEWORK_ID,
+    );
+    assert.equal(
+      resolveFrameworkControls(CANONICAL_PROJECTS.il4.frameworkId).length,
+      345,
+    );
+    assert.equal(
+      CANONICAL_PROJECTS.flagship.frameworkId,
+      NIST_MODERATE_FRAMEWORK_ID,
+    );
+
+    const implementations = buildIl4Implementations();
+    for (const id of il4RepresentativeIds()) {
+      assert.ok(implementations[id], `missing representative IL4 item ${id}`);
+    }
+    assert.equal(implementations["ac-2"]?.status, "implemented");
+    assert.equal(implementations["grr-1"]?.status, "implemented");
+    assert.equal(implementations["sc-46"]?.status, "in-progress");
+    assert.notEqual(implementations["sc-46"]?.status, "not-applicable");
+    assert.match(implementations["ac-7"]?.narrative ?? "", /has not invented a DSPAV/i);
+    assert.match(
+      implementations["ia-5.1"]?.narrative ?? "",
+      /does not choose a winner/i,
+    );
+    const allNarratives = Object.values(implementations)
+      .map((row) => row.narrative)
+      .join("\n");
+    assert.doesNotMatch(allNarratives, /DSPAV\s*(value|is|=)\s*["']?\d/i);
+    assert.doesNotMatch(allNarratives, /rmfks\.osd\.mil/i);
+    assert.ok(Object.keys(implementations).length < IL4_TOTAL_COUNT);
   });
 
   it("keeps supporting projects at distinct maturity levels", () => {

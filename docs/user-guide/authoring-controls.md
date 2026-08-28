@@ -3,14 +3,16 @@ title: Document controls and requirements
 summary: Browsing the control tree and everything on the control editor screen — narrative, ownership, and the three status fields.
 section: controls
 order: 10
-related: welcome, review-workflow, evidence
+related: welcome, review-workflow, evidence, dod-cloud-il4
 ---
 
 ## Browsing controls
 
 The Controls tab (labeled Requirements on CMMC projects) shows every item
 in the project's framework as a tree, grouped by family, with NIST
-enhancements nested under their parent control. A search box filters by ID
+enhancements nested under their parent control. DoD General Readiness
+Requirements appear as top-level items in their own family, not nested
+under NIST controls. A search box filters by ID
 or title — matching a parent control also shows its enhancements, and
 matching an enhancement keeps its parent visible for context. **Expand
 all** / **Collapse all** control the tree, and an overall completion
@@ -31,10 +33,15 @@ appears here too on wider screens.
 
 Below the header:
 
-- **Requirement** — a collapsed-by-default reference panel showing the
-  framework's own requirement text (the OSCAL statement, with any
-  parameters highlighted). This is read-only reference text, not your
-  narrative.
+- **Requirement** — the human-readable requirement text. Catalog
+  parameter placeholders are replaced with the NIST parameter
+  description, and known authoritative assignments (when a framework
+  supplies them) are inserted inline. This is read-only reference text,
+  not your narrative. The untouched catalog **Source statement** remains
+  available and collapsed by default when you need exact source
+  wording. On DoD Cloud Impact Level 4 projects, a derived **Effective
+  requirement** may appear first when authoritative assignments are
+  known. See [DoD Cloud Impact Level 4](/help/dod-cloud-il4).
 - **Narrative** — your implementation text, plus a **Narrative status**
   field (see below).
 - **Evidence** — Evidence records linked to this control. See

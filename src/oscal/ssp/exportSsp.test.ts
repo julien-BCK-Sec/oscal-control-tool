@@ -13,6 +13,7 @@ import {
   type NistSp80053Rev5Identity,
 } from "@/framework/nist-sp-800-53-rev5/identities";
 import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
+import { DOD_CLOUD_IL4_FRAMEWORK_ID } from "@/framework/dod-cloud-il4-rev5/identities";
 import { NIST_SP80053_REV5_MODERATE_PROFILE_URI } from "@/oscal/ssp/constants";
 import { projectToOscalSsp } from "@/oscal/ssp/exportSsp";
 import { validateOscalSspDocument } from "@/oscal/ssp/validateSsp";
@@ -83,6 +84,20 @@ describe("projectToOscalSsp framework profile metadata", () => {
           NIST_SP80053_REV5_MODERATE_PROFILE_URI,
         );
       }
+      const expectedIds = resolveFrameworkControls(identity.id).map(
+        (control) => control.id,
+      );
+      const exportedIds = ssp["control-implementation"][
+        "implemented-requirements"
+      ].map((requirement) => requirement["control-id"]);
+      assert.deepEqual(exportedIds, expectedIds);
+      assert.equal(exportedIds.includes("grr-1"), false);
+      assert.equal(exportedIds.includes("AC.L2-3.1.1"), false);
+      if (identity.id === NIST_MODERATE_FRAMEWORK_ID) {
+        assert.equal(exportedIds.length, 287);
+        assert.equal(exportedIds.includes("sc-24"), false);
+        assert.equal(exportedIds.includes("sc-46"), false);
+      }
       const validation = validateOscalSspDocument(document);
       assert.equal(validation.ok, true);
     });
@@ -105,6 +120,35 @@ describe("projectToOscalSsp framework profile metadata", () => {
         ),
       /Unknown framework/,
     );
+  });
+
+  it("does not fabricate an OSCAL SSP for DoD Cloud IL4", () => {
+    assert.equal(frameworkHasOscalSspExport(DOD_CLOUD_IL4_FRAMEWORK_ID), false);
+    assert.equal(frameworkHasOscalSspExport(NIST_MODERATE_FRAMEWORK_ID), true);
+    const il4Controls = resolveFrameworkControls(DOD_CLOUD_IL4_FRAMEWORK_ID);
+    assert.equal(il4Controls.length, 345);
+    let document: ReturnType<typeof projectToOscalSsp> | null = null;
+    assert.throws(
+      () => {
+        document = projectToOscalSsp(
+          assembleProject({
+            metadata: {
+              systemName: "IL4",
+              organizationName: "Example",
+              systemDescription: "Should not export.",
+            },
+            frameworkId: DOD_CLOUD_IL4_FRAMEWORK_ID,
+            frameworkControls: il4Controls,
+            implementations: {},
+          }),
+        );
+      },
+      (error: unknown) =>
+        error instanceof Error &&
+        /Unknown framework: dod-cloud-il4-rev5/.test(error.message) &&
+        !/Moderate/.test(error.message),
+    );
+    assert.equal(document, null);
   });
 
   it("does not fabricate an OSCAL SSP for CMMC Level 2", () => {

@@ -120,11 +120,23 @@ See `docs/milestones/05C-render-deployment-seeded-demo-verification.md`,
 Markdown-sourced Help Center (`/help`, `/help/{slug}`) rendering
 `docs/user-guide/` content through a dependency-free parser, in-memory
 full-text search, and targeted contextual links (`HelpLink`) on the
-control editor, Evidence tab, OSCAL export control, and workflow
-automation rule list. Tests cover manifest ordering, path-traversal-safe
-slug resolution, contextual anchors, and that every internal `/help/{slug}`
-and `related` link resolves. See `docs/current-state.md`
-("In-app Help / user guide").
+control editor, Evidence tab, OSCAL export control, overlay metadata
+panel, and workflow automation rule list. Tests cover manifest ordering,
+path-traversal-safe slug resolution, contextual anchors, and that every
+internal `/help/{slug}` and `related` link resolves. See
+`docs/current-state.md` ("In-app Help / user guide").
+
+**Milestone 06A – DoD Impact Level 4 Framework Support** (implemented)
+
+DoD Cloud Impact Level 4 (`dod-cloud-il4-rev5`) as a registered overlay
+framework: FedRAMP Rev. 5 Moderate plus the DoD IL4 Addendum overlay,
+345 framework items including 10 General Readiness Requirements, overlay
+presentation, generic Evidence/workflow on all item IDs, OSCAL SSP export
+disabled (no approved/pinned IL4 OSCAL profile), and a complementary
+Snow Goose Cloud IL4 demo project. Not FedRAMP authorization, DoD
+authorization, Provisional Authorization, or an ATO. See
+`docs/milestones/06A-dod-impact-level-4-framework-support.md`, ADR-029,
+and `docs/user-guide/dod-cloud-il4.md`.
 
 ## Future directions
 
@@ -180,8 +192,10 @@ become milestones as their scope and dependencies become clearer.
 ### Frameworks and mappings
 
 - **Additional frameworks** — extend the registry beyond NIST SP 800-53 Rev. 5
-  Low / Moderate / High and CMMC Level 2. Candidates include CMMC Levels 1/3,
-  NIST CSF, ISO/IEC 27001, CIS Controls, PCI DSS, and other useful frameworks.
+  Low / Moderate / High, CMMC Level 2, and DoD Cloud Impact Level 4.
+  Candidates include CMMC Levels 1/3, DoD Cloud IL5 / IL6, NIST CSF,
+  ISO/IEC 27001, CIS Controls, PCI DSS, privacy/NSS overlays, and other
+  useful frameworks.
 
 - **Cross-framework mappings** — represent relationships among controls and
   requirements so common implementation and Evidence can be understood across

@@ -1,0 +1,153 @@
+{
+  "source": {
+    "title": "Cloud Service Provider SRG, V1R7",
+    "publisher": "DISA",
+    "date": "30 June 2026",
+    "package": "U_Cloud_Computing_Y26M06_SRG.zip",
+    "pdf": "U_Cloud_Service_Provider_V1R7_SRG.pdf",
+    "section": "Appendix D Table D-1, IL4-applicable rows",
+    "pdfSha256": "fcb472f563283f293e224fcf72987584deb6019482a264a6536c2d5c1a5df51f",
+    "zipSha256": "9470b9caadd3ff44b90e608c524012fa719c9b3541b3f0bb027b38b5b9e67971",
+    "note": "Structured extract of Table D-1 parameter notes for IL4 cross-check and provenance only. Appendix D is not the complete IL4 population. The SSP Addendum IL4 Moderate sheet is the PA-facing control list."
+  },
+  "notes": [
+    {
+      "originId": "AC-7",
+      "parameterValues": "For privileged users, DoW requires an account lock after three unsuccessful attempts for Impact Levels 2/4/5 and after five unsuccessful attempts for accounts using a SIPR token. All levels must be configured to require an administrator unlock the account. For nonprivileged users, if rate limiting, DoW will allow 10 attempts with the account automatically unlocked after 30 minutes. If rate limiting is not used, normal DSPAV will be required.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": true
+    },
+    {
+      "originId": "AU-5(1)",
+      "parameterValues": "CSP/CSO may use FedRAMP value.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "CM-7(5)",
+      "parameterValues": "DSPAV must be used.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": true
+    },
+    {
+      "originId": "IA-5(1)",
+      "parameterValues": "DSPAV must be used.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": true
+    },
+    {
+      "originId": "PE-15",
+      "parameterValues": "DSPAV must be used.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": true
+    },
+    {
+      "originId": "PS-3(4)",
+      "parameterValues": "All information systems. Users: U.S. citizens, U.S. nationals, or U.S. persons, foreign personnel as allowed by current DoW polices with AO approval. Administrators: U.S. citizens, U.S. nationals, or U.S. persons.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "MA-5(1)",
+      "parameterValues": "DSPAV must be used.",
+      "impactNote": "IL4",
+      "indicatesDspav": true
+    },
+    {
+      "originId": "MA-5(5)",
+      "parameterValues": "",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "MA-6",
+      "parameterValues": "CSP/CSO may use FedRAMP value.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "PS-4",
+      "parameterValues": "CSP/CSO may use FedRAMP value.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "SA-4(5)",
+      "parameterValues": "DSPAV must be used.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": true
+    },
+    {
+      "originId": "SA-9(1)",
+      "parameterValues": "DSPAV must be used.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": true
+    },
+    {
+      "originId": "SA-9(3)",
+      "parameterValues": "DSPAV must be used.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": true
+    },
+    {
+      "originId": "SA-9(5)",
+      "parameterValues": "SA-9 (5)-1 [information processing, information or data, AND system services]. SA-9 (5)-2 [U.S./U.S. Territories or geographic locations where there is U.S. jurisdiction]. SA-9 (5)-3 [all data, systems, or services].",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "SA-9(6)",
+      "parameterValues": "",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "SA-9(7)",
+      "parameterValues": "",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "SA-9(8)",
+      "parameterValues": "",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "SC-12(6)",
+      "parameterValues": "",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "SC-17",
+      "parameterValues": "DODI 8520.02, Public Key Infrastructure (PKI) and Public Key Enabling (PKE).",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "SC-18",
+      "parameterValues": "",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": false
+    },
+    {
+      "originId": "SC-18(2)",
+      "parameterValues": "DSPAV must be used.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": true
+    },
+    {
+      "originId": "SC-24",
+      "parameterValues": "DSPAV must be used.",
+      "impactNote": "IL4, IL5, IL6",
+      "indicatesDspav": true
+    },
+    {
+      "originId": "SC-46",
+      "parameterValues": "DSPAV must be used.",
+      "impactNote": "If CDS is used",
+      "indicatesDspav": true
+    }
+  ]
+}
