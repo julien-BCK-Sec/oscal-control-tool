@@ -126,7 +126,7 @@ path-traversal-safe slug resolution, contextual anchors, and that every
 internal `/help/{slug}` and `related` link resolves. See
 `docs/current-state.md` ("In-app Help / user guide").
 
-**Milestone 06A – DoD Impact Level 4 Framework Support** (implemented)
+**Milestone 06A – DoD Impact Level 4 Framework Support** (implemented, released as v0.6.1)
 
 DoD Cloud Impact Level 4 (`dod-cloud-il4-rev5`) as a registered overlay
 framework: FedRAMP Rev. 5 Moderate plus the DoD IL4 Addendum overlay,
@@ -134,9 +134,12 @@ framework: FedRAMP Rev. 5 Moderate plus the DoD IL4 Addendum overlay,
 presentation, generic Evidence/workflow on all item IDs, OSCAL SSP export
 disabled (no approved/pinned IL4 OSCAL profile), and a complementary
 Snow Goose Cloud IL4 demo project. Not FedRAMP authorization, DoD
-authorization, Provisional Authorization, or an ATO. See
+authorization, Provisional Authorization, or an ATO. Production verified
+on the hosted demo (`DEPLOYMENT_MODE=demo`, branch `main`, auto-deploy
+off). v0.6.0 is the merge commit that failed the Docker Help packaging
+build; v0.6.1 is the live release. See
 `docs/milestones/06A-dod-impact-level-4-framework-support.md`, ADR-029,
-and `docs/user-guide/dod-cloud-il4.md`.
+`docs/user-guide/dod-cloud-il4.md`, and `docs/deploy-render.md`.
 
 ## Future directions
 

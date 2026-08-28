@@ -2,7 +2,16 @@
 
 ## Status
 
-Implemented 2026-08-27. WP1 through WP7 complete.
+Implemented, merged, released, and production verified 2026-08-27.
+WP1 through WP7 complete.
+
+Production release: **v0.6.1** (`eb12b69`).
+
+**v0.6.0** (`48ae30f`) is the 06A merge commit. It failed the Render
+Docker build because `.dockerignore` excluded `docs/user-guide`.
+**v0.6.1** includes that packaging fix (`7d2034f` merged as `eb12b69`)
+and is the live production revision. Do not treat v0.6.0 as the live
+release.
 
 Durable framework ID: **`dod-cloud-il4-rev5`**. Population: **345** items
 (323 FedRAMP Moderate NIST items + 12 DoD-selected NIST items + 10 GRRs).

@@ -210,8 +210,10 @@ For demo mode, use the same image with `DEPLOYMENT_MODE=demo` and
 `DEMO_BOOTSTRAP_PASSWORD`.
 
 The image includes migrate/bootstrap sources (`src/`, `scripts/`,
-`drizzle-pg/`). Secrets stay outside the image. `PORT` is honored; the process
-binds `0.0.0.0`.
+`drizzle-pg/`) and in-app Help Markdown (`docs/user-guide/`).
+`.dockerignore` excludes the rest of `docs/` but keeps `docs/user-guide`
+so Help can be copied from the builder via `COPY . .`. Secrets stay
+outside the image. `PORT` is honored; the process binds `0.0.0.0`.
 
 Production images run `npm prune --omit=dev`. Do not statically import
 dev-only modules such as PGlite from production startup or persistence code.

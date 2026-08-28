@@ -56,6 +56,31 @@ The application currently provides:
 OSCAL is an export/interchange format, not the internal editing model.
 Collaboration metadata is never exported as OSCAL.
 
+## Verified production release
+
+**v0.6.1** (`eb12b69926dca4b47c2cb4cd03e3d8dc0f053391`) is the live
+production revision. Milestone 06A is implemented, merged, released, and
+production verified.
+
+**v0.6.0** (`48ae30f`) is the 06A merge commit. It is **not** the live
+release: the Render Docker build failed because `.dockerignore` excluded
+`docs/user-guide` from the builder context. **v0.6.1** includes that
+packaging fix (`7d2034f`, merged as `eb12b69`). The production image uses
+builder `COPY . .` plus `.dockerignore` exceptions for `docs/user-guide`.
+No extra Dockerfile `COPY` of Help files was committed.
+
+Hosted demo (`docs/deploy-render.md`): service `oscal-control-tool`, source
+branch `main`, auto-deploy **off**, `DEPLOYMENT_MODE=demo`. Health
+`GET /api/health` returns HTTP 200.
+
+Production smoke confirmed IL4 is selectable, Snow Goose Cloud Impact
+Level 4 (Demo) exists, NIST Moderate and CMMC Level 2 remain available
+(including Strategic Goose Operations Platform), IL4 Help resolves, IL4
+OSCAL SSP export remains unavailable, and representative IL4 items
+(AC-2, AC-7, IA-5(1), SC-17, SC-46, GRR-1) resolve with the IA-5(1)
+source-conflict notice and DSPAV-required overlay behavior still present.
+Help Markdown is in the production Docker image.
+
 Current stack:
 
 - Next.js (App Router)
@@ -271,7 +296,8 @@ Production deployments use `DEPLOYMENT_MODE` (`docs/deployment.md`, ADR-028).
   `related` link in the content resolves to a real page
 - Content is read from `docs/user-guide/*.md` at runtime (same pattern as
   the pinned OSCAL schema); the production Docker image copies that
-  directory alongside `src` and the vendor schema
+  directory from the builder (`COPY . .`) because `.dockerignore` keeps
+  `docs/user-guide` while excluding the rest of `docs/`
 - Reused for other output formats (standalone HTML, PDF, Word) if desired
   later: the Markdown source has no in-app-only content and no build step
 
@@ -439,10 +465,9 @@ cutover only.
 
 ## Next approved milestone
 
-Milestone 06A (DoD Impact Level 4 Framework Support) is implemented.
-Word/PDF authorization-package export and future IL5/IL6 work remain on
-the roadmap. See `docs/roadmap.md` and
-`docs/milestones/06A-dod-impact-level-4-framework-support.md`.
+None. Milestone 06A is released as **v0.6.1**. Word/PDF
+authorization-package export and future IL5/IL6 work remain unscheduled
+on `docs/roadmap.md`.
 
 ## Required verification for each milestone
 

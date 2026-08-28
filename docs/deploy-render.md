@@ -35,9 +35,31 @@ URL for cookies, redirects, or invitation links.
 First demo boot created the canonical 05A dataset (`orgs +2, users +8,
 projects +6`). Adding FirstDoor later creates the missing org, seven
 admins, and one Moderate project (`orgs +1, users +7, projects +1`) on the
-next demo start. A later redeploy of the same service, without resetting
-PostgreSQL, logs `orgs +0, users +0, projects +0` and preserves user edits
-plus uploaded Evidence objects.
+next demo start. The Milestone 06A cutover created Snow Goose Cloud Impact
+Level 4 (`orgs +0, users +0, projects +1`) without resetting PostgreSQL.
+A later redeploy of the same service, without resetting PostgreSQL, logs
+`orgs +0, users +0, projects +0` and preserves user edits plus uploaded
+Evidence objects.
+
+## Verified production release (Milestone 06A)
+
+Live revision: **v0.6.1** (`eb12b69`). Source branch is **`main`**.
+Auto-deploy is **off**. `DEPLOYMENT_MODE=demo`. Health `GET /api/health`
+returns HTTP 200 on the custom domain.
+
+**v0.6.0** (`48ae30f`) is the 06A merge commit. It is **not** the live
+release: Render’s Docker build failed because `.dockerignore` excluded
+`docs/user-guide` from the builder. The fix is `7d2034f` (merged as
+`eb12b69`): `.dockerignore` exceptions so Help Markdown enters builder
+`COPY . .`. An experimental extra Dockerfile `COPY` of that directory was
+discarded and not committed.
+
+06A production smoke confirmed IL4 is selectable, Snow Goose Cloud Impact
+Level 4 (Demo) exists, NIST Moderate and CMMC Level 2 remain available
+(including Strategic Goose Operations Platform), IL4 Help resolves, IL4
+OSCAL SSP export remains unavailable, and representative overlay items
+AC-2, AC-7, IA-5(1), SC-17, SC-46, and GRR-1 resolve with the IA-5(1)
+source-conflict notice and DSPAV-required overlay behavior still present.
 
 ## Seeded demo vs normal install
 
@@ -121,8 +143,10 @@ deploy (`/var/data`). Do not use it for application data. Do not treat it as
 the database or Evidence store.
 
 Blueprint: `render.yaml` (Docker web service + managed Postgres). The
-Blueprint `branch` is `main`. Feature-branch verification used
-`feat/05C-render-deployment` on the existing service with auto-deploy off.
+Blueprint `branch` is `main`. The live service tracks **`main`** with
+auto-deploy **off**. Earlier feature-branch verification used
+`feat/05C-render-deployment` and `feat/firstdoor-demo-tenant` on the same
+service, also with auto-deploy off.
 
 ## Production startup
 
