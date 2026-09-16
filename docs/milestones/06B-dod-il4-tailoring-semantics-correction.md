@@ -1,6 +1,6 @@
 # Milestone 06B — DoD IL4 Tailoring Semantics Correction
 
-**Status:** Implemented, committed on `main` (`b6914c6`), preparing v0.6.2. Not yet tagged, deployed, or production verified.
+**Status:** Implemented, committed, released, and production verified as v0.6.2 (`f7455a4`).
 **Type:** Corrective implementation milestone
 **Depends on:** Milestone 06A — DoD Cloud Impact Level 4 Framework Support  
 **Primary research input:** `docs/research/06B-il4-tailoring-semantics-audit.md`
@@ -19,7 +19,7 @@ The objective is:
 
 > Make IL4 parameter inheritance, DoD adjustments, and provenance explicit, source-backed, fail-closed, and distinguishable to downstream consumers.
 
-WP2–WP7 implement the WP1 contract: Table D-1 is the machine-checkable DoD delta; ordinary FedRAMP assignments are `fedramp-base-inherited`; explicit “may use FedRAMP value” rows are `fedramp-explicitly-referenced`; AU-5(1) provenance is the DoD Addendum. The 345-item population is unchanged. Committed on `main`; not yet tagged, deployed, or production verified.
+WP2–WP7 implement the WP1 contract: Table D-1 is the machine-checkable DoD delta; ordinary FedRAMP assignments are `fedramp-base-inherited`; explicit “may use FedRAMP value” rows are `fedramp-explicitly-referenced`; AU-5(1) provenance is the DoD Addendum. The 345-item population is unchanged. Released and production verified as v0.6.2.
 
 ---
 

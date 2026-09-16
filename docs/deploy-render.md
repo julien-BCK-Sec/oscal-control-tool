@@ -41,25 +41,22 @@ A later redeploy of the same service, without resetting PostgreSQL, logs
 `orgs +0, users +0, projects +0` and preserves user edits plus uploaded
 Evidence objects.
 
-## Verified production release (Milestone 06A)
+## Verified production release (Milestone 06B)
 
-Live revision: **v0.6.1** (`eb12b69`). Source branch is **`main`**.
+Live revision: **v0.6.2** (`f7455a4`). Source branch is **`main`**.
 Auto-deploy is **off**. `DEPLOYMENT_MODE=demo`. Health `GET /api/health`
-returns HTTP 200 on the custom domain.
+returns HTTP 200 on the custom domain. Redeploy preserved canonical demo
+data (`orgs +0, users +0, projects +0`).
 
-**v0.6.0** (`48ae30f`) is the 06A merge commit. It is **not** the live
-release: Render’s Docker build failed because `.dockerignore` excluded
-`docs/user-guide` from the builder. The fix is `7d2034f` (merged as
-`eb12b69`): `.dockerignore` exceptions so Help Markdown enters builder
-`COPY . .`. An experimental extra Dockerfile `COPY` of that directory was
-discarded and not committed.
+06B production smoke confirmed IL4 remains selectable, Snow Goose Cloud
+Impact Level 4 (Demo) loads with 345 items, NIST and CMMC options remain
+available, IL4 OSCAL SSP export remains unavailable, NIST OSCAL SSP export
+remains available, and 06B presentation holds for AC-1, AU-5(1), SC-24,
+IA-5(1), SC-46, and GRR-1.
 
-06A production smoke confirmed IL4 is selectable, Snow Goose Cloud Impact
-Level 4 (Demo) exists, NIST Moderate and CMMC Level 2 remain available
-(including Strategic Goose Operations Platform), IL4 Help resolves, IL4
-OSCAL SSP export remains unavailable, and representative overlay items
-AC-2, AC-7, IA-5(1), SC-17, SC-46, and GRR-1 resolve with the IA-5(1)
-source-conflict notice and DSPAV-required overlay behavior still present.
+**v0.6.1** (`eb12b69`) is the previous 06A live release. **v0.6.0**
+(`48ae30f`) is the 06A merge commit that failed the Docker Help packaging
+build; `.dockerignore` exceptions from `7d2034f` remain in the image.
 
 ## Seeded demo vs normal install
 

@@ -61,28 +61,30 @@ Collaboration metadata is never exported as OSCAL.
 
 ## Verified production release
 
-**v0.6.1** (`eb12b69926dca4b47c2cb4cd03e3d8dc0f053391`) is the live
-production revision. Milestone 06A is implemented, merged, released, and
-production verified.
+**v0.6.2** (`f7455a4ba5ec54963faa4761641ee345b40d5b83`) is the live
+production revision. Milestone 06B is implemented, committed, released, and
+production verified. The v0.6.2 tag was not moved after this documentation
+commit.
 
-**v0.6.0** (`48ae30f`) is the 06A merge commit. It is **not** the live
-release: the Render Docker build failed because `.dockerignore` excluded
-`docs/user-guide` from the builder context. **v0.6.1** includes that
-packaging fix (`7d2034f`, merged as `eb12b69`). The production image uses
-builder `COPY . .` plus `.dockerignore` exceptions for `docs/user-guide`.
-No extra Dockerfile `COPY` of Help files was committed.
+**v0.6.1** (`eb12b69`) is the previous 06A live release and is **not** the
+current production revision. **v0.6.0** (`48ae30f`) is the 06A merge commit
+that failed the Render Docker Help packaging build.
 
 Hosted demo (`docs/deploy-render.md`): service `oscal-control-tool`, source
 branch `main`, auto-deploy **off**, `DEPLOYMENT_MODE=demo`. Health
-`GET /api/health` returns HTTP 200.
+`GET /api/health` returns HTTP 200. Redeploy of v0.6.2 logged demo bootstrap
+`orgs +0, users +0, projects +0`.
 
-Production smoke confirmed IL4 is selectable, Snow Goose Cloud Impact
-Level 4 (Demo) exists, NIST Moderate and CMMC Level 2 remain available
-(including Strategic Goose Operations Platform), IL4 Help resolves, IL4
-OSCAL SSP export remains unavailable, and representative IL4 items
-(AC-2, AC-7, IA-5(1), SC-17, SC-46, GRR-1) resolve with the IA-5(1)
-source-conflict notice and DSPAV-required overlay behavior still present.
-Help Markdown is in the production Docker image.
+Production smoke confirmed IL4 remains selectable, Snow Goose Cloud Impact
+Level 4 (Demo) loads with population 345, NIST Low/Moderate/High and CMMC
+Level 2 remain available (including Strategic Goose Operations Platform),
+IL4 OSCAL SSP export remains unavailable, and NIST OSCAL SSP export remains
+available. Representative 06B presentation: AC-1 is “FedRAMP base, inherited
+for IL4” sourced from FedRAMP Moderate; AU-5(1) is “DoD permits FedRAMP
+value” sourced from DoD IL4; SC-24 shows an Effective requirement captioned
+“DoD IL4 adjustment” with DSPAV/Addendum text sourced from DoD IL4; IA-5(1)
+remains a source conflict with no silent winner; SC-46 remains conditional
+on CDS usage; GRR-1 remains a first-class IL4 general readiness requirement.
 
 Current stack:
 
@@ -474,9 +476,7 @@ cutover only.
 
 ## Next approved milestone
 
-Milestone 06B is committed on `main` (`b6914c6`) and is being prepared as
-corrective release **v0.6.2**. It is not yet tagged, deployed, or
-production verified. **v0.6.1** remains the live production revision.
+None. Milestone 06B is released and production verified as **v0.6.2**.
 Word/PDF authorization-package export and future IL5/IL6 work remain
 unscheduled on `docs/roadmap.md`. A later human-readable SSP generator
 should not begin until per-ODP resolution is designed; 06B left that gap
