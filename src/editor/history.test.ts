@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { DEFAULT_PROJECT_METADATA } from "@/data/project";
 import {
   EditorHistory,
   autosaveStatusLabel,
@@ -9,9 +10,8 @@ import {
 const base = {
   name: "P",
   metadata: {
+    ...DEFAULT_PROJECT_METADATA,
     systemName: "P",
-    organizationName: "",
-    systemDescription: "",
   },
   implementations: {
     "ac-1": { status: "not-started" as const, narrative: "" },

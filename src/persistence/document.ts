@@ -1,13 +1,16 @@
 import { isControlImplementation } from "@/data/implementation";
 import {
-  isProjectMetadata,
+  createProjectMetadata,
+  parseProjectMetadata,
   type ProjectMetadata,
+  type ProjectMetadataInput,
 } from "@/data/project";
 import type { ControlImplementation } from "@/data/implementation";
 import {
   PROJECT_DOCUMENT_SCHEMA_VERSION,
   type StoredProjectDocument,
   type StoredProjectDocumentV1,
+  type StoredProjectDocumentV2,
 } from "./types";
 
 export type DocumentParseError =
@@ -21,6 +24,10 @@ export type DocumentParseResult =
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim() !== "";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function parseImplementations(
@@ -46,40 +53,82 @@ function parseImplementations(
   return implementations;
 }
 
+function parseProjectCore(project: unknown): {
+  id: string;
+  name: string;
+  frameworkId: string;
+  implementations: Record<string, ControlImplementation>;
+} | null {
+  if (!isRecord(project)) {
+    return null;
+  }
+  if (
+    !isNonEmptyString(project.id) ||
+    !isNonEmptyString(project.name) ||
+    !isNonEmptyString(project.frameworkId)
+  ) {
+    return null;
+  }
+  const implementations = parseImplementations(project.implementations);
+  if (implementations === null) {
+    return null;
+  }
+  return {
+    id: project.id.trim(),
+    name: project.name.trim(),
+    frameworkId: project.frameworkId.trim(),
+    implementations,
+  };
+}
+
+function hasV1MetadataCore(value: unknown): value is {
+  systemName: string;
+  organizationName: string;
+  systemDescription: string;
+} {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    typeof value.systemName === "string" &&
+    typeof value.organizationName === "string" &&
+    typeof value.systemDescription === "string"
+  );
+}
+
+function migrateV1MetadataToV2(metadata: {
+  systemName: string;
+  organizationName: string;
+  systemDescription: string;
+}): ProjectMetadata {
+  return createProjectMetadata({
+    systemName: metadata.systemName,
+    organizationName: metadata.organizationName,
+    systemDescription: metadata.systemDescription,
+  });
+}
+
 function parseV1(value: unknown): DocumentParseResult {
-  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+  if (!isRecord(value)) {
     return {
       ok: false,
       error: { kind: "invalid-shape", message: "Document must be an object." },
     };
   }
 
-  const root = value as Record<string, unknown>;
-  if (root.schemaVersion !== 1) {
+  if (value.schemaVersion !== 1) {
     return {
       ok: false,
       error: {
         kind: "unsupported-schema",
         schemaVersion:
-          typeof root.schemaVersion === "number" ? root.schemaVersion : -1,
+          typeof value.schemaVersion === "number" ? value.schemaVersion : -1,
       },
     };
   }
 
-  const project = root.project;
-  if (project === null || typeof project !== "object" || Array.isArray(project)) {
-    return {
-      ok: false,
-      error: { kind: "invalid-shape", message: "Missing project object." },
-    };
-  }
-
-  const p = project as Record<string, unknown>;
-  if (
-    !isNonEmptyString(p.id) ||
-    !isNonEmptyString(p.name) ||
-    !isNonEmptyString(p.frameworkId)
-  ) {
+  const core = parseProjectCore(value.project);
+  if (core === null) {
     return {
       ok: false,
       error: {
@@ -89,55 +138,92 @@ function parseV1(value: unknown): DocumentParseResult {
     };
   }
 
-  if (!isProjectMetadata(p.metadata)) {
+  const project = value.project as Record<string, unknown>;
+  if (!hasV1MetadataCore(project.metadata)) {
     return {
       ok: false,
       error: { kind: "invalid-shape", message: "Invalid project metadata." },
     };
   }
 
-  const implementations = parseImplementations(p.implementations);
-  if (implementations === null) {
-    return {
-      ok: false,
-      error: {
-        kind: "invalid-shape",
-        message: "Invalid control implementations map.",
-      },
-    };
-  }
-
-  const document: StoredProjectDocumentV1 = {
-    schemaVersion: 1,
+  const document: StoredProjectDocumentV2 = {
+    schemaVersion: 2,
     project: {
-      id: p.id.trim(),
-      name: p.name.trim(),
-      frameworkId: p.frameworkId.trim(),
-      metadata: {
-        systemName: p.metadata.systemName,
-        organizationName: p.metadata.organizationName,
-        systemDescription: p.metadata.systemDescription,
-      },
-      implementations,
+      ...core,
+      metadata: migrateV1MetadataToV2({
+        systemName: project.metadata.systemName,
+        organizationName: project.metadata.organizationName,
+        systemDescription: project.metadata.systemDescription,
+      }),
     },
   };
 
   return { ok: true, document };
 }
 
+function parseV2(value: unknown): DocumentParseResult {
+  if (!isRecord(value)) {
+    return {
+      ok: false,
+      error: { kind: "invalid-shape", message: "Document must be an object." },
+    };
+  }
+  if (value.schemaVersion !== 2) {
+    return {
+      ok: false,
+      error: {
+        kind: "unsupported-schema",
+        schemaVersion:
+          typeof value.schemaVersion === "number" ? value.schemaVersion : -1,
+      },
+    };
+  }
+
+  const core = parseProjectCore(value.project);
+  if (core === null) {
+    return {
+      ok: false,
+      error: {
+        kind: "invalid-shape",
+        message: "Project id, name, and frameworkId are required.",
+      },
+    };
+  }
+
+  const project = value.project as Record<string, unknown>;
+  const metadata = parseProjectMetadata(project.metadata);
+  if (metadata === null) {
+    return {
+      ok: false,
+      error: { kind: "invalid-shape", message: "Invalid project metadata." },
+    };
+  }
+
+  return {
+    ok: true,
+    document: {
+      schemaVersion: 2,
+      project: {
+        ...core,
+        metadata,
+      },
+    },
+  };
+}
+
 /**
- * Migration chain entry point. Today only v1 exists; future versions
- * migrate step-by-step into the current schema.
+ * Migration chain: v1 documents are upgraded in memory to v2 with empty new
+ * fields. Rows are not rewritten until the next save.
  */
 export function migrateProjectDocument(raw: unknown): DocumentParseResult {
-  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+  if (!isRecord(raw)) {
     return {
       ok: false,
       error: { kind: "invalid-shape", message: "Document must be an object." },
     };
   }
 
-  const schemaVersion = (raw as Record<string, unknown>).schemaVersion;
+  const schemaVersion = raw.schemaVersion;
   if (typeof schemaVersion !== "number" || !Number.isInteger(schemaVersion)) {
     return {
       ok: false,
@@ -159,7 +245,10 @@ export function migrateProjectDocument(raw: unknown): DocumentParseResult {
     return parseV1(raw);
   }
 
-  // Future: const v2 = migrateV1ToV2(...); return parseCurrent(v2);
+  if (schemaVersion === 2) {
+    return parseV2(raw);
+  }
+
   return {
     ok: false,
     error: { kind: "unsupported-schema", schemaVersion },
@@ -179,11 +268,15 @@ export function parseProjectDocumentJson(raw: string): DocumentParseResult {
   return migrateProjectDocument(parsed);
 }
 
+/** Historical helper for tests that must write pre-07A snapshot JSON. */
 export function buildStoredProjectDocumentV1(input: {
   id: string;
   name: string;
   frameworkId: string;
-  metadata: ProjectMetadata;
+  metadata: Pick<
+    ProjectMetadata,
+    "systemName" | "organizationName" | "systemDescription"
+  >;
   implementations: Record<string, ControlImplementation>;
 }): StoredProjectDocumentV1 {
   return {
@@ -202,15 +295,38 @@ export function buildStoredProjectDocumentV1(input: {
   };
 }
 
+export function buildStoredProjectDocument(input: {
+  id: string;
+  name: string;
+  frameworkId: string;
+  metadata: ProjectMetadataInput;
+  implementations: Record<string, ControlImplementation>;
+}): StoredProjectDocumentV2 {
+  const metadata = parseProjectMetadata(input.metadata);
+  if (metadata === null) {
+    throw new Error("Invalid project metadata.");
+  }
+  return {
+    schemaVersion: 2,
+    project: {
+      id: input.id,
+      name: input.name,
+      frameworkId: input.frameworkId,
+      metadata,
+      implementations: { ...input.implementations },
+    },
+  };
+}
+
 export function serializeProjectDocument(
-  document: StoredProjectDocument,
+  document: StoredProjectDocument | StoredProjectDocumentV1,
 ): string {
   return JSON.stringify(document);
 }
 
 /** Stable content fingerprint for snapshot deduplication (excludes timestamps). */
 export function projectDocumentFingerprint(
-  document: StoredProjectDocument,
+  document: StoredProjectDocument | StoredProjectDocumentV1,
 ): string {
   return JSON.stringify({
     schemaVersion: document.schemaVersion,

@@ -5,8 +5,11 @@ Date: 2026-09-16
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application.
-Milestone 06A adds DoD Cloud Impact Level 4 as a product-selectable
-framework on top of Milestone 05C (Render demo hosting), Milestone 05B
+Milestone 07A adds canonical SSP system characteristics on `project_json`
+schema v2. Milestone 06B remains the current production release (v0.6.2)
+for DoD Cloud Impact Level 4 tailoring correctness. Milestone 06A added
+DoD Cloud Impact Level 4 as a product-selectable framework on top of
+Milestone 05C (Render demo hosting), Milestone 05B
 (`DEPLOYMENT_MODE=normal|demo`), Milestone 05A (canonical demo dataset),
 Milestone 04C (CMMC Level 2 Framework Support), Milestone 04B
 (Framework UX and Runtime Hardening), and the project-scoped NIST SP 800-53
@@ -41,9 +44,19 @@ The application currently provides:
 - Operational metadata and activity history (including collaboration and
   evidence link/unlink events)
 - Version history
+- Canonical SSP system characteristics authored on Project details
+  (`project_json` schema v2): system identity, SSP organization, authorization
+  boundary, environment of operation, typed SSP roles, information types,
+  optional FIPS 199 CIA categorization, optional DoD cloud impact-level
+  assertion, operational status, and interconnections. Missing values stay
+  missing and are never inferred from framework selection, tenant
+  organization, collaboration assignments, narratives, or Evidence.
 - OSCAL SSP export and schema validation for NIST SP 800-53 projects
   (unavailable for CMMC and DoD Cloud IL4; no official CMMC / SP 800-171
-  Rev. 2, FedRAMP, or DoD IL4 OSCAL profile)
+  Rev. 2, FedRAMP, or DoD IL4 OSCAL profile). The adapter consumes authored
+  system-characteristics fields when present and does not copy
+  `systemDescription` into `authorization-boundary` or map
+  `organizationName` to `system-owner`.
 - Idempotent demo project seeding into a demo organization
 - Canonical demo bootstrap (`npm run bootstrap:demo`) for a local
   multi-tenant environment: Canadian Goose Defence System (Goose flagship
@@ -334,7 +347,9 @@ Production deployments use `DEPLOYMENT_MODE` (`docs/deployment.md`, ADR-028).
   publication. DoD IL4 is derived from the FedRAMP Moderate workbook, DoD
   SSP Addendum extract, NIST catalog, and SRG Appendix D extract (ADR-029).
   Runtime identity is `projects.framework_id`;
-  `project_json.project.frameworkId` is a schema v1 compatibility copy only.
+  `project_json.project.frameworkId` is a compatibility copy only.
+  Live project documents use `project_json` schema v2. Existing v1 documents
+  migrate in memory on load; historical v1 snapshots remain valid.
 - Create UI defaults to Moderate and always sends an explicit `frameworkId`.
   Omitting `frameworkId` on the create API still selects Moderate for
   backwards-compatible callers; that default is API compatibility, not the
@@ -456,7 +471,10 @@ cutover only.
   product-selectable with overlay metadata on the framework read model;
   OSCAL SSP export is disabled
   (`frameworkHasOscalSspExport("dod-cloud-il4-rev5") === false`).
-  Overlay assignment classification is control-level, not per NIST ODP.
+- Overlay assignment classification is control-level, not per NIST ODP.
+- Per-ODP resolution and project-authored ODP values remain future work
+  (Milestone 07C). They are not a gate on authoring system characteristics
+  or on starting the Control Freak human-readable SSP (07B).
 - Per-control UI action hiding is coarse; server authorization is authoritative
 - Production Docker image must not statically import PGlite (devDependency;
   pruned from the image). Tests load it only inside `openTestDb()`.
@@ -476,11 +494,19 @@ cutover only.
 
 ## Next approved milestone
 
-None. Milestone 06B is released and production verified as **v0.6.2**.
-Word/PDF authorization-package export and future IL5/IL6 work remain
-unscheduled on `docs/roadmap.md`. A later human-readable SSP generator
-should not begin until per-ODP resolution is designed; 06B left that gap
-in place.
+Milestone **07B — Human-Readable SSP DOCX V1**. Milestone 07A is implemented
+on this branch: canonical system characteristics live in `project_json`
+schema v2, users can author them on Project details, the Goose flagship demo
+populates them explicitly, and the NIST OSCAL adapter consumes them
+conservatively. Production remains **v0.6.2** until 07A is released.
+
+The Control Freak SSP V1 is a human-readable product artifact informed by
+NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into
+Word, not a FedRAMP package, and not a DoD PA/ATO package. Per-ODP
+resolution is not a prerequisite for that first honest SSP.
+
+Word/PDF authorization-package export for official FedRAMP/DoD templates
+and future IL5/IL6 work remain unscheduled on `docs/roadmap.md`.
 
 ## Required verification for each milestone
 

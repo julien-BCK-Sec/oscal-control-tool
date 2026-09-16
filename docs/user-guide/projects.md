@@ -3,7 +3,7 @@ title: Create and manage projects
 summary: Creating a project, the tabs in the project workspace, and what the Overview tab shows you at a glance.
 section: projects
 order: 10
-related: frameworks, authoring-controls, version-history
+related: frameworks, authoring-controls, version-history, oscal-export
 ---
 
 ## Creating a project
@@ -43,7 +43,7 @@ Opening a project puts you in its workspace, with five tabs:
 | Overview | A summary dashboard — see below |
 | Controls (or Requirements) | The browsable control/requirement tree and editor — see [Document controls and requirements](/help/authoring-controls) |
 | Evidence | The project's Evidence records and coverage — see [Evidence](/help/evidence) |
-| Project details | System name, organization name, description, and OSCAL export — see [OSCAL export](/help/oscal-export) |
+| Project details | System characteristics and OSCAL export — see below and [OSCAL export](/help/oscal-export) |
 | Version history | Named versions and automatic snapshots — see [Version history](/help/version-history) |
 
 The workspace header also shows the project's framework label, its current
@@ -74,8 +74,38 @@ place:
   review/validate the project once everything is complete.
 - **Recent versions** — the most recent named versions and automatic
   snapshots, with a link into the full [version history](/help/version-history).
-- **Project details** — a summary of the system name, organization, and
-  description, with a link to edit them on the Project details tab.
+- **Project details** — a summary of the system name, SSP organization, and
+  overview, with a link to edit them on the Project details tab.
+
+## System characteristics
+
+The **Project details** tab is where you author facts about the system
+itself. These fields feed a future Control Freak System Security Plan.
+They are optional. You can keep documenting controls even when they are
+empty. Empty fields stay empty — Control Freak does not fill them in from
+the project's framework, your tenant organization, control assignments,
+narratives, or Evidence.
+
+| Section | What you record | What it is not |
+| --- | --- | --- |
+| System identity | Name, short name, identifier, and system overview (including purpose) | The authorization boundary |
+| SSP organization | The organization named in the SSP | Your Control Freak tenant |
+| Boundary and environment | Authorization boundary and environment of operation | Diagrams (those come later) |
+| System roles | System owner, authorizing official, system security officer, and other SSP roles | User accounts, tenant roles, or control owner/reviewer assignments |
+| Information types and categorization | Information types, optional FIPS 199 CIA values, optional DoD cloud impact-level assertion | Framework selection, authorization, or an ATO |
+| Interconnections | External connections you choose to document | A complete network inventory |
+| Operational status | Whether the system is under development, operational, and so on | Authorization status |
+
+> **Note:** Choosing NIST Moderate, CMMC Level 2, or DoD Cloud Impact
+> Level 4 does not set FIPS 199 categorization or a DoD impact level.
+> Those are separate, user-authored documentation fields.
+
+> **Limitation:** Operational status, DoD impact level, and SSP roles are
+> documentation. They are not an Authority to Operate, Provisional
+> Authorization, assessment result, or application permission.
+
+NIST SP 800-53 projects can still [export OSCAL](/help/oscal-export) from
+this tab. CMMC and DoD Cloud IL4 projects cannot.
 
 ## Autosave, undo, and conflicts
 

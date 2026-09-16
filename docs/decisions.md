@@ -1035,3 +1035,51 @@ Authoritative research: `docs/research/06B-il4-tailoring-semantics-audit.md`.
 Per-ODP resolution remains out of scope. No schema change. IL4 OSCAL SSP
 export remains disabled.
 
+## ADR-030
+
+Decision:
+Canonical SSP system characteristics live in `project_json` schema v2 as
+fields on `ProjectMetadata`. The initial human-readable SSP is a
+**Control Freak System Security Plan** product artifact, not an OSCAL
+document, FedRAMP package, or DoD authorization package.
+
+The v2 metadata model is:
+
+- `systemName`, optional `systemNameShort`, optional `systemIdentifier`
+- `organizationName` as the SSP organization, not the Better Auth tenant
+- `systemDescription` as System Overview, including purpose
+- `authorizationBoundary` and `environmentOfOperation` as distinct narratives
+- optional user-authored FIPS 199 CIA values (`securityCategorization`)
+  without a persisted overall impact
+- optional separate DoD cloud impact-level assertion (`dodCloudImpactLevel`)
+- typed SSP role entries (`system-owner`, `authorizing-official`,
+  `system-security-officer`, `other` + `otherRoleLabel`)
+- information types and SSP-level interconnections
+- optional operational status and remarks
+
+Safeguards:
+
+- Missing facts stay missing.
+- Framework selection does not populate FIPS categorization or DoD IL.
+- Tenant organization and collaboration assignments do not populate SSP
+  organization or roles.
+- Operational status is not authorization status.
+- SSP roles are documentation records, not application identities.
+- OSCAL remains a sibling adapter. NIST export consumes authored fields
+  when the mapping is unambiguous, does not copy overview into
+  authorization-boundary, and does not map organization name to
+  system-owner. IL4/CMMC OSCAL export stays disabled.
+- Diagrams are not modeled in 07A.
+- No SQL schema change; v1 documents migrate in memory; historical v1
+  snapshots remain valid.
+
+Reason:
+- Named versions and restore already version `project_json`.
+- SP 800-18 Rev. 2 treats System Overview as one element; a separate
+  `systemPurpose` would duplicate it.
+- 07B cannot write an honest SSP without a place to put these facts.
+- Inference from framework, tenant, or workflow would over-claim.
+
+Date:
+2026-09-16
+

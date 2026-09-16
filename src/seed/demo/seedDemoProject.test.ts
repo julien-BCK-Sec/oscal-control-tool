@@ -98,11 +98,19 @@ describe("demo seed content", () => {
 
     assert.equal(metadata.organizationName, DEMO_ORGANIZATION.name);
     assert.equal(metadata.systemName, DEMO_SYSTEM.name);
-    assert.match(metadata.systemDescription, /authorization boundary/i);
-    assert.match(
-      metadata.systemDescription,
-      new RegExp(DEMO_PEOPLE.garyMercer.name),
-    );
+    assert.equal(metadata.systemNameShort, DEMO_SYSTEM.shortName);
+    assert.equal(metadata.systemIdentifier, "CGDS-SGOP-001");
+    assert.match(metadata.authorizationBoundary, /Mission Control SC-3/);
+    assert.match(metadata.authorizationBoundary, /SGOP Core/);
+    assert.match(metadata.environmentOfOperation, /Honkwater Barracks/);
+    assert.equal(metadata.operationalStatus, "operational");
+    assert.equal(metadata.dodCloudImpactLevel, null);
+    assert.equal(metadata.securityCategorization?.confidentiality, "moderate");
+    assert.equal(metadata.systemRoles[0]?.name, DEMO_PEOPLE.garyMercer.name);
+    assert.equal(metadata.systemRoles[0]?.role, "system-owner");
+    assert.equal(metadata.informationTypes.length, 2);
+    assert.equal(metadata.interconnections.length, 3);
+    assert.doesNotMatch(metadata.systemDescription, /Authorization boundary:/);
     assert.equal(Object.keys(implementations).length, FRAMEWORK_CONTROLS.length);
 
     const validation = validateDemoProjectContent({

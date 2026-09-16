@@ -5,7 +5,7 @@ import {
   assertProductSelectableFrameworkId,
 } from "@/data/framework";
 import { isControlImplementation } from "@/data/implementation";
-import { isProjectMetadata } from "@/data/project";
+import { parseProjectMetadata } from "@/data/project";
 import { getProjectRepository } from "@/persistence/server";
 import type {
   CreateProjectInput,
@@ -136,11 +136,10 @@ export async function createProjectAction(input: {
   const metadata =
     input.metadata === undefined
       ? undefined
-      : isProjectMetadata(input.metadata)
-        ? input.metadata
-        : (() => {
-            throw new Error("Invalid project metadata.");
-          })();
+      : parseProjectMetadata(input.metadata) ??
+        (() => {
+          throw new Error("Invalid project metadata.");
+        })();
 
   return createProjectForOrg(await getProjectRepository(), ctx, {
     name,
@@ -175,7 +174,8 @@ export async function saveProjectAction(input: {
 }): Promise<SaveProjectResult> {
   const id = requireNonEmptyString(input.id, "id");
   const name = requireNonEmptyString(input.name, "name");
-  if (!isProjectMetadata(input.metadata)) {
+  const metadata = parseProjectMetadata(input.metadata);
+  if (!metadata) {
     return {
       ok: false,
       reason: "validation",
@@ -214,7 +214,7 @@ export async function saveProjectAction(input: {
   const result = await saveProjectForOrg(repo, ctx, {
     id,
     name,
-    metadata: input.metadata,
+    metadata,
     implementations,
     expectedRevision: input.expectedRevision,
   });

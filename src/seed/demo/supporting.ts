@@ -7,7 +7,7 @@
  */
 
 import type { ControlImplementation, ImplementationStatus } from "@/data/implementation";
-import type { ProjectMetadata } from "@/data/project";
+import { createProjectMetadata, type ProjectMetadata } from "@/data/project";
 import { resolveFrameworkControls } from "@/data/framework";
 import { CMMC_LEVEL_2_FRAMEWORK_ID } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/identities";
 import { CMMC_LEVEL_2_REQUIREMENT_COUNT } from "@/framework/cmmc-level-2-nist-sp-800-171-r2/families";
@@ -57,11 +57,11 @@ export function buildSupportingMetadata(
   systemDescription: string,
 ): ProjectMetadata {
   const spec = CANONICAL_PROJECTS[key];
-  return {
+  return createProjectMetadata({
     organizationName: CANONICAL_ORGS[spec.organization].name,
     systemName: spec.systemName,
     systemDescription,
-  };
+  });
 }
 
 export function buildCmmcProjectDescription(): string {

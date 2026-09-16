@@ -6,6 +6,7 @@ export {
   PRE_RESTORE_SNAPSHOT_RETENTION,
 } from "./constants";
 export {
+  buildStoredProjectDocument,
   buildStoredProjectDocumentV1,
   migrateProjectDocument,
   parseProjectDocumentJson,
@@ -43,5 +44,6 @@ export type {
   StoredProject,
   StoredProjectDocument,
   StoredProjectDocumentV1,
+  StoredProjectDocumentV2,
 } from "./types";
 

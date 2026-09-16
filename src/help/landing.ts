@@ -28,6 +28,7 @@ export const HELP_LANDING_GROUPS: HelpLandingGroup[] = [
     title: "Document your system",
     items: [
       { label: "Document controls and requirements", href: "/help/authoring-controls" },
+      { label: "Author system characteristics", href: "/help/projects#system-characteristics" },
       {
         label: "Understand the three statuses",
         href: "/help/authoring-controls#the-three-status-fields-in-detail",
@@ -86,4 +87,5 @@ export const HELP_CONTEXTUAL_ANCHORS: Array<{ slug: string; headingId: string }>
   { slug: "oscal-export", headingId: "dod-cloud-il4-projects-do-not-have-this-button" },
   { slug: "dod-cloud-il4", headingId: "how-nist-fedramp-and-dod-layers-appear" },
   { slug: "workflow-automation", headingId: "triggers-conditions-and-actions" },
+  { slug: "projects", headingId: "system-characteristics" },
 ];

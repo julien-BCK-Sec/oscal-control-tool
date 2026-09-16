@@ -37,7 +37,8 @@ Freak:
 - **Project** — a single documentation effort against a single framework
   (for example, "Strategic Ops Platform" documented against the NIST SP
   800-53 Moderate baseline). A project's framework is chosen when it is
-  created and cannot be changed afterward.
+  created and cannot be changed afterward. Framework selection is not a
+  FIPS 199 categorization or a DoD impact-level assertion.
 - **Control** or **requirement** — one item from the selected framework.
   NIST SP 800-53 projects call these **controls**; CMMC Level 2 projects
   call the same kind of item a **requirement**. DoD Cloud Impact Level 4

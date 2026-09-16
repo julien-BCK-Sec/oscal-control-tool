@@ -26,6 +26,8 @@ import {
   buildFirstDoorImplementations,
   buildHighImplementations,
   buildIl4Implementations,
+  buildIl4ProjectDescription,
+  buildSupportingMetadata,
   cmmcAddressedCount,
   il4RepresentativeIds,
 } from "./supporting";
@@ -97,6 +99,17 @@ describe("canonical demo catalog", () => {
     assert.doesNotMatch(allNarratives, /DSPAV\s*(value|is|=)\s*["']?\d/i);
     assert.doesNotMatch(allNarratives, /rmfks\.osd\.mil/i);
     assert.ok(Object.keys(implementations).length < IL4_TOTAL_COUNT);
+  });
+
+  it("does not infer FIPS categorization or DoD IL from the IL4 framework", () => {
+    const metadata = buildSupportingMetadata(
+      "il4",
+      buildIl4ProjectDescription(),
+    );
+    assert.equal(metadata.securityCategorization, null);
+    assert.equal(metadata.dodCloudImpactLevel, null);
+    assert.deepEqual(metadata.systemRoles, []);
+    assert.equal(metadata.authorizationBoundary, "");
   });
 
   it("keeps supporting projects at distinct maturity levels", () => {

@@ -363,7 +363,7 @@ function ProjectCard({
             </Link>
           </h3>
           <p className="mt-0.5 text-sm text-text-secondary">
-            {project.organizationName.trim() || "No organization"}
+            {project.organizationName.trim() || "No SSP organization"}
           </p>
           <p className="mt-1 text-xs text-text-muted">
             {frameworkLabel}

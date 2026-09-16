@@ -1,12 +1,20 @@
 import type { ControlImplementation } from "@/data/implementation";
-import type { ProjectMetadata } from "@/data/project";
+import type { ProjectMetadata, ProjectMetadataInput } from "@/data/project";
 
 /** Current persisted project document schema version. */
-export const PROJECT_DOCUMENT_SCHEMA_VERSION = 1 as const;
+export const PROJECT_DOCUMENT_SCHEMA_VERSION = 2 as const;
+
+export type StoredProjectCore = {
+  id: string;
+  name: string;
+  frameworkId: string;
+  metadata: ProjectMetadata;
+  implementations: Record<string, ControlImplementation>;
+};
 
 /**
- * Versioned envelope stored in projects.project_json and snapshot rows.
- * Does not include framework control text.
+ * Historical v1 envelope. Metadata in v1 files only has the original three
+ * strings; parsers migrate those into the v2 metadata shape.
  */
 export type StoredProjectDocumentV1 = {
   schemaVersion: 1;
@@ -14,12 +22,25 @@ export type StoredProjectDocumentV1 = {
     id: string;
     name: string;
     frameworkId: string;
-    metadata: ProjectMetadata;
+    metadata: {
+      systemName: string;
+      organizationName: string;
+      systemDescription: string;
+    };
     implementations: Record<string, ControlImplementation>;
   };
 };
 
-export type StoredProjectDocument = StoredProjectDocumentV1;
+export type StoredProjectDocumentV2 = {
+  schemaVersion: 2;
+  project: StoredProjectCore;
+};
+
+/**
+ * Versioned envelope stored in projects.project_json and snapshot rows.
+ * Load/migrate always yields the current schema version.
+ */
+export type StoredProjectDocument = StoredProjectDocumentV2;
 
 /** Fully loaded project row as an application DTO (no Drizzle/SQLite types). */
 export type StoredProject = {
@@ -61,7 +82,7 @@ export type CreateProjectInput = {
   organizationId?: string;
   organizationName?: string;
   frameworkId: string;
-  metadata?: ProjectMetadata;
+  metadata?: ProjectMetadataInput;
   implementations?: Record<string, ControlImplementation>;
 };
 
@@ -74,7 +95,7 @@ export type SaveProjectInput = {
    * New callers should omit this field.
    */
   frameworkId?: string;
-  metadata: ProjectMetadata;
+  metadata: ProjectMetadataInput;
   implementations: Record<string, ControlImplementation>;
   /** Must match the current database revision or save returns conflict. */
   expectedRevision: number;

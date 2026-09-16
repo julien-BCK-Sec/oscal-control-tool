@@ -169,7 +169,7 @@ export function ProjectOverview({
           </h2>
           <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-text-muted">Organization</dt>
+              <dt className="text-text-muted">SSP organization</dt>
               <dd className="text-text-secondary">
                 {metadata.organizationName.trim() || "—"}
               </dd>
@@ -486,15 +486,15 @@ export function ProjectOverview({
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-text-muted">Organization</dt>
+                <dt className="text-xs text-text-muted">SSP organization</dt>
                 <dd className="text-foreground">
                   {metadata.organizationName.trim() || "—"}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-text-muted">Description</dt>
+                <dt className="text-xs text-text-muted">System overview</dt>
                 <dd className="leading-relaxed text-text-secondary">
-                  {abbreviatedDescription || "No system description yet."}
+                  {abbreviatedDescription || "No system overview yet."}
                 </dd>
               </div>
             </dl>

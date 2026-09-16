@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { DEFAULT_PROJECT_METADATA } from "@/data/project";
 import {
+  buildStoredProjectDocument,
   buildStoredProjectDocumentV1,
   migrateProjectDocument,
   parseProjectDocumentJson,
 } from "./document";
 
 describe("project document validation", () => {
-  it("parses a valid v1 document", () => {
+  it("migrates a valid v1 document to v2 without inferring system characteristics", () => {
     const document = buildStoredProjectDocumentV1({
       id: "p1",
       name: "Demo",
@@ -15,7 +17,7 @@ describe("project document validation", () => {
       metadata: {
         systemName: "Demo",
         organizationName: "Org",
-        systemDescription: "",
+        systemDescription: "Existing overview",
       },
       implementations: {
         "ac-1": { status: "implemented", narrative: "ok" },
@@ -28,7 +30,71 @@ describe("project document validation", () => {
     if (!parsed.ok) {
       return;
     }
+    assert.equal(parsed.document.schemaVersion, 2);
     assert.equal(parsed.document.project.implementations["ac-2.1"]?.narrative, "enh");
+    assert.equal(parsed.document.project.metadata.systemName, "Demo");
+    assert.equal(parsed.document.project.metadata.organizationName, "Org");
+    assert.equal(
+      parsed.document.project.metadata.systemDescription,
+      "Existing overview",
+    );
+    assert.equal(parsed.document.project.metadata.authorizationBoundary, "");
+    assert.equal(parsed.document.project.metadata.securityCategorization, null);
+    assert.equal(parsed.document.project.metadata.dodCloudImpactLevel, null);
+    assert.deepEqual(parsed.document.project.metadata.systemRoles, []);
+    assert.deepEqual(parsed.document.project.metadata.informationTypes, []);
+    assert.deepEqual(parsed.document.project.metadata.interconnections, []);
+  });
+
+  it("round-trips a v2 document including system characteristics", () => {
+    const document = buildStoredProjectDocument({
+      id: "p1",
+      name: "Demo",
+      frameworkId: "nist-sp-800-53-rev5-moderate",
+      metadata: {
+        ...DEFAULT_PROJECT_METADATA,
+        systemName: "Demo",
+        authorizationBoundary: "Boundary",
+        systemRoles: [
+          { id: "r1", role: "system-owner", name: "Ada" },
+        ],
+      },
+      implementations: {},
+    });
+    const parsed = parseProjectDocumentJson(JSON.stringify(document));
+    assert.equal(parsed.ok, true);
+    if (!parsed.ok) {
+      return;
+    }
+    assert.equal(parsed.document.schemaVersion, 2);
+    assert.equal(
+      parsed.document.project.metadata.authorizationBoundary,
+      "Boundary",
+    );
+    assert.equal(parsed.document.project.metadata.systemRoles[0]?.name, "Ada");
+  });
+
+  it("does not copy v1 extra keys into v2 metadata", () => {
+    const parsed = migrateProjectDocument({
+      schemaVersion: 1,
+      project: {
+        id: "p1",
+        name: "Demo",
+        frameworkId: "nist-sp-800-53-rev5-moderate",
+        metadata: {
+          systemName: "Demo",
+          organizationName: "Org",
+          systemDescription: "Overview",
+          authorizationBoundary: "must not migrate from v1 extra key",
+        },
+        implementations: {},
+      },
+    });
+    assert.equal(parsed.ok, true);
+    if (!parsed.ok) {
+      return;
+    }
+    assert.equal(parsed.document.project.metadata.authorizationBoundary, "");
   });
 
   it("rejects unsupported future schema versions", () => {
@@ -61,6 +127,25 @@ describe("project document validation", () => {
         },
       }),
     );
+    assert.equal(result.ok, false);
+  });
+
+  it("rejects invalid v2 system-characteristic enums", () => {
+    const result = migrateProjectDocument({
+      schemaVersion: 2,
+      project: {
+        id: "p1",
+        name: "x",
+        frameworkId: "nist-sp-800-53-rev5-moderate",
+        metadata: {
+          systemName: "S",
+          organizationName: "O",
+          systemDescription: "D",
+          operationalStatus: "authorized",
+        },
+        implementations: {},
+      },
+    });
     assert.equal(result.ok, false);
   });
 });

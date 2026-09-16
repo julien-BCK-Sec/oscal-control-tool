@@ -153,11 +153,44 @@ Addendum-supplied text. See
 `docs/milestones/06B-dod-il4-tailoring-semantics-correction.md` and
 `docs/research/06B-il4-tailoring-semantics-audit.md`.
 
+**Milestone 07A – SSP System Characteristics** (implemented)
+
+Canonical system-level SSP information on `project_json` schema v2:
+system identity, SSP organization, authorization boundary, environment of
+operation, typed SSP roles, information types, optional FIPS 199 CIA
+categorization, optional DoD cloud impact-level assertion, operational
+status, and interconnections. Users author these on Project details.
+Missing values stay missing and are never inferred from framework
+selection, tenant organization, or collaboration assignments. The NIST
+OSCAL adapter consumes authored fields conservatively and stops copying
+overview into authorization-boundary or organization name into
+system-owner. IL4/CMMC OSCAL export remains disabled. Diagrams deferred
+to 07B. See `docs/milestones/07A-ssp-system-characteristics.md` and
+ADR-030.
+
 ## Future directions
 
 The following items are candidate product and engineering directions. They are
 not ordered by priority or committed release sequence. Individual items may
 become milestones as their scope and dependencies become clearer.
+
+### Milestone 7 — Control Freak human-readable SSP
+
+Milestone 7 produces useful human-readable security documentation from
+Control Freak's canonical project data. OSCAL, framework-specific official
+templates, and generated prose are not the product domain.
+
+- **07B — Human-Readable SSP DOCX V1** (next approved after 07A) —
+  Control Freak-owned SSP document/view model and deterministic DOCX
+  renderer using 07A system characteristics plus control implementation
+  content. Explicit missing-data placeholders. No false
+  compliance/authorization claims. Diagram references may be added here.
+  Official FedRAMP/DoD package templates remain later work.
+
+- **07C — Parameter and Control Fidelity** — per-ODP framework resolution,
+  project-authored ODP values, per-ODP provenance, and safer requirement
+  substitution. This is not a prerequisite for 07A or for the first honest
+  07B SSP.
 
 ### Assessment, findings, and remediation
 

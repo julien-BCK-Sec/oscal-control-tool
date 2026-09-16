@@ -22,29 +22,12 @@ import {
   DEMO_PROCEDURES,
   DEMO_SECURITY_CATEGORIZATION,
   DEMO_SYSTEM,
-  DEMO_TEAMS,
   DEMO_TERMS,
   DEMO_USERS,
-  DEMO_INVENTORY,
 } from "./world";
 
-const {
-  garyMercer,
-  margotChen,
-  brendanWalsh,
-  priyaSharma,
-  dougBillings,
-  samOkonkwo,
-  rileyNguyen,
-  averyPatel,
-  jordanMacLeod,
-  caseyTremblay,
-  morganEllis,
-  taylorReid,
-  nadiaFortin,
-  helenCrowe,
-  steveKowalski,
-} = DEMO_PEOPLE;
+const { garyMercer, margotChen, brendanWalsh, priyaSharma, samOkonkwo } =
+  DEMO_PEOPLE;
 
 /**
  * Early seed stages grow featured controls so named snapshots capture progress.
@@ -91,49 +74,29 @@ export const DEMO_STAGE_CONTROL_IDS: readonly (readonly DemoControlId[])[] = [
 const FINAL_STAGE_INDEX = DEMO_SNAPSHOT_NAMES.length - 1;
 
 function buildSystemDescription(): string {
-  const boundary = [
-    `Authorization boundary: ${DEMO_SYSTEM.name} (${DEMO_SYSTEM.shortName}) includes ${DEMO_COMPONENTS.sgopCore.name}, ${DEMO_COMPONENTS.goosePortal.name}, ${DEMO_COMPONENTS.deploymentApi.name}, ${DEMO_COMPONENTS.gooseRegistry.name}, ${DEMO_COMPONENTS.honkCoordination.name}, ${DEMO_COMPONENTS.nestWatch.name}, ${DEMO_COMPONENTS.featherAuth.name}, ${DEMO_COMPONENTS.cims.name}, ${DEMO_COMPONENTS.missionConsole.name}, ${DEMO_COMPONENTS.operatorWorkstations.name}, ${DEMO_COMPONENTS.telemetry.name}, and ${DEMO_COMPONENTS.backupRepo.name}.`,
+  return [
+    DEMO_ORGANIZATION.mission,
+    `${DEMO_SYSTEM.name} (${DEMO_SYSTEM.shortName}) is the primary information system supporting ${DEMO_TERMS.strategicGooseCapability} for ${DEMO_ORGANIZATION.name} (${DEMO_ORGANIZATION.shortName}).`,
+    `The platform plans, authorizes, monitors, and recalls deployments of the ${DEMO_TERMS.strategicGooseReserve} from ${DEMO_LOCATIONS.missionControl.name}.`,
+  ].join("\n\n");
+}
+
+function buildAuthorizationBoundary(): string {
+  return [
+    `${DEMO_SYSTEM.name} (${DEMO_SYSTEM.shortName}) includes ${DEMO_COMPONENTS.sgopCore.name}, ${DEMO_COMPONENTS.goosePortal.name}, ${DEMO_COMPONENTS.deploymentApi.name}, ${DEMO_COMPONENTS.gooseRegistry.name}, ${DEMO_COMPONENTS.honkCoordination.name}, ${DEMO_COMPONENTS.nestWatch.name}, ${DEMO_COMPONENTS.featherAuth.name}, ${DEMO_COMPONENTS.cims.name}, ${DEMO_COMPONENTS.missionConsole.name}, ${DEMO_COMPONENTS.operatorWorkstations.name}, ${DEMO_COMPONENTS.telemetry.name}, and ${DEMO_COMPONENTS.backupRepo.name}.`,
     `These components operate primarily within ${DEMO_LOCATIONS.missionControl.name} at ${DEMO_LOCATIONS.nhoc.name} (${DEMO_LOCATIONS.honkwater.name}, ${DEMO_LOCATIONS.honkwater.region}), with ${DEMO_COMPONENTS.honkNet.name} extending connectivity to ${DEMO_LOCATIONS.borderPost17.name}, ${DEMO_LOCATIONS.stagingAlpha.name}, ${DEMO_LOCATIONS.coconutVault.name}, and approved ${DEMO_COMPONENTS.mobileTerminals.name}.`,
     `${DEMO_COMPONENTS.rfc1149Gateway.name} at ${DEMO_LOCATIONS.disasterRecoveryPond.name} is inside the contingency boundary only when HonkNet is declared unavailable.`,
     `Outside the boundary: ${DEMO_LEVERAGED_SERVICES.sharedServicesIdentity}; ${DEMO_LEVERAGED_SERVICES.weatherFeed}; ${DEMO_LEVERAGED_SERVICES.northernMaple}.`,
   ].join(" ");
+}
 
-  const categorization = [
-    `Security categorization: Confidentiality ${DEMO_SECURITY_CATEGORIZATION.confidentiality}; Integrity ${DEMO_SECURITY_CATEGORIZATION.integrity}; Availability ${DEMO_SECURITY_CATEGORIZATION.availability}.`,
-    DEMO_SECURITY_CATEGORIZATION.rationale,
-  ].join(" ");
-
-  const roles = [
-    `Responsible roles: ${garyMercer.name} (${garyMercer.role}); ${brendanWalsh.name} (${brendanWalsh.role}); ${margotChen.name} (${margotChen.role}); ${priyaSharma.name} (${priyaSharma.role}); ${nadiaFortin.name} (${nadiaFortin.role}); ${dougBillings.name} (${dougBillings.role}); ${averyPatel.name} (${averyPatel.role}); ${rileyNguyen.name} (${rileyNguyen.role}); ${samOkonkwo.name} (${samOkonkwo.role}); ${morganEllis.name} (${morganEllis.role}); ${caseyTremblay.name} (${caseyTremblay.role}); ${jordanMacLeod.name} (${jordanMacLeod.role}); ${helenCrowe.name} (${helenCrowe.role}); ${taylorReid.name} (${taylorReid.role}); ${steveKowalski.name} (${steveKowalski.role}).`,
-  ].join(" ");
-
-  const users = [
-    `System users: ${DEMO_USERS.operators}; ${DEMO_USERS.watchFloor}; ${DEMO_USERS.securityAnalysts}; ${DEMO_USERS.fieldResponders}; ${DEMO_USERS.logistics}; ${DEMO_USERS.veterinary}; ${DEMO_USERS.facilities}; ${DEMO_USERS.contractors}.`,
-  ].join(" ");
-
-  const inventory = [
-    `Inventory highlights: ${DEMO_INVENTORY.fieldTablets}; ${DEMO_INVENTORY.radios}; ${DEMO_INVENTORY.coconutReserve}; ${DEMO_INVENTORY.badgePrinters}; ${DEMO_INVENTORY.stagingKits}.`,
-  ].join(" ");
-
-  const facilities = [
-    `Facilities: ${DEMO_LOCATIONS.honkwater.name}; ${DEMO_LOCATIONS.nhoc.name}; ${DEMO_LOCATIONS.missionControl.name}; ${DEMO_LOCATIONS.borderPost17.name}; ${DEMO_LOCATIONS.coconutVault.name}; ${DEMO_LOCATIONS.stagingAlpha.name}; ${DEMO_LOCATIONS.secondaryNest.name}; ${DEMO_LOCATIONS.disasterRecoveryPond.name}; ${DEMO_LOCATIONS.moltingFacility.name}.`,
-  ].join(" ");
-
-  const diagrams = [
-    `Diagrams: HonkNet topology and SGOP data-flow diagrams are maintained by ${caseyTremblay.name} (${DEMO_TEAMS.acu}) and reviewed at ${DEMO_TERMS.garyReview}. Facility and Nest Perimeter diagrams for ${DEMO_LOCATIONS.honkwater.name} and ${DEMO_LOCATIONS.borderPost17.name} are held by ${dougBillings.name}. Operational runbooks that lack a current owner are filed under ${DEMO_PROCEDURES.seeSteve}.`,
-  ].join(" ");
-
+function buildEnvironmentOfOperation(): string {
   return [
-    DEMO_ORGANIZATION.mission,
-    `${DEMO_SYSTEM.name} (${DEMO_SYSTEM.shortName}) is the primary information system supporting ${DEMO_TERMS.strategicGooseCapability} for ${DEMO_ORGANIZATION.name} (${DEMO_ORGANIZATION.shortName}).`,
-    boundary,
-    categorization,
-    roles,
-    users,
-    facilities,
-    inventory,
-    diagrams,
-  ].join("\n\n");
+    `Primary operations are at ${DEMO_LOCATIONS.honkwater.name} (${DEMO_LOCATIONS.honkwater.region}), including ${DEMO_LOCATIONS.nhoc.name} and ${DEMO_LOCATIONS.missionControl.name}.`,
+    `Forward operations use ${DEMO_LOCATIONS.borderPost17.name} (${DEMO_LOCATIONS.borderPost17.region}) and ${DEMO_LOCATIONS.stagingAlpha.name}.`,
+    `Supporting sites include ${DEMO_LOCATIONS.coconutVault.name}, ${DEMO_LOCATIONS.secondaryNest.name}, ${DEMO_LOCATIONS.disasterRecoveryPond.name}, and ${DEMO_LOCATIONS.moltingFacility.name}.`,
+    `Users include ${DEMO_USERS.operators}; ${DEMO_USERS.watchFloor}; ${DEMO_USERS.securityAnalysts}; ${DEMO_USERS.fieldResponders}; ${DEMO_USERS.logistics}; ${DEMO_USERS.veterinary}; ${DEMO_USERS.facilities}; and ${DEMO_USERS.contractors}.`,
+  ].join(" ");
 }
 
 export function buildDemoMetadata(): ProjectMetadata {
@@ -141,6 +104,99 @@ export function buildDemoMetadata(): ProjectMetadata {
     organizationName: DEMO_ORGANIZATION.name,
     systemName: DEMO_SYSTEM.name,
     systemDescription: buildSystemDescription(),
+    systemNameShort: DEMO_SYSTEM.shortName,
+    systemIdentifier: "CGDS-SGOP-001",
+    authorizationBoundary: buildAuthorizationBoundary(),
+    environmentOfOperation: buildEnvironmentOfOperation(),
+    operationalStatus: "operational",
+    operationalStatusRemarks:
+      "Fictional CGDS production operations. This value is operational status for SSP documentation, not an authorization, Provisional Authorization, or ATO.",
+    securityCategorization: {
+      confidentiality: "moderate",
+      integrity: "moderate",
+      availability: "moderate",
+      rationale: DEMO_SECURITY_CATEGORIZATION.rationale,
+    },
+    dodCloudImpactLevel: null,
+    systemRoles: [
+      {
+        id: "demo-role-system-owner",
+        role: "system-owner",
+        name: garyMercer.name,
+        title: garyMercer.title,
+        organization: DEMO_ORGANIZATION.name,
+      },
+      {
+        id: "demo-role-ao",
+        role: "authorizing-official",
+        name: brendanWalsh.name,
+        title: brendanWalsh.title,
+        organization: DEMO_ORGANIZATION.name,
+      },
+      {
+        id: "demo-role-sso",
+        role: "system-security-officer",
+        name: priyaSharma.name,
+        title: priyaSharma.title,
+        organization: DEMO_ORGANIZATION.name,
+      },
+      {
+        id: "demo-role-ciso",
+        role: "other",
+        otherRoleLabel: "Chief Information Security Officer",
+        name: margotChen.name,
+        title: margotChen.title,
+        organization: DEMO_ORGANIZATION.name,
+      },
+    ],
+    informationTypes: [
+      {
+        id: "demo-info-deployment-orders",
+        title: "Goose-deployment orders",
+        description: `Tasking and recall orders for the ${DEMO_TERMS.strategicGooseReserve}.`,
+        confidentialityImpact: "moderate",
+        integrityImpact: "moderate",
+        availabilityImpact: "moderate",
+      },
+      {
+        id: "demo-info-coconut-custody",
+        title: "Coconut-custody records",
+        description: `${DEMO_TERMS.emergencyCoconutReserve} inventory, chain of custody, and dual-control release authorizations.`,
+        confidentialityImpact: "moderate",
+        integrityImpact: "moderate",
+        availabilityImpact: "moderate",
+      },
+    ],
+    interconnections: [
+      {
+        id: "demo-conn-ssc-identity",
+        name: "Shared Services Canada identity federation",
+        description: DEMO_LEVERAGED_SERVICES.sharedServicesIdentity,
+        organization: "Shared Services Canada",
+        informationExchanged: "Identity assertions consumed by FeatherAuth",
+        direction: "inbound",
+        securityNotes:
+          "Leveraged identity service outside the SGOP authorization boundary.",
+      },
+      {
+        id: "demo-conn-weather",
+        name: "Provincial migration-corridor weather feed",
+        description: DEMO_LEVERAGED_SERVICES.weatherFeed,
+        organization: "Provincial meteorological service",
+        informationExchanged: "Read-only weather observations",
+        direction: "inbound",
+      },
+      {
+        id: "demo-conn-northern-maple",
+        name: "Northern Maple Systems operations support",
+        description: DEMO_LEVERAGED_SERVICES.northernMaple,
+        organization: "Northern Maple Systems",
+        informationExchanged: "Escorted maintenance access and support tickets",
+        direction: "bidirectional",
+        securityNotes:
+          "Contractor access is escorted; this interconnection is not an authorization of the supplier.",
+      },
+    ],
   };
 }
 
