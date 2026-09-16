@@ -16,9 +16,9 @@ Responsibilities:
 - FrameworkProvider
 - FrameworkControl (optional overlay parameter, provenance, supplement, and applicability metadata; ADR-029)
 - Framework metadata (catalog, revision, profile, optional item terms, optional OSCAL export fields, optional `productSelectable`)
-- Control Browser overlay presentation (effective requirement when known assignments can be inlined; untouched source statement; supplements; DSPAV and source-conflict notices)
+- Control Browser overlay presentation (effective requirement when known assignments can be inlined; classification caption separate from artifact source; untouched source statement; supplements; DSPAV and source-conflict notices)
 - Generic Evidence/workflow/collaboration against registered framework item IDs, including IL4 GRRs (WP5); overlay metadata is not operational state
-- Framework derivation (pinned NIST SP 800-53 Rev. 5 Low / Moderate / High OSCAL; pinned NIST SP 800-171 Rev. 2 CSV for CMMC Level 2; DoD IL4 Moderate / MMx overlay artifact from FedRAMP Moderate + Addendum extract, ADR-029)
+- Framework derivation (pinned NIST SP 800-53 Rev. 5 Low / Moderate / High OSCAL; pinned NIST SP 800-171 Rev. 2 CSV for CMMC Level 2; DoD IL4 Moderate / MMx overlay artifact from FedRAMP Moderate + Addendum extract + Table D-1 delta, ADR-029)
 
 Framework data is never persisted in application storage. Projects persist
 only an opaque `frameworkId` in `projects.framework_id`, which is the sole
@@ -182,6 +182,14 @@ Milestone 06A capabilities:
 - OSCAL SSP export disabled (no approved/pinned IL4 OSCAL profile)
 - Canonical demo project Snow Goose Cloud Impact Level 4 (does not replace the Moderate flagship)
 - User-guide topic `docs/user-guide/dod-cloud-il4.md` as the canonical Help source
+
+Milestone 06B capabilities:
+
+- Table D-1 membership and adjustment kind as a machine-checkable IL4 delta
+- Explicit FedRAMP base inheritance vs DoD explicit vs DoD-permitted FedRAMP value
+- AU-5(1) provenance from the DoD Addendum, not the pinned FedRAMP Moderate baseline
+- Fail-closed derivation when Table D-1 and Addendum relationships are inconsistent
+- Overlay classification remains control-level (not per-ODP)
 
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.

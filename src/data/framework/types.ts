@@ -28,7 +28,10 @@ export type FrameworkOrganizationDefinedParameter = {
  */
 export type FrameworkAuthoritativeValueStatus =
   | "not-indicated"
+  | "csp-organization-defined"
+  | "baseline-inherited"
   | "may-use-baseline"
+  | "overlay-explicit"
   | "satisfied-by-overlay"
   | "authoritative-value-required"
   | "source-conflict";

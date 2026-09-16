@@ -5,12 +5,29 @@ export type SelectionProvenance = {
   addendumLeveragedFromFedrampModerate: boolean | null;
 };
 
+/**
+ * Effective-assignment class for an IL4 overlay item.
+ * The field name `dspavStatus` is historical; values are not limited to DSPAV.
+ */
 export type DspavStatus =
-  | "not-indicated"
-  | "may-use-fedramp"
+  | "csp-organization-defined"
+  | "fedramp-base-inherited"
+  | "fedramp-explicitly-referenced"
+  | "dod-explicit"
   | "satisfied-by-addendum-value"
   | "authoritative-value-required"
-  | "source-conflict";
+  | "source-conflict"
+  | "not-indicated";
+
+/**
+ * How Table D-1 lists an IL4-applicable control.
+ * `inclusion-only` is membership without a parameter adjustment.
+ */
+export type TableD1AdjustmentKind =
+  | "may-use-fedramp"
+  | "dspav-must-be-used"
+  | "explicit-value"
+  | "inclusion-only";
 
 export type ProvenanceText = {
   text: string;
@@ -139,6 +156,8 @@ export type AppendixDNote = {
   parameterValues: string;
   impactNote: string;
   indicatesDspav: boolean;
+  listedInTableD1: boolean;
+  tableD1AdjustmentKind: TableD1AdjustmentKind;
 };
 
 export type DerivationFailure = {

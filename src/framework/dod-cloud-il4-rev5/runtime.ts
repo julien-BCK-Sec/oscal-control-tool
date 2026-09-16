@@ -165,11 +165,14 @@ function parseItemKind(value: unknown, id: string): OverlayItemKind {
 
 function parseDspavStatus(value: unknown, id: string): DspavStatus {
   if (
-    value === "not-indicated" ||
-    value === "may-use-fedramp" ||
+    value === "csp-organization-defined" ||
+    value === "fedramp-base-inherited" ||
+    value === "fedramp-explicitly-referenced" ||
+    value === "dod-explicit" ||
     value === "satisfied-by-addendum-value" ||
     value === "authoritative-value-required" ||
-    value === "source-conflict"
+    value === "source-conflict" ||
+    value === "not-indicated"
   ) {
     return value;
   }
@@ -358,11 +361,17 @@ function mapItemKind(kind: OverlayItemKind): FrameworkItemKind {
 function mapAuthoritativeValueStatus(
   status: DspavStatus,
 ): FrameworkAuthoritativeValueStatus {
-  if (status === "may-use-fedramp") {
+  if (status === "fedramp-explicitly-referenced") {
     return "may-use-baseline";
   }
   if (status === "satisfied-by-addendum-value") {
     return "satisfied-by-overlay";
+  }
+  if (status === "fedramp-base-inherited") {
+    return "baseline-inherited";
+  }
+  if (status === "dod-explicit") {
+    return "overlay-explicit";
   }
   return status;
 }

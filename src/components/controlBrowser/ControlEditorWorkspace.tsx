@@ -176,8 +176,18 @@ export function ControlEditorWorkspace({
           />
           <div className="mt-2 border-l-2 border-accent bg-surface-secondary/50 px-4 py-3">
             {renderAuthoringText()}
+            {overlay.effectiveRequirement.classificationLabel ? (
+              <p className="mt-2 text-xs font-medium text-text-secondary">
+                {overlay.effectiveRequirement.classificationLabel}
+              </p>
+            ) : null}
+            {overlay.effectiveRequirement.supportingText ? (
+              <p className="mt-1 text-xs text-text-muted">
+                {overlay.effectiveRequirement.supportingText}
+              </p>
+            ) : null}
             {overlay.effectiveRequirement.sourceLabel ? (
-              <p className="mt-2 text-xs text-text-muted">
+              <p className="mt-1 text-xs text-text-muted">
                 Source: {overlay.effectiveRequirement.sourceLabel}
               </p>
             ) : null}

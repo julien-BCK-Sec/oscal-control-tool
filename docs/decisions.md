@@ -1014,3 +1014,24 @@ Impact Level 4 under Canadian Goose Defence System without replacing the
 Moderate flagship. No schema change. Overlay metadata remains read-only
 framework data.
 
+**Amendment (Milestone 06B, 2026-09-16):**
+
+IL4 parameter resolution uses CSP SRG V1R7 Table D-1 as the machine-checkable
+FedRAMP+ delta. Table D-1 membership is not automatically a parameter
+adjustment: `inclusion-only` rows stay in the population without inheriting
+or inventing a DoD value. Ordinary FedRAMP Moderate assignments stand when
+Table D-1 does not define a parameter adjustment
+(`fedramp-base-inherited` / generic `baseline-inherited`). Explicit
+“CSP/CSO may use FedRAMP value” rows are a distinct class
+(`fedramp-explicitly-referenced` / generic `may-use-baseline`). Empty
+Addendum column K is not the inheritance rule. The Addendum field
+`Leveraged from FedRAMP Moderate` remains provenance only.
+
+AU-5(1) keeps the Addendum FedRAMP-reference figure and labels the artifact
+source as the DoD Addendum, because the control is not in the pinned FedRAMP
+Moderate baseline. MA-6 and PS-4 keep real FedRAMP Moderate provenance.
+
+Authoritative research: `docs/research/06B-il4-tailoring-semantics-audit.md`.
+Per-ODP resolution remains out of scope. No schema change. IL4 OSCAL SSP
+export remains disabled.
+

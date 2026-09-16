@@ -1,6 +1,6 @@
 # Current Project State
 
-Date: 2026-08-27
+Date: 2026-09-16
 
 ## Product Position
 
@@ -13,6 +13,9 @@ Milestone 04C (CMMC Level 2 Framework Support), Milestone 04B
 Rev. 5 Low / Moderate / High architecture introduced in Milestone 04A, on
 top of Evidence Coverage (03D), Evidence Versions (03B), Workflow Automation
 (02C), Domain Events (02B), Collaboration (02A), and Platform Foundation.
+Milestone 06B corrects IL4 parameter classification and provenance
+(Table D-1 as the DoD FedRAMP+ delta) without changing the 345-item
+population.
 
 The application currently provides:
 
@@ -313,12 +316,14 @@ Production deployments use `DEPLOYMENT_MODE` (`docs/deployment.md`, ADR-028).
     as adopted by 32 CFR Part 170. Do not substitute Rev. 3.
   - DoD Cloud Impact Level 4 (`dod-cloud-il4-rev5`): 345 framework items
     (183 NIST bases, 152 enhancements, 10 General Readiness Requirements).
-    Product-selectable under DoD Cloud → Impact Level 4. Known non-conflicting
-    overlay assignments may appear as a derived Effective requirement, and
-    unresolved organization-defined parameters use their NIST catalog
-    descriptions in the authoring view; the NIST source statement remains
-    available. Overlay supplements, DSPAV notices, and CDS applicability stay
-    separate. Evidence, coverage, review,
+    Product-selectable under DoD Cloud → Impact Level 4. Effective
+    assignments distinguish FedRAMP base inheritance, DoD IL4 adjustments,
+    and DoD-explicit permission to use a FedRAMP value. Table D-1 is the
+    machine-checkable DoD delta. Unresolved organization-defined parameters
+    use their NIST catalog descriptions in the authoring view; the NIST
+    source statement remains available. Overlay supplements, DSPAV notices,
+    and CDS applicability stay separate. Classification is control-level,
+    not per individual NIST ODP. Evidence, coverage, review,
     and collaboration use the generic 345-item population, including GRRs.
     OSCAL SSP export is disabled.
 - Framework source of truth: `FrameworkRegistry` (ADR-026). NIST entries are
@@ -449,6 +454,7 @@ cutover only.
   product-selectable with overlay metadata on the framework read model;
   OSCAL SSP export is disabled
   (`frameworkHasOscalSspExport("dod-cloud-il4-rev5") === false`).
+  Overlay assignment classification is control-level, not per NIST ODP.
 - Per-control UI action hiding is coarse; server authorization is authoritative
 - Production Docker image must not statically import PGlite (devDependency;
   pruned from the image). Tests load it only inside `openTestDb()`.
@@ -461,13 +467,18 @@ cutover only.
   `frameworkId` (WP6). Help documents the implemented overlay model in
   `docs/user-guide/dod-cloud-il4.md`. Canonical demo includes Snow Goose
   Cloud Impact Level 4 without replacing the Moderate flagship (WP7).
+  Milestone 06B corrects IL4 parameter-class and provenance semantics
+  (Table D-1 delta, AU-5(1) Addendum provenance) without changing the
+  345-item population or enabling OSCAL export.
   See ADR-029 and `vendor/dod/cloud-il4-rev5/SOURCES.md`.
 
 ## Next approved milestone
 
-None. Milestone 06A is released as **v0.6.1**. Word/PDF
-authorization-package export and future IL5/IL6 work remain unscheduled
-on `docs/roadmap.md`.
+Milestone 06B is implemented in the working tree and is not yet committed
+or released. Word/PDF authorization-package export and future IL5/IL6
+work remain unscheduled on `docs/roadmap.md`. A later human-readable SSP
+generator should not begin until per-ODP resolution is designed; 06B left
+that gap in place.
 
 ## Required verification for each milestone
 

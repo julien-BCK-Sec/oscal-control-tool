@@ -5,6 +5,7 @@
  */
 
 import type {
+  FrameworkAuthoritativeValueStatus,
   FrameworkControl,
   FrameworkProvenanceText,
 } from "@/data/framework/types";
@@ -50,6 +51,8 @@ export type OverlayLayerSection = {
 export type EffectiveRequirementPresentation = {
   text: string;
   sourceLabel: string;
+  classificationLabel: string;
+  supportingText: string;
 };
 
 export type OverlayPresentation = {
@@ -102,6 +105,39 @@ export function conditionDisplayLabel(condition: string | null): string | null {
   }
   const trimmed = condition.trim();
   return CONDITION_LABELS[trimmed] ?? trimmed;
+}
+
+function effectiveClassificationCopy(
+  status: FrameworkAuthoritativeValueStatus | undefined,
+): { classificationLabel: string; supportingText: string } | null {
+  if (status === "baseline-inherited") {
+    return {
+      classificationLabel: "FedRAMP base, inherited for IL4",
+      supportingText:
+        "FedRAMP Moderate assignment applies. No DoD IL4 adjustment is listed for this requirement.",
+    };
+  }
+  if (status === "overlay-explicit") {
+    return {
+      classificationLabel: "DoD IL4 adjustment",
+      supportingText: "DoD IL4 defines an additional or adjusted requirement.",
+    };
+  }
+  if (status === "satisfied-by-overlay") {
+    return {
+      classificationLabel: "DoD IL4 adjustment",
+      supportingText:
+        "DoD IL4 defines an additional or adjusted requirement. Table D-1 required a DSPAV; the public Addendum supplies the value used here.",
+    };
+  }
+  if (status === "may-use-baseline") {
+    return {
+      classificationLabel: "DoD permits FedRAMP value",
+      supportingText:
+        "DoD explicitly permits the FedRAMP value for this requirement.",
+    };
+  }
+  return null;
 }
 
 export function statementReferenceChrome(
@@ -282,6 +318,9 @@ export function buildOverlayPresentation(
   }
 
   const authoring = renderAuthoringRequirement(control);
+  const classification = effectiveClassificationCopy(
+    parameters?.authoritativeValueStatus,
+  );
   const effectiveRequirement =
     authoring.substitutedAssignments && parameters
       ? {
@@ -289,6 +328,8 @@ export function buildOverlayPresentation(
           sourceLabel: sourceDisplayLabel(
             parameters.effectiveAssignmentSource ?? "",
           ),
+          classificationLabel: classification?.classificationLabel ?? "",
+          supportingText: classification?.supportingText ?? "",
         }
       : null;
   if (effectiveRequirement) {

@@ -52,6 +52,14 @@ describe("overlay presentation", () => {
     );
     assert.equal(presentation.effectiveRequirement.sourceLabel, "FedRAMP Moderate");
     assert.equal(
+      presentation.effectiveRequirement.classificationLabel,
+      "FedRAMP base, inherited for IL4",
+    );
+    assert.match(
+      presentation.effectiveRequirement.supportingText,
+      /No DoD IL4 adjustment is listed/,
+    );
+    assert.equal(
       presentation.layers.some((layer) => layer.assignments.length > 0),
       false,
     );
@@ -82,6 +90,10 @@ describe("overlay presentation", () => {
       /\{\{\s*insert:\s*param/i,
     );
     assert.equal(presentation.effectiveRequirement.sourceLabel, "FedRAMP Moderate");
+    assert.equal(
+      presentation.effectiveRequirement.classificationLabel,
+      "FedRAMP base, inherited for IL4",
+    );
     assert.match(ac2.statement, /\{\{\s*insert:\s*param,\s*ac-02_odp\.10/);
   });
 
@@ -158,6 +170,88 @@ describe("overlay presentation", () => {
     assert.equal(dod.assignments.length, 0);
     assert.match(sc17.statement, /\{\{\s*insert:/);
     assert.equal(presentation.effectiveRequirement, null);
+    assert.equal(sc17.parameters?.authoritativeValueStatus, "overlay-explicit");
+  });
+
+  it("labels AU-5(1) as DoD permitting a FedRAMP value sourced from the Addendum", () => {
+    const au51 = items.get("au-5.1");
+    assert.ok(au51);
+    const presentation = buildOverlayPresentation(au51);
+    assert.ok(presentation);
+    assert.ok(presentation.effectiveRequirement);
+    assert.equal(
+      presentation.effectiveRequirement.classificationLabel,
+      "DoD permits FedRAMP value",
+    );
+    assert.equal(presentation.effectiveRequirement.sourceLabel, "DoD IL4");
+    assert.match(
+      presentation.effectiveRequirement.supportingText,
+      /explicitly permits the FedRAMP value/,
+    );
+  });
+
+  it("labels MA-6 as DoD permitting a FedRAMP value sourced from FedRAMP Moderate", () => {
+    const ma6 = items.get("ma-6");
+    assert.ok(ma6);
+    const presentation = buildOverlayPresentation(ma6);
+    assert.ok(presentation);
+    assert.ok(presentation.effectiveRequirement);
+    assert.equal(
+      presentation.effectiveRequirement.classificationLabel,
+      "DoD permits FedRAMP value",
+    );
+    assert.equal(presentation.effectiveRequirement.sourceLabel, "FedRAMP Moderate");
+  });
+
+  it("labels SA-9(5) as a DoD IL4 adjustment", () => {
+    const sa95 = items.get("sa-9.5");
+    assert.ok(sa95);
+    const presentation = buildOverlayPresentation(sa95);
+    assert.ok(presentation);
+    assert.ok(presentation.effectiveRequirement);
+    assert.equal(
+      presentation.effectiveRequirement.classificationLabel,
+      "DoD IL4 adjustment",
+    );
+    assert.equal(presentation.effectiveRequirement.sourceLabel, "DoD IL4");
+  });
+
+  it("labels generated SC-24 as a DoD IL4 adjustment using the Addendum DSPAV value", () => {
+    const sc24 = items.get("sc-24");
+    assert.ok(sc24);
+    assert.equal(
+      sc24.parameters?.authoritativeValueStatus,
+      "satisfied-by-overlay",
+    );
+    const presentation = buildOverlayPresentation(sc24);
+    assert.ok(presentation);
+    assert.ok(presentation.effectiveRequirement);
+    assert.equal(
+      presentation.effectiveRequirement.classificationLabel,
+      "DoD IL4 adjustment",
+    );
+    assert.equal(presentation.effectiveRequirement.sourceLabel, "DoD IL4");
+    assert.match(
+      presentation.effectiveRequirement.supportingText,
+      /Table D-1 required a DSPAV; the public Addendum supplies the value used here/,
+    );
+    assert.match(presentation.effectiveRequirement.text, /known secure state/);
+  });
+
+  it("keeps generated CM-7(5) as satisfied-by-overlay without an inlined Effective requirement", () => {
+    const cm75 = items.get("cm-7.5");
+    assert.ok(cm75);
+    assert.equal(
+      cm75.parameters?.authoritativeValueStatus,
+      "satisfied-by-overlay",
+    );
+    const presentation = buildOverlayPresentation(cm75);
+    assert.ok(presentation);
+    assert.equal(presentation.effectiveRequirement, null);
+    const assignment = presentation.layers
+      .flatMap((layer) => layer.assignments)
+      .find((block) => /at least quarterly or when there is a change/i.test(block.text));
+    assert.ok(assignment);
   });
 
   it("keeps SC-46 in the population with CDS applicability text", () => {

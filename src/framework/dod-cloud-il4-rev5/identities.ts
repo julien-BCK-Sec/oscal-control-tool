@@ -39,6 +39,13 @@ export const IL4_NIST_ENHANCEMENT_COUNT = 152;
 export const IL4_GRR_COUNT = 10;
 export const IL4_TOTAL_COUNT = 345;
 
+/**
+ * IL4-applicable Table D-1 rows in the current pinned CSP SRG V1R7 extract.
+ * A future source revision that changes this count must fail closed until
+ * the extract and this constant are reviewed together.
+ */
+export const TABLE_D1_IL4_COUNT = 23;
+
 export const DOD_ADDED_NIST_BASE_IDS = ["sc-24", "sc-46"] as const;
 
 export const DOD_ADDED_NIST_ENHANCEMENT_IDS = [

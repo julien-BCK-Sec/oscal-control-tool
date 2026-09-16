@@ -100,8 +100,17 @@ saved, does not rewrite the NIST catalog statement, and is not an OSCAL
 - **Effective requirement** — shown when substitution is deterministic.
   Known FedRAMP or DoD assignments appear inline. Remaining
   organization-defined parameters use their NIST catalog descriptions,
-  not technical placeholders. A compact source label (for example,
-  “Source: FedRAMP Moderate”) remains visible.
+  not technical placeholders. A classification caption explains why the
+  value applies, separately from the artifact source line:
+  - **FedRAMP base, inherited for IL4** — FedRAMP Moderate assignment
+    applies. No DoD IL4 adjustment is listed for this requirement.
+    Source: FedRAMP Moderate.
+  - **DoD IL4 adjustment** — DoD IL4 defines an additional or adjusted
+    requirement. Source: DoD IL4.
+  - **DoD permits FedRAMP value** — DoD explicitly permits the FedRAMP
+    value. Source is FedRAMP Moderate when that baseline actually
+    supplies the text (for example MA-6), or DoD IL4 when the text is
+    recorded only in the Addendum (AU-5(1)).
 - **Source statement** — the untouched NIST catalog statement,
   available on demand and collapsed by default. Control Freak does not
   treat this as obsolete.
@@ -138,6 +147,11 @@ values stay in the overlay layers; Control Freak does not guess them.
 They do not replace the stored NIST statement. They do not become an
 OSCAL `set-parameter` on export, because IL4 has no OSCAL export in
 Control Freak today.
+
+A control-level effective assignment can resolve only some of a control’s
+NIST organization-defined parameters. Other ODPs on the same control may
+still require organization input. Control Freak does not currently store
+or present resolution state per individual ODP.
 
 ## DoD assignment required
 

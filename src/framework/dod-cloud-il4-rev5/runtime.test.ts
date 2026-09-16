@@ -89,6 +89,7 @@ describe("DoD Cloud IL4 FrameworkProvider", () => {
     assert.ok(ac1);
     assert.equal(ac1.itemKind, "base");
     assert.equal(ac1.parameters?.overlayAssignment, null);
+    assert.equal(ac1.parameters?.authoritativeValueStatus, "baseline-inherited");
     assert.equal(
       ac1.parameters?.effectiveAssignmentSource,
       "fedramp-moderate-baseline",
@@ -110,6 +111,7 @@ describe("DoD Cloud IL4 FrameworkProvider", () => {
       ac2.parameters?.effectiveAssignmentSource,
       "fedramp-moderate-baseline",
     );
+    assert.equal(ac2.parameters?.authoritativeValueStatus, "baseline-inherited");
   });
 
   it("preserves the AC-7 DoD assignment and unresolved DSPAV fallback", () => {
@@ -152,6 +154,19 @@ describe("DoD Cloud IL4 FrameworkProvider", () => {
     assert.equal(ma51.parameters?.effectiveAssignmentText, null);
   });
 
+  it("maps CM-7(5) to satisfied-by-overlay with Addendum provenance", () => {
+    const cm75 = items.get("cm-7.5");
+    assert.ok(cm75);
+    assert.equal(
+      cm75.parameters?.authoritativeValueStatus,
+      "satisfied-by-overlay",
+    );
+    assert.equal(
+      cm75.parameters?.effectiveAssignmentSource,
+      "dod-ssp-addendum-v1.2",
+    );
+  });
+
   it("preserves the SA-9(5) DoD jurisdiction overlay assignment", () => {
     const sa95 = items.get("sa-9.5");
     assert.ok(sa95);
@@ -163,6 +178,7 @@ describe("DoD Cloud IL4 FrameworkProvider", () => {
       sa95.parameters?.effectiveAssignmentSource,
       "dod-ssp-addendum-v1.2",
     );
+    assert.equal(sa95.parameters?.authoritativeValueStatus, "overlay-explicit");
   });
 
   it("preserves the SC-17 overlay supplement without rewriting the NIST statement", () => {
@@ -172,6 +188,8 @@ describe("DoD Cloud IL4 FrameworkProvider", () => {
     assert.equal(sc17.supplements?.length, 1);
     assert.match(sc17.supplements?.[0]?.text ?? "", /8520\.02/);
     assert.equal(sc17.supplements?.[0]?.source, "dod-ssp-addendum-v1.2");
+    assert.equal(sc17.parameters?.authoritativeValueStatus, "overlay-explicit");
+    assert.equal(sc17.parameters?.effectiveAssignmentText, null);
   });
 
   it("keeps SC-46 in the population with CDS applicability metadata", () => {
@@ -205,13 +223,29 @@ describe("DoD Cloud IL4 FrameworkProvider", () => {
     assert.equal(grr1.parameters?.overlayAssignment, null);
   });
 
-  it("maps AU-5(1) may-use-FedRAMP status to the generic baseline status", () => {
+  it("maps AU-5(1) to may-use-baseline with Addendum provenance", () => {
     const au51 = items.get("au-5.1");
     assert.ok(au51);
     assert.equal(au51.parameters?.authoritativeValueStatus, "may-use-baseline");
+    assert.equal(au51.selectionProvenance?.inExternalBaseline, false);
+    assert.equal(
+      au51.parameters?.effectiveAssignmentSource,
+      "dod-ssp-addendum-v1.2",
+    );
     assert.match(
       au51.parameters?.effectiveAssignmentText ?? "",
       /75%, or one month/,
+    );
+  });
+
+  it("maps MA-6 to may-use-baseline with FedRAMP Moderate provenance", () => {
+    const ma6 = items.get("ma-6");
+    assert.ok(ma6);
+    assert.equal(ma6.parameters?.authoritativeValueStatus, "may-use-baseline");
+    assert.equal(ma6.selectionProvenance?.inExternalBaseline, true);
+    assert.equal(
+      ma6.parameters?.effectiveAssignmentSource,
+      "fedramp-moderate-baseline",
     );
   });
 

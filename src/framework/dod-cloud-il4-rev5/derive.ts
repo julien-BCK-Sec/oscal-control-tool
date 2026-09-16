@@ -13,6 +13,7 @@ import {
   IL4_NIST_BASE_COUNT,
   IL4_NIST_ENHANCEMENT_COUNT,
   IL4_TOTAL_COUNT,
+  TABLE_D1_IL4_COUNT,
 } from "./identities";
 import { indexNistCatalog } from "./catalog";
 import {
@@ -33,9 +34,11 @@ import type {
   AppendixDNote,
   DerivationResult,
   DodIl4OverlayItem,
+  DspavStatus,
   FedrampModerateRow,
   OverlayParameterMetadata,
   ProvenanceText,
+  TableD1AdjustmentKind,
 } from "./types";
 
 const ADDENDUM_SOURCE = "dod-ssp-addendum-v1.2";
@@ -45,6 +48,29 @@ const APPENDIX_D_SOURCE = "csp-srg-v1r7-appendix-d";
 const CONFLICT_ID = "ia-5.1";
 const CDS_CONTROL_ID = "sc-46";
 const SUPPLEMENT_IDS = new Set(["sc-17"]);
+const TABLE_D1_PARAMETER_ADJUSTMENT_KINDS = new Set<TableD1AdjustmentKind>([
+  "may-use-fedramp",
+  "dspav-must-be-used",
+  "explicit-value",
+]);
+const DSPAV_MUST_BE_USED_OUTCOMES = new Set<DspavStatus>([
+  "satisfied-by-addendum-value",
+  "authoritative-value-required",
+  "source-conflict",
+]);
+
+function isTableD1Member(note: AppendixDNote | undefined): note is AppendixDNote {
+  return note?.listedInTableD1 === true;
+}
+
+function isTableD1ParameterAdjustment(
+  note: AppendixDNote | undefined,
+): boolean {
+  return (
+    isTableD1Member(note) &&
+    TABLE_D1_PARAMETER_ADJUSTMENT_KINDS.has(note.tableD1AdjustmentKind)
+  );
+}
 
 export type DeriveDodCloudIl4Input = {
   catalogRoot: unknown;
@@ -85,31 +111,36 @@ function classifyParameters(args: {
   appendixD: AppendixDNote | undefined;
 }): OverlayParameterMetadata {
   const { id, fedrampRow, addendumRow, appendixD } = args;
-  const fedrampAssignment = nonempty(
-    fedrampRow?.fedrampAssignment ?? addendumRow.fedrampAssignment,
-  );
+  const fedrampFromBaseline = nonempty(fedrampRow?.fedrampAssignment);
+  const fedrampFromAddendum = nonempty(addendumRow.fedrampAssignment);
+  const fedrampAssignmentForReference = fedrampFromBaseline ?? fedrampFromAddendum;
+  const fedrampAssignmentSource = fedrampFromBaseline
+    ? FEDRAMP_SOURCE
+    : fedrampFromAddendum
+      ? ADDENDUM_SOURCE
+      : null;
   const fedrampAdditionalGuidance = nonempty(
     fedrampRow?.fedrampAdditionalGuidance ?? addendumRow.fedrampAdditionalGuidance,
   );
   const dodRaw = nonempty(addendumRow.dodFedrampPlusParameters);
   const dodLower = dodRaw?.toLowerCase() ?? "";
   const noDspavAvailable = dodLower.includes("no dspav available");
-  const mayUseFedramp = dodLower.includes("may use fedramp");
   const rateLimitFallback = dodLower.includes("normal dspav will be required");
+  const tableD1Kind = isTableD1Member(appendixD)
+    ? appendixD.tableD1AdjustmentKind
+    : undefined;
+  const parameterAdjustment = isTableD1ParameterAdjustment(appendixD);
   const interpretationConflict =
     id === CONFLICT_ID && Boolean(fedrampAdditionalGuidance) && Boolean(dodRaw);
 
-  let dodAssignmentText: string | null = dodRaw;
-  if (noDspavAvailable) {
-    dodAssignmentText = dodRaw;
-  }
-
-  let dspavStatus: OverlayParameterMetadata["dspavStatus"] = "not-indicated";
+  let dspavStatus: DspavStatus = "csp-organization-defined";
   let effectiveAssignmentText: string | null = null;
   let effectiveAssignmentSource: string | null = null;
   let conditionality: string | null = null;
 
-  if (interpretationConflict) {
+  if (isGrrId(id)) {
+    dspavStatus = "not-indicated";
+  } else if (interpretationConflict) {
     dspavStatus = "source-conflict";
   } else if (noDspavAvailable) {
     dspavStatus = "authoritative-value-required";
@@ -119,20 +150,32 @@ function classifyParameters(args: {
       "If rate limiting is not used, normal DSPAV will be required.";
     effectiveAssignmentText = dodRaw;
     effectiveAssignmentSource = ADDENDUM_SOURCE;
-  } else if (mayUseFedramp) {
-    dspavStatus = "may-use-fedramp";
-    effectiveAssignmentText = fedrampAssignment;
-    effectiveAssignmentSource = fedrampAssignment ? FEDRAMP_SOURCE : null;
-  } else if (dodRaw && !SUPPLEMENT_IDS.has(id)) {
-    dspavStatus = appendixD?.indicatesDspav
-      ? "satisfied-by-addendum-value"
-      : "not-indicated";
-    effectiveAssignmentText = dodRaw;
-    effectiveAssignmentSource = ADDENDUM_SOURCE;
-  } else if (fedrampAssignment) {
-    dspavStatus = "not-indicated";
-    effectiveAssignmentText = fedrampAssignment;
+  } else if (tableD1Kind === "may-use-fedramp") {
+    dspavStatus = "fedramp-explicitly-referenced";
+    effectiveAssignmentText = fedrampAssignmentForReference;
+    effectiveAssignmentSource = fedrampAssignmentSource;
+  } else if (tableD1Kind === "dspav-must-be-used") {
+    if (dodRaw) {
+      dspavStatus = "satisfied-by-addendum-value";
+      effectiveAssignmentText = dodRaw;
+      effectiveAssignmentSource = ADDENDUM_SOURCE;
+    } else {
+      dspavStatus = "authoritative-value-required";
+    }
+  } else if (tableD1Kind === "explicit-value" || (dodRaw && !SUPPLEMENT_IDS.has(id))) {
+    dspavStatus = "dod-explicit";
+    if (!SUPPLEMENT_IDS.has(id)) {
+      effectiveAssignmentText = dodRaw;
+      effectiveAssignmentSource = ADDENDUM_SOURCE;
+    }
+  } else if (fedrampFromBaseline && !parameterAdjustment) {
+    // Ordinary FedRAMP+ inheritance uses the pinned Moderate baseline
+    // assignment, not an Addendum FedRAMP-reference echo.
+    dspavStatus = "fedramp-base-inherited";
+    effectiveAssignmentText = fedrampFromBaseline;
     effectiveAssignmentSource = FEDRAMP_SOURCE;
+  } else {
+    dspavStatus = "csp-organization-defined";
   }
 
   if (appendixD?.impactNote.toLowerCase().includes("if cds is used")) {
@@ -151,7 +194,7 @@ function classifyParameters(args: {
       fedrampAdditionalGuidance,
       fedrampRow ? FEDRAMP_SOURCE : ADDENDUM_SOURCE,
     ),
-    dodAssignment: provenance(dodAssignmentText, ADDENDUM_SOURCE),
+    dodAssignment: provenance(dodRaw, ADDENDUM_SOURCE),
     appendixD: provenance(
       nonempty(appendixD?.parameterValues ?? "") ??
         nonempty(appendixD?.impactNote ?? ""),
@@ -164,6 +207,80 @@ function classifyParameters(args: {
     conditionality,
     interpretationConflict,
   };
+}
+
+function tableD1RowProblems(args: {
+  id: string;
+  fedrampRow: FedrampModerateRow | undefined;
+  addendumRow: AddendumExtractRow;
+  appendixD: AppendixDNote | undefined;
+  parameters: OverlayParameterMetadata;
+}): string[] {
+  const { id, fedrampRow, addendumRow, appendixD, parameters } = args;
+  if (isGrrId(id)) {
+    return [];
+  }
+  const problems: string[] = [];
+  const dodRaw = nonempty(addendumRow.dodFedrampPlusParameters);
+  const listed = isTableD1Member(appendixD);
+  const kind = listed ? appendixD.tableD1AdjustmentKind : undefined;
+
+  if (dodRaw && !listed) {
+    problems.push(
+      `Addendum ${id} has a DoD assignment but is not listed in Table D-1.`,
+    );
+  }
+  if (kind === "inclusion-only" && dodRaw) {
+    problems.push(
+      `Table D-1 inclusion-only control ${id} has unexpected Addendum parameter text.`,
+    );
+  }
+  if (kind === "may-use-fedramp") {
+    if (!dodRaw?.toLowerCase().includes("may use fedramp")) {
+      problems.push(
+        `Table D-1 ${id} is may-use-fedramp but the Addendum does not contain that instruction.`,
+      );
+    }
+    const fedrampText =
+      nonempty(fedrampRow?.fedrampAssignment) ??
+      nonempty(addendumRow.fedrampAssignment);
+    if (!fedrampText) {
+      problems.push(
+        `Table D-1 ${id} permits a FedRAMP value but no FedRAMP-labeled assignment text is available.`,
+      );
+    }
+  }
+  if (
+    kind === "dspav-must-be-used" &&
+    !DSPAV_MUST_BE_USED_OUTCOMES.has(parameters.dspavStatus)
+  ) {
+    problems.push(
+      `Table D-1 ${id} requires DSPAV but derivation did not reach an allowed outcome.`,
+    );
+  }
+  if (kind === "explicit-value" && !dodRaw && !SUPPLEMENT_IDS.has(id)) {
+    problems.push(
+      `Table D-1 ${id} is an explicit value but the Addendum has no DoD parameter content.`,
+    );
+  }
+  if (parameters.effectiveAssignmentSource === FEDRAMP_SOURCE && !fedrampRow) {
+    problems.push(
+      `Control ${id} claims FedRAMP Moderate provenance without a pinned FedRAMP Moderate baseline row.`,
+    );
+  }
+  if (parameters.dspavStatus === "fedramp-base-inherited") {
+    if (!parameters.effectiveAssignmentText) {
+      problems.push(
+        `Control ${id} is classified as FedRAMP base inherited without assignment text.`,
+      );
+    }
+    if (isTableD1ParameterAdjustment(appendixD)) {
+      problems.push(
+        `Control ${id} inherited FedRAMP despite a Table D-1 parameter adjustment.`,
+      );
+    }
+  }
+  return problems;
 }
 
 export function deriveDodCloudIl4Framework(
@@ -181,6 +298,16 @@ export function deriveDodCloudIl4Framework(
   const nistModerate = new Set(input.nistModerateIds);
   const fedrampById = new Map(input.fedrampRows.map((row) => [row.id, row]));
   const appendixById = parseAppendixNotes(input.appendixDNotes);
+  if (appendixById.size !== TABLE_D1_IL4_COUNT) {
+    problems.push(
+      `Table D-1 unique IDs ${appendixById.size} !== ${TABLE_D1_IL4_COUNT}`,
+    );
+  }
+  for (const note of appendixById.values()) {
+    if (!note.listedInTableD1) {
+      problems.push(`Table D-1 note ${note.originId} is not marked listedInTableD1.`);
+    }
+  }
 
   if (fedrampById.size !== FEDRAMP_MODERATE_TOTAL_COUNT) {
     problems.push(
@@ -211,6 +338,15 @@ export function deriveDodCloudIl4Framework(
       addendumRow: row,
       appendixD,
     });
+    problems.push(
+      ...tableD1RowProblems({
+        id,
+        fedrampRow,
+        addendumRow: row,
+        appendixD,
+        parameters,
+      }),
+    );
 
     if (isGrrId(id)) {
       items.push({
@@ -335,6 +471,11 @@ export function deriveDodCloudIl4Framework(
     );
   }
 
+  for (const note of appendixById.values()) {
+    if (note.listedInTableD1 && !seen.has(note.id)) {
+      problems.push(`Table D-1 control ${note.originId} is missing from the IL4 Addendum.`);
+    }
+  }
   for (const id of [...DOD_ADDED_NIST_BASE_IDS, ...DOD_ADDED_NIST_ENHANCEMENT_IDS]) {
     if (!seen.has(id)) {
       problems.push(`Missing approved DoD-added NIST ID ${id}`);

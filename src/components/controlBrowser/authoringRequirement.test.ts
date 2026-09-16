@@ -78,6 +78,10 @@ describe("renderAuthoringRequirement", () => {
     );
     assertNoRawInsert(authoring.text, "IL4 AC-1 effective requirement");
     assert.equal(presentation.effectiveRequirement.sourceLabel, "FedRAMP Moderate");
+    assert.equal(
+      presentation.effectiveRequirement.classificationLabel,
+      "FedRAMP base, inherited for IL4",
+    );
     assert.equal(ac1.statement, sourceStatement);
     assert.match(ac1.statement, /\{\{\s*insert:\s*param,\s*ac-01_odp\.03/);
     assert.equal(

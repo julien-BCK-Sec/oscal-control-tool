@@ -122,12 +122,14 @@ This is **not** a universal OSCAL profile engine. Derivation fails clearly if th
 Do **not** treat FedRAMP Rules `CTL` or KSI `controls` arrays as the framework catalog.
 
 DoD IL4 Moderate / MMx (`dod-cloud-il4-rev5`) is derived from the official
-FedRAMP Security Controls Baseline **workbook** plus the DoD SSP Addendum
-extract and the NIST catalog (ADR-029). That is **not** an official FedRAMP
-or DoD OSCAL profile. Do not point IL4 export at the NIST Moderate profile
-or fabricate a FedRAMP/DoD profile. IL4 OSCAL SSP export remains disabled
-(`frameworkHasOscalSspExport("dod-cloud-il4-rev5") === false`). Direct
-export fails closed and does not fall back to the NIST Moderate profile.
+FedRAMP Security Controls Baseline **workbook**, the DoD SSP Addendum
+extract, the NIST catalog, and CSP SRG V1R7 Table D-1 as the DoD FedRAMP+
+delta (ADR-029, including the 06B amendment). That is **not** an official
+FedRAMP or DoD OSCAL profile. Do not point IL4 export at the NIST Moderate
+profile or fabricate a FedRAMP/DoD profile. IL4 OSCAL SSP export remains
+disabled (`frameworkHasOscalSspExport("dod-cloud-il4-rev5") === false`).
+Direct export fails closed and does not fall back to the NIST Moderate
+profile.
 
 Pins and hashes: `vendor/dod/cloud-il4-rev5/SOURCES.md`.
 

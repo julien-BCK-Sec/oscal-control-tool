@@ -141,6 +141,18 @@ build; v0.6.1 is the live release. See
 `docs/milestones/06A-dod-impact-level-4-framework-support.md`, ADR-029,
 `docs/user-guide/dod-cloud-il4.md`, and `docs/deploy-render.md`.
 
+**Milestone 06B – DoD IL4 Tailoring Semantics Correction** (implemented,
+pending review/commit)
+
+Corrects IL4 parameter classification and provenance without changing the
+345-item population. Table D-1 is the machine-checkable DoD FedRAMP+
+delta. Ordinary FedRAMP Moderate assignments inherit because no Table D-1
+parameter adjustment exists. Explicit “may use FedRAMP value” rows stay
+distinct. AU-5(1) no longer claims FedRAMP Moderate provenance for
+Addendum-supplied text. See
+`docs/milestones/06B-dod-il4-tailoring-semantics-correction.md` and
+`docs/research/06B-il4-tailoring-semantics-audit.md`.
+
 ## Future directions
 
 The following items are candidate product and engineering directions. They are
