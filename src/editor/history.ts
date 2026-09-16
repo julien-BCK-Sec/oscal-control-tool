@@ -21,10 +21,25 @@ export type EditorWorkingCopy = {
   controlRecords: Record<string, ControlRecordFields>;
 };
 
+function cloneMetadata(metadata: ProjectMetadata): ProjectMetadata {
+  return {
+    ...metadata,
+    securityCategorization: metadata.securityCategorization
+      ? { ...metadata.securityCategorization }
+      : null,
+    dodCloudImpactLevel: metadata.dodCloudImpactLevel
+      ? { ...metadata.dodCloudImpactLevel }
+      : null,
+    systemRoles: metadata.systemRoles.map((role) => ({ ...role })),
+    informationTypes: metadata.informationTypes.map((item) => ({ ...item })),
+    interconnections: metadata.interconnections.map((item) => ({ ...item })),
+  };
+}
+
 export function cloneWorkingCopy(copy: EditorWorkingCopy): EditorWorkingCopy {
   return {
     name: copy.name,
-    metadata: { ...copy.metadata },
+    metadata: cloneMetadata(copy.metadata),
     implementations: Object.fromEntries(
       Object.entries(copy.implementations).map(([id, impl]) => [
         id,

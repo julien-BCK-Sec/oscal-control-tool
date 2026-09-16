@@ -17,8 +17,11 @@ export type OscalRole = {
 
 export type OscalParty = {
   uuid: string;
-  type: "organization";
+  type: "organization" | "person";
   name: string;
+  "email-addresses"?: string[];
+  "telephone-numbers"?: Array<{ number: string }>;
+  remarks?: string;
 };
 
 export type OscalMetadata = {
@@ -31,25 +34,43 @@ export type OscalMetadata = {
 };
 
 export type OscalSystemId = {
-  "identifier-type": string;
+  "identifier-type"?: string;
   id: string;
+};
+
+export type OscalImpact = {
+  base: string;
 };
 
 export type OscalInformationType = {
   uuid: string;
   title: string;
   description: string;
+  "confidentiality-impact"?: OscalImpact;
+  "integrity-impact"?: OscalImpact;
+  "availability-impact"?: OscalImpact;
 };
 
 export type OscalSystemCharacteristics = {
   "system-ids": OscalSystemId[];
   "system-name": string;
+  "system-name-short"?: string;
   description: string;
   "system-information": {
     "information-types": OscalInformationType[];
   };
+  "security-impact-level"?: {
+    "security-objective-confidentiality": string;
+    "security-objective-integrity": string;
+    "security-objective-availability": string;
+  };
   status: {
-    state: "operational" | "under-development" | "under-major-modification" | "disposition" | "other";
+    state:
+      | "operational"
+      | "under-development"
+      | "under-major-modification"
+      | "disposition"
+      | "other";
     remarks?: string;
   };
   "authorization-boundary": {

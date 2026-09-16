@@ -57,7 +57,18 @@ database.
 - Maturity: highly complete showcase
 - Includes: full Moderate baseline implementation narratives, named versions,
   ControlRecord metadata, threaded discussions, assignments, notifications,
-  and strong (not total) Evidence Coverage
+  strong (not total) Evidence Coverage, and explicit structured SSP system
+  characteristics (identity, SSP organization, authorization boundary,
+  environment, roles, information types, FIPS Moderate CIA categorization,
+  operational status, and interconnections). The flagship is a NIST Moderate
+  project and does **not** set a DoD cloud impact-level assertion, so
+  framework selection and categorization stay independent.
+
+Preserved world-building (personas, locations, coconut custody, Honk
+Protocol, Gary's Annual Performance Review, and so on) lives in
+`src/seed/demo/world.ts` and `src/seed/demo/controls/`. Structured
+system-characteristics values are populated from those constants; they are
+not parsed from narratives at runtime.
 
 Preserved world-building (personas, locations, coconut custody, Honk
 Protocol, Gary's Annual Performance Review, and so on) lives in
@@ -71,7 +82,7 @@ Protocol, Gary's Annual Performance Review, and so on) lives in
 | **Honkwater Visitor Network (Demo)** | NIST SP 800-53 Rev. 5 Low | Early-stage: metadata plus a handful of controls | Contrast with the flagship on dashboards and project lists |
 | **Coconut Logistics Inventory System (Demo)** | NIST SP 800-53 Rev. 5 Moderate | Many implementation statements, weak Evidence | Shows documenting a control vs substantiating it |
 | **National Honk Operations Centre High Baseline (Demo)** | NIST SP 800-53 Rev. 5 High | Mid-maturity High overlay | Different baseline/profile from the Moderate flagship |
-| **Snow Goose Cloud Impact Level 4 (Demo)** | DoD Cloud Impact Level 4 (`dod-cloud-il4-rev5`, 345 items) | Representative overlay sample: AC-2, AC-7, IA-5(1), SC-17, SC-46, GRR-1, plus one active Evidence record | Complements the Moderate Goose flagship. Shows FedRAMP/DoD layers, GRRs, unresolved DSPAV, source conflict, and CDS conditionality. Not an authorization package. No OSCAL export. |
+| **Snow Goose Cloud Impact Level 4 (Demo)** | DoD Cloud Impact Level 4 (`dod-cloud-il4-rev5`, 345 items) | Representative overlay sample: AC-2, AC-7, IA-5(1), SC-17, SC-46, GRR-1, plus one active Evidence record. FIPS categorization and DoD impact-level assertion are left empty so IL4 framework selection is not mistaken for categorization. | Complements the Moderate Goose flagship. Shows FedRAMP/DoD layers, GRRs, unresolved DSPAV, source conflict, and CDS conditionality. Not an authorization package. No OSCAL export. |
 
 There is no multi-framework project: a Project has exactly one `frameworkId`
 (ADR-026). CMMC and DoD Cloud IL4 projects do not export OSCAL.
@@ -84,8 +95,9 @@ There is no multi-framework project: a Project has exactly one `frameworkId`
 ## Personas and users
 
 Login accounts demonstrate RBAC. Goose operational personas (Gary Mercer,
-Priya Sharma, and others) appear in narratives, Evidence owners, and
-ControlRecord owner labels; they are not separate login accounts.
+Priya Sharma, and others) appear in narratives, Evidence owners,
+ControlRecord owner labels, and SSP role rows on the flagship; they are
+not separate login accounts.
 
 | Email | Role | Organization |
 | --- | --- | --- |

@@ -23,9 +23,10 @@ Responsibilities:
 Framework data is never persisted in application storage. Projects persist
 only an opaque `frameworkId` in `projects.framework_id`, which is the sole
 runtime authority (ADR-026). `project_json.project.frameworkId` is a
-schema v1 compatibility copy written from that column and is not used as an
+compatibility copy written from that column and is not used as an
 independent identity. Runtime views resolve the column ID through the
-registry rather than a global Moderate singleton.
+registry rather than a global Moderate singleton. Live documents use
+schema v2; v1 envelopes migrate in memory on load.
 
 ---
 
@@ -37,7 +38,8 @@ Contains:
 
 - Project
 - Control implementation
-- Project metadata
+- Project metadata, including canonical SSP system characteristics
+  (`project_json` schema v2; ADR-030)
 - Domain services
 
 The domain model is the source of truth.
@@ -191,6 +193,21 @@ Milestone 06B capabilities:
 - Fail-closed derivation when Table D-1 and Addendum relationships are inconsistent
 - Overlay classification remains control-level (not per-ODP)
 
+Milestone 07A capabilities:
+
+- Canonical SSP system characteristics on `ProjectMetadata` inside
+  `project_json` schema v2 (no relational tables)
+- Distinct authorization-boundary and environment-of-operation narratives;
+  `systemDescription` remains System Overview and includes purpose
+- Optional user-authored FIPS 199 CIA values and a separate optional DoD
+  cloud impact-level assertion; neither is inferred from `frameworkId`
+- Typed SSP documentation roles, distinct from Better Auth users and
+  collaboration assignments
+- Optional operational status, distinct from authorization or review status
+- Conservative NIST OSCAL adapter consumption of authored fields; IL4/CMMC
+  OSCAL export remains disabled
+- Diagram modeling deferred to 07B
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 
@@ -240,7 +257,11 @@ Transforms the domain model into standards-based exports.
 
 Examples:
 
-- OSCAL SSP (NIST SP 800-53 Low / Moderate / High only; unavailable for CMMC and IL4)
+- OSCAL SSP (NIST SP 800-53 Low / Moderate / High only; unavailable for CMMC and IL4).
+  The adapter consumes authored system characteristics when the mapping is
+  unambiguous. It does not copy system overview into authorization-boundary
+  and does not map SSP organization name to system-owner. Missing values
+  remain explicit gaps. OSCAL is a sibling exporter, not the domain model.
 
 - Word (future)
 - PDF (future)

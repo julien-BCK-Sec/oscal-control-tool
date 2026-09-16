@@ -3,6 +3,7 @@ import type { Project } from "@/domain";
 import { requireFrameworkIdentity } from "@/framework/nist-sp-800-53-rev5/identities";
 import { OSCAL_VERSION, SSP_DOCUMENT_VERSION } from "./constants";
 import { mapImplementationStatusToOscal } from "./mapStatus";
+import { mapSystemCharacteristics } from "./mapSystemCharacteristics";
 import type { OscalSspDocument } from "./types";
 
 export type ProjectToOscalSspOptions = {
@@ -26,6 +27,10 @@ function defaultCreateUuid(): string {
  * rather than FrameworkRegistry so client-side export does not bundle
  * generated catalog JSON. A future portable package should embed profile
  * and catalog locally instead.
+ *
+ * System-characteristics consume authored canonical fields when present.
+ * Missing values remain explicit gaps. Overview is not copied into
+ * authorization-boundary. SSP organization is not mapped to system-owner.
  */
 export function projectToOscalSsp(
   project: Project,
@@ -38,23 +43,15 @@ export function projectToOscalSsp(
   const systemName =
     project.metadata.systemName.trim() || "Untitled System";
   const systemDescription = project.metadata.systemDescription.trim();
-  const organizationName = project.metadata.organizationName.trim();
 
   const sspUuid = createUuid();
   const systemId = createUuid();
   const thisSystemComponentUuid = createUuid();
   const profileResourceUuid = createUuid();
-  const informationTypeUuid = createUuid();
-
-  const parties = organizationName
-    ? [
-        {
-          uuid: createUuid(),
-          type: "organization" as const,
-          name: organizationName,
-        },
-      ]
-    : undefined;
+  const mapped = mapSystemCharacteristics(project.metadata, {
+    createUuid,
+    generatedSystemId: systemId,
+  });
 
   const implementedRequirements = project.frameworkControls.map((control) => {
     const implementation =
@@ -85,59 +82,13 @@ export function projectToOscalSsp(
         "last-modified": lastModified,
         version: SSP_DOCUMENT_VERSION,
         "oscal-version": OSCAL_VERSION,
-        roles: [
-          {
-            id: "system-owner",
-            title: "System Owner",
-          },
-        ],
-        ...(parties ? { parties } : {}),
+        ...(mapped.roles ? { roles: mapped.roles } : {}),
+        ...(mapped.parties ? { parties: mapped.parties } : {}),
       },
       "import-profile": {
         href: `#${profileResourceUuid}`,
       },
-      "system-characteristics": {
-        "system-ids": [
-          {
-            "identifier-type": "http://ietf.org/rfc/rfc4122",
-            id: systemId,
-          },
-        ],
-        "system-name": systemName,
-        description:
-          systemDescription ||
-          "System description has not been provided.",
-        "system-information": {
-          "information-types": [
-            {
-              uuid: informationTypeUuid,
-              title: "Unspecified",
-              description:
-                "Information types are not captured in the current application domain model.",
-            },
-          ],
-        },
-        status: {
-          state: "under-development",
-          remarks:
-            "Operational status is not captured in the current application domain model.",
-        },
-        "authorization-boundary": {
-          description:
-            systemDescription ||
-            "Authorization boundary has not been documented.",
-        },
-        ...(parties
-          ? {
-              "responsible-parties": [
-                {
-                  "role-id": "system-owner",
-                  "party-uuids": [parties[0].uuid],
-                },
-              ],
-            }
-          : {}),
-      },
+      "system-characteristics": mapped.characteristics,
       "system-implementation": {
         components: [
           {
@@ -147,9 +98,7 @@ export function projectToOscalSsp(
             description:
               systemDescription ||
               "This system as described by this system security plan.",
-            status: {
-              state: "under-development",
-            },
+            status: mapped.thisSystemStatus,
           },
         ],
       },

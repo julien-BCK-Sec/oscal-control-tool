@@ -187,3 +187,134 @@ describe("projectToOscalSsp framework profile metadata", () => {
     assert.equal(NIST_HIGH_FRAMEWORK_ID.endsWith("-high"), true);
   });
 });
+
+describe("projectToOscalSsp system-characteristics mapping", () => {
+  it("does not copy systemDescription into authorization-boundary or organizationName into system-owner", () => {
+    const document = projectToOscalSsp(
+      assembleProject({
+        metadata: {
+          systemName: "Overview System",
+          organizationName: "Example Organization",
+          systemDescription: "This overview must not become the boundary.",
+        },
+        frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+        frameworkControls: resolveFrameworkControls(NIST_MODERATE_FRAMEWORK_ID),
+        implementations: {},
+      }),
+      {
+        lastModified: "2026-09-16T00:00:00.000Z",
+        createUuid: createDeterministicUuidFactory(),
+      },
+    );
+    const ssp = document["system-security-plan"];
+    assert.equal(
+      ssp["system-characteristics"].description,
+      "This overview must not become the boundary.",
+    );
+    assert.equal(
+      ssp["system-characteristics"]["authorization-boundary"].description,
+      "Authorization boundary has not been documented.",
+    );
+    assert.equal(ssp.metadata.roles, undefined);
+    assert.equal(ssp["system-characteristics"]["responsible-parties"], undefined);
+    assert.equal(ssp.metadata.parties?.[0]?.type, "organization");
+    assert.equal(ssp.metadata.parties?.[0]?.name, "Example Organization");
+    const validation = validateOscalSspDocument(document);
+    assert.equal(validation.ok, true);
+  });
+
+  it("consumes authored system characteristics without inferring from the framework", () => {
+    const document = projectToOscalSsp(
+      assembleProject({
+        metadata: {
+          systemName: "Authored System",
+          organizationName: "Authored Org",
+          systemDescription: "Overview only.",
+          systemNameShort: "AS",
+          systemIdentifier: "ORG-AS-001",
+          authorizationBoundary: "The nest is inside.",
+          operationalStatus: "operational",
+          operationalStatusRemarks: "Watch floor is staffed.",
+          securityCategorization: {
+            confidentiality: "moderate",
+            integrity: "high",
+            availability: "low",
+          },
+          systemRoles: [
+            {
+              id: "owner",
+              role: "system-owner",
+              name: "Gary Mercer",
+              title: "Director",
+            },
+          ],
+          informationTypes: [
+            {
+              id: "info-1",
+              title: "Deployment orders",
+              description: "Tasking records.",
+              confidentialityImpact: "moderate",
+            },
+          ],
+        },
+        frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+        frameworkControls: resolveFrameworkControls(NIST_MODERATE_FRAMEWORK_ID),
+        implementations: {},
+      }),
+      {
+        lastModified: "2026-09-16T00:00:00.000Z",
+        createUuid: createDeterministicUuidFactory(),
+      },
+    );
+    const characteristics =
+      document["system-security-plan"]["system-characteristics"];
+    assert.equal(characteristics["system-name-short"], "AS");
+    assert.equal(characteristics["system-ids"][0]?.id, "ORG-AS-001");
+    assert.equal(
+      characteristics["authorization-boundary"].description,
+      "The nest is inside.",
+    );
+    assert.equal(characteristics.status.state, "operational");
+    assert.equal(characteristics.status.remarks, "Watch floor is staffed.");
+    assert.deepEqual(characteristics["security-impact-level"], {
+      "security-objective-confidentiality": "moderate",
+      "security-objective-integrity": "high",
+      "security-objective-availability": "low",
+    });
+    assert.equal(
+      characteristics["system-information"]["information-types"][0]?.title,
+      "Deployment orders",
+    );
+    assert.equal(
+      document["system-security-plan"].metadata.roles?.[0]?.id,
+      "system-owner",
+    );
+    assert.equal(
+      characteristics["responsible-parties"]?.[0]?.["role-id"],
+      "system-owner",
+    );
+    assert.notEqual(
+      characteristics["responsible-parties"]?.[0]?.["party-uuids"][0],
+      document["system-security-plan"].metadata.parties?.find(
+        (party) => party.type === "organization",
+      )?.uuid,
+    );
+    assert.equal(
+      document["system-security-plan"]["system-implementation"].components[0]
+        ?.status.state,
+      "operational",
+    );
+    const validation = validateOscalSspDocument(document);
+    assert.equal(validation.ok, true, validation.ok ? undefined : validation.message);
+  });
+
+  it("does not emit security-impact-level from a Moderate framework when CIA is missing", () => {
+    const document = buildProjectSsp(NIST_MODERATE_IDENTITY);
+    assert.equal(
+      document["system-security-plan"]["system-characteristics"][
+        "security-impact-level"
+      ],
+      undefined,
+    );
+  });
+});

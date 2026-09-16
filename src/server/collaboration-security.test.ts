@@ -22,6 +22,7 @@ import {
   deleteDiscussionForOrg,
   listDiscussionsForOrg,
 } from "@/server/authorized-collaboration";
+import { loadProjectForOrg } from "@/server/authorized-projects";
 import {
   createAssignmentForOrg,
   listAssignmentsForOrg,
@@ -334,5 +335,41 @@ describe("collaboration security (WP8)", () => {
     assert.equal(/"comments?"\s*:/.test(serialized), false);
     assert.equal(/"assignments?"\s*:/.test(serialized), false);
     assert.equal(/"notifications?"\s*:/.test(serialized), false);
+  });
+
+  it("does not copy collaboration assignments into SSP system roles", async () => {
+    const { orgA, projects, projectA, assignments, orgs, notifications, makeMember } =
+      await setup();
+    const admin = await makeMember(
+      orgA.id,
+      "assign-admin@example.com",
+      "organization_admin",
+    );
+    const author = await makeMember(orgA.id, "assign-author@example.com", "author");
+
+    await createAssignmentForOrg(
+      projects,
+      assignments,
+      orgs,
+      notifications,
+      ctx(orgA.id, "organization_admin", admin.id),
+      {
+        projectId: projectA.id,
+        controlId: "ac-1",
+        assigneeUserId: author.id,
+        assignmentRole: "owner",
+      },
+      { actorId: admin.id, actorDisplayName: "Admin" },
+    );
+
+    const loaded = await loadProjectForOrg(
+      projects,
+      ctx(orgA.id, "organization_admin", admin.id),
+      projectA.id,
+    );
+    assert.equal(loaded.ok, true);
+    if (!loaded.ok) return;
+    assert.deepEqual(loaded.project.metadata.systemRoles, []);
+    assert.equal(loaded.project.metadata.organizationName, "");
   });
 });

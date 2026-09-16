@@ -224,12 +224,20 @@ evaluation; UUID persistence.
 
 | Field | Why retained |
 | --- | --- |
-| `system-information.information-types[]` | Schema requires ≥1; domain has no information types — emits explicit “Unspecified” placeholder |
-| `system-characteristics.status` | Schema requires status; domain has no ops state — `under-development` + remarks |
-| `authorization-boundary.description` | Schema requires description; uses system description or “has not been documented” |
+| `system-information.information-types[]` | Schema requires ≥1; when the domain list is empty the adapter emits an explicit “Unspecified” placeholder. Authored information types replace the placeholder. |
+| `system-characteristics.status` | Schema requires status; when operational status is not authored the adapter emits `under-development` plus gap remarks. Authored operational status is used when present. |
+| `authorization-boundary.description` | Schema requires description; when `authorizationBoundary` is empty the adapter emits “has not been documented”. System overview is **not** copied into this field. |
 | Empty / fallback system name & description strings | Required string fields when metadata is blank |
 
 These placeholders are labeled as gaps, not invented operational facts.
+
+Authored mappings used when present: `system-name-short`, `system-ids` from
+`systemIdentifier` (generated UUID only when the identifier is absent),
+`security-impact-level` only if all three CIA values are authored,
+`metadata.roles` / `responsible-parties` from SSP role rows. SSP
+`organizationName` may appear as an organization party and is **not** mapped
+to `system-owner`. DoD cloud impact level is not emitted as
+`security-sensitivity-level`. IL4 and CMMC OSCAL export remain disabled.
 
 ## Intentionally retained NIST-specific behavior (04B)
 
@@ -256,6 +264,10 @@ suspension is program context only and is not persisted as framework identity.
 1. No official FedRAMP OSCAL profile has been located and approved as an input to this project.
 2. FedRAMP Consolidated Rules not integrated as a separate evaluation layer.
 3. Stable document/party/component UUIDs not persisted.
-4. Many SSP-required operational facts still missing from the domain model.
+4. Many SSP-required operational facts still missing from the domain model
+   (network architecture, data flow, diagrams, inventory). 07A added
+   authorization boundary, environment, roles, information types,
+   categorization, operational status, and interconnections; those remain
+   optional and are not inferred.
 5. Semantic OSCAL checks (UUID integrity beyond pattern, control-in-profile membership, profile/catalog package resolution) not implemented.
 6. Narrow profile resolver — not a full OSCAL profile engine.

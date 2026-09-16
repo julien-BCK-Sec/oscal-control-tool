@@ -3,7 +3,7 @@ title: Glossary
 summary: Short definitions for terms that mean something specific inside Control Freak.
 section: reference
 order: 20
-related: welcome, authoring-controls, evidence, dod-cloud-il4
+related: welcome, authoring-controls, evidence, dod-cloud-il4, projects
 ---
 
 - **Assignment** — a specific organization member assigned to a control as
@@ -49,7 +49,8 @@ related: welcome, authoring-controls, evidence, dod-cloud-il4
 - **Narrative status** — whether the implementation narrative text has been
   written (Not started, In progress, Implemented, Not applicable).
 - **Organization** — the tenant that owns projects and team members; roles
-  are assigned per organization.
+  are assigned per organization. Distinct from the SSP organization named
+  on Project details.
 - **Project** — a single documentation effort against one framework.
 - **Review status** — where a control is in the review workflow (Not
   Reviewed, Ready for Review, Under Review, Changes Requested, Approved),
@@ -59,6 +60,16 @@ related: welcome, authoring-controls, evidence, dod-cloud-il4
   the same as a named version.
 - **Snapshot** — an automatic or recovery-triggered point-in-time capture
   of a project's implementation content, distinct from a named version.
-- **SSP (System Security Plan)** — the OSCAL document Control Freak can
-  export for NIST SP 800-53 projects. CMMC Level 2 and DoD Cloud Impact
-  Level 4 projects do not export OSCAL.
+- **SSP organization** — the organization named in the System Security
+  Plan. It is not the Control Freak tenant and is not copied from team
+  membership.
+- **SSP roles** — documentation records such as system owner, authorizing
+  official, and system security officer. They are not Better Auth users,
+  tenant roles, or control owner/reviewer assignments.
+- **SSP (System Security Plan)** — security documentation about a system.
+  In Control Freak this means two related things: the canonical
+  system-characteristics and control data you author in a project, and
+  (for NIST SP 800-53 projects only) the OSCAL SSP file you can export.
+  The future human-readable Control Freak SSP is a product document built
+  from that canonical data. It is not an OSCAL file rendered into Word.
+  CMMC Level 2 and DoD Cloud Impact Level 4 projects do not export OSCAL.

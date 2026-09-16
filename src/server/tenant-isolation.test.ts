@@ -154,4 +154,20 @@ describe("tenant isolation: authorized projects", () => {
     const listed = await listProjectsForOrg(projects, viewer);
     assert.equal(listed.length, 1);
   });
+
+  it("does not copy the tenant organization into SSP organization or roles", async () => {
+    const { projects, orgA } = await setup();
+    const created = await createProjectForOrg(
+      projects,
+      ctx(orgA.id, "organization_admin"),
+      {
+        name: "Bare project",
+        frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+      },
+    );
+    assert.equal(created.organizationId, orgA.id);
+    assert.equal(created.metadata.organizationName, "");
+    assert.deepEqual(created.metadata.systemRoles, []);
+    assert.notEqual(created.metadata.organizationName, orgA.name);
+  });
 });

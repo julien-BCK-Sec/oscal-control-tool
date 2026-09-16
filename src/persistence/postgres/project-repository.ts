@@ -3,7 +3,7 @@ import "server-only";
 import { and, desc, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
-  buildStoredProjectDocumentV1,
+  buildStoredProjectDocument,
   parseProjectDocumentJson,
   projectDocumentFingerprint,
   serializeProjectDocument,
@@ -111,7 +111,7 @@ export function createPostgresProjectRepository(
         systemName: name,
       };
       const implementations = input.implementations ?? {};
-      const document = buildStoredProjectDocumentV1({
+      const document = buildStoredProjectDocument({
         id,
         name,
         frameworkId,
@@ -258,7 +258,7 @@ export function createPostgresProjectRepository(
         };
       }
 
-      const document = buildStoredProjectDocumentV1({
+      const document = buildStoredProjectDocument({
         id: loaded.project.id,
         name: loaded.project.name,
         frameworkId: loaded.project.frameworkId,
@@ -320,7 +320,7 @@ export function createPostgresProjectRepository(
         };
       }
 
-      const preDocument = buildStoredProjectDocumentV1({
+      const preDocument = buildStoredProjectDocument({
         id: loaded.project.id,
         name: loaded.project.name,
         frameworkId: loaded.project.frameworkId,
@@ -461,7 +461,7 @@ export function createPostgresProjectRepository(
       };
     }
 
-    const document = buildStoredProjectDocumentV1({
+    const document = buildStoredProjectDocument({
       id: input.id,
       name,
       frameworkId,
@@ -638,7 +638,7 @@ export function createPostgresProjectRepository(
       return null;
     }
 
-    const document = buildStoredProjectDocumentV1({
+    const document = buildStoredProjectDocument({
       id: loaded.project.id,
       name: loaded.project.name,
       frameworkId: loaded.project.frameworkId,

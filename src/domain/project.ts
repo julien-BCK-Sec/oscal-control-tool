@@ -1,6 +1,10 @@
 import type { FrameworkControl } from "@/data/framework";
 import type { ControlImplementation } from "@/data/implementation";
-import type { ProjectMetadata } from "@/data/project";
+import {
+  normalizeProjectMetadata,
+  type ProjectMetadata,
+  type ProjectMetadataInput,
+} from "@/data/project";
 
 /**
  * Complete application project as an internal domain model.
@@ -24,7 +28,7 @@ export type Project = {
 
 /** Inputs required to assemble a Project from current application state. */
 export type AssembleProjectInput = {
-  metadata: ProjectMetadata;
+  metadata: ProjectMetadataInput;
   frameworkId: string;
   frameworkControls: readonly FrameworkControl[];
   implementations: Readonly<Record<string, ControlImplementation>>;
@@ -36,11 +40,7 @@ export type AssembleProjectInput = {
  */
 export function assembleProject(input: AssembleProjectInput): Project {
   return {
-    metadata: {
-      systemName: input.metadata.systemName,
-      organizationName: input.metadata.organizationName,
-      systemDescription: input.metadata.systemDescription,
-    },
+    metadata: normalizeProjectMetadata(input.metadata),
     frameworkId: input.frameworkId,
     frameworkControls: input.frameworkControls,
     implementations: { ...input.implementations },

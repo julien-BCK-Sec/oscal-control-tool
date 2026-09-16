@@ -43,6 +43,9 @@ limitations mentioned throughout the guide in one place.
   correctness, cross-reference integrity, or policy compliance.
 - There is no OSCAL import. You cannot bring an existing SSP into Control
   Freak; every project is authored from scratch inside the product.
+- Control Freak does not yet generate a human-readable Word or PDF SSP.
+  System characteristics on Project details are the canonical source for
+  that future document.
 
 ## Evidence
 
