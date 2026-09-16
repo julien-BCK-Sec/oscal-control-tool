@@ -474,11 +474,13 @@ cutover only.
 
 ## Next approved milestone
 
-Milestone 06B is implemented in the working tree and is not yet committed
-or released. Word/PDF authorization-package export and future IL5/IL6
-work remain unscheduled on `docs/roadmap.md`. A later human-readable SSP
-generator should not begin until per-ODP resolution is designed; 06B left
-that gap in place.
+Milestone 06B is committed on `main` (`b6914c6`) and is being prepared as
+corrective release **v0.6.2**. It is not yet tagged, deployed, or
+production verified. **v0.6.1** remains the live production revision.
+Word/PDF authorization-package export and future IL5/IL6 work remain
+unscheduled on `docs/roadmap.md`. A later human-readable SSP generator
+should not begin until per-ODP resolution is designed; 06B left that gap
+in place.
 
 ## Required verification for each milestone
 

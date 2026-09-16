@@ -142,7 +142,7 @@ build; v0.6.1 is the live release. See
 `docs/user-guide/dod-cloud-il4.md`, and `docs/deploy-render.md`.
 
 **Milestone 06B – DoD IL4 Tailoring Semantics Correction** (implemented,
-pending review/commit)
+committed, preparing v0.6.2)
 
 Corrects IL4 parameter classification and provenance without changing the
 345-item population. Table D-1 is the machine-checkable DoD FedRAMP+
