@@ -1,9 +1,9 @@
 ---
 title: Document controls and requirements
-summary: Browsing the control tree and everything on the control editor screen — narrative, ownership, and the three status fields.
+summary: Browsing the control tree and everything on the control editor screen — narrative, organization-defined parameters, ownership, and the three status fields.
 section: controls
 order: 10
-related: welcome, review-workflow, evidence, dod-cloud-il4
+related: welcome, review-workflow, evidence, dod-cloud-il4, human-readable-ssp
 ---
 
 ## Browsing controls
@@ -42,6 +42,9 @@ Below the header:
   wording. On DoD Cloud Impact Level 4 projects, a derived **Effective
   requirement** may appear first when authoritative assignments are
   known. See [DoD Cloud Impact Level 4](/help/dod-cloud-il4).
+- **Organization-defined parameters** — explicit project values for
+  catalog ODPs, kept separate from the narrative. See
+  [Organization-defined parameters](/help/authoring-controls#organization-defined-parameters).
 - **Narrative** — your implementation text, plus a **Narrative status**
   field (see below).
 - **Evidence** — Evidence records linked to this control. See
@@ -130,6 +133,53 @@ A realistic control midway through work might show: Narrative status
 and Review status **Ready for Review** (you've formally submitted it and
 are waiting for a reviewer to start). All three are true at once and none
 of them was inferred from another — that's expected, not a bug.
+
+## Organization-defined parameters
+
+NIST SP 800-53 controls can include organization-defined parameters (ODPs).
+Author those values on the control workspace. Control Freak does **not**
+infer them from the implementation narrative.
+
+The ODP editor shows:
+
+- the catalog prompt (label or guideline), with the parameter ID as
+  secondary metadata;
+- the framework-derived value and source, when one exists;
+- the project's authored value;
+- the current resolution state.
+
+Flexible text is expected. A value may be `15 minutes` or a longer
+operational sentence. Catalog **select** parameters use the catalog's own
+choices (`one` or `one or more`). Control Freak does not invent dropdowns
+for ordinary assignment parameters.
+
+Keep these layers distinct:
+
+- **Framework value** — immutable reference data from the catalog, baseline,
+  or overlay.
+- **Project value** — what this organization authored.
+- **Unresolved ODP** — no legitimate substitution is available yet.
+- **Accepted permitted baseline** — DoD may permit a FedRAMP value; it is
+  not used in the resolved requirement until someone explicitly accepts it.
+- **Documented deviation** — the project records that operations differ.
+  This does **not** replace the authoritative framework value.
+- **DSPAV assertion** — the organization asserts it obtained a restricted
+  authoritative value. This is project documentation, not a Control Freak
+  verified substitution.
+- **Source conflict** — both authoritative sources remain visible. A
+  proceeding note does not choose a winner.
+
+Grouping/aggregate catalog parameters are hidden; edit the child ODPs
+instead. CMMC requirements and DoD General Readiness Requirements do not
+get an artificial ODP editor, because those catalogs do not populate NIST
+parameter identity in Control Freak.
+
+Viewers can read parameter records. Authors and other roles with
+implementation-edit permission can change them. Saves follow the same
+project autosave and revision path as narratives.
+
+See [Human-readable SSP](/help/human-readable-ssp) for how resolved and
+unresolved inserts appear in the Word export.
 
 ## Evidence requirement
 

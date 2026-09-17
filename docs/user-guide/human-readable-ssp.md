@@ -51,14 +51,30 @@ matches operational Evidence from that time.
 
 ## Organization-defined parameters
 
-Catalog organization-defined parameters remain unresolved in this document.
-The source statement is preserved, insert locations are shown as
-`[Unresolved ODP: …]`, and any control-level framework assignment is shown
-separately with provenance. Control Freak does not substitute a control-level
-assignment into every parameter, invent DSPAV values, or choose a winner for
-source conflicts.
+Catalog organization-defined parameters may be resolved individually in
+this document. The **authoritative source statement** keeps unresolved
+placeholders. A **resolved requirement** substitutes only values the
+parameter-resolution engine allows: project-authored assignments,
+framework-authoritative mapped values, and explicitly accepted permitted
+baselines.
 
-Per-parameter resolution remains later work.
+If only some inserts can be resolved, the resolved requirement mixes
+substituted values with `[Unresolved ODP: …]` placeholders. Control Freak
+does not mark a whole control resolved because some ODPs have values.
+
+These remain separate from the resolved insert:
+
+- documented operational deviations;
+- DSPAV / authoritative-value-required assertions;
+- source-conflict proceeding notes;
+- DoD IL4 overlay text that is still only control-level (unmapped to an
+  individual ODP).
+
+Control Freak does not infer parameter values from implementation
+narratives, invent DSPAV values, or choose a winner for source conflicts.
+CMMC and GRR items have no catalog ODP population, so they have no
+parameter substitution. NIST OSCAL SSP export still does not serialize
+`set-parameter` records.
 
 ## Status semantics
 
