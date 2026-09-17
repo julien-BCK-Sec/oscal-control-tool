@@ -268,6 +268,7 @@ suspension is program context only and is not persisted as framework identity.
    (network architecture, data flow, diagrams, inventory). 07A added
    authorization boundary, environment, roles, information types,
    categorization, operational status, and interconnections; those remain
-   optional and are not inferred.
+   optional and are not inferred. 07B generates a Control Freak Word SSP from
+   those fields; diagrams remain deferred.
 5. Semantic OSCAL checks (UUID integrity beyond pattern, control-in-profile membership, profile/catalog package resolution) not implemented.
 6. Narrow profile resolver — not a full OSCAL profile engine.

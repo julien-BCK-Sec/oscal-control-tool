@@ -3,7 +3,7 @@ title: DoD Cloud Impact Level 4
 summary: What DoD Cloud Impact Level 4 means in Control Freak, how the 345-item overlay is presented, and what selecting it does and does not mean.
 section: frameworks
 order: 15
-related: frameworks, oscal-export, authoring-controls, evidence-coverage, limitations
+related: frameworks, oscal-export, human-readable-ssp, authoring-controls, evidence-coverage, limitations
 ---
 
 This page describes how Control Freak implements **DoD Cloud Impact Level 4**.
@@ -205,8 +205,9 @@ See [Track Evidence coverage](/help/evidence-coverage).
 
 ## OSCAL export
 
-IL4 projects do not offer **Export OSCAL SSP**. The button does not
-appear.
+IL4 projects do not offer **Export OSCAL SSP (JSON)**. The button does not
+appear. They do offer **Export human-readable SSP (Word)**. See
+[Human-readable SSP](/help/human-readable-ssp).
 
 Control Freak does not currently have an approved, pinned authoritative
 OSCAL profile capable of representing the implemented DoD IL4

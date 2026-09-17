@@ -76,6 +76,7 @@ describe("getHelpManifest", () => {
       getHelpPage("dod-cloud-il4")?.title,
       "DoD Cloud Impact Level 4",
     );
+    assert.equal(getHelpPage("human-readable-ssp")?.title, "Human-readable SSP");
     assert.equal(getHelpPage("invitations-and-team")?.title, "Manage your team");
     assert.equal(getHelpPage("limitations")?.title, "Product limitations");
     assert.equal(
@@ -213,12 +214,15 @@ describe("getHelpSearchIndex", () => {
     const slugs = frameworks!.pages.map((page) => page.slug);
     const frameworksIndex = slugs.indexOf("frameworks");
     const il4Index = slugs.indexOf("dod-cloud-il4");
+    const humanSspIndex = slugs.indexOf("human-readable-ssp");
     const oscalIndex = slugs.indexOf("oscal-export");
     assert.ok(frameworksIndex !== -1);
     assert.ok(il4Index !== -1);
+    assert.ok(humanSspIndex !== -1);
     assert.ok(oscalIndex !== -1);
     assert.ok(frameworksIndex < il4Index);
-    assert.ok(il4Index < oscalIndex);
+    assert.ok(il4Index < humanSspIndex);
+    assert.ok(humanSspIndex < oscalIndex);
 
     const page = getHelpPage("dod-cloud-il4");
     assert.ok(page);

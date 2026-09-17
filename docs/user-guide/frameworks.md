@@ -3,7 +3,7 @@ title: Choose and understand frameworks
 summary: The frameworks Control Freak supports today, how "control" and "requirement" terminology differs by framework, and what a framework choice does and does not mean.
 section: frameworks
 order: 10
-related: dod-cloud-il4, oscal-export, authoring-controls, limitations
+related: dod-cloud-il4, human-readable-ssp, oscal-export, authoring-controls, limitations
 ---
 
 ## Supported frameworks

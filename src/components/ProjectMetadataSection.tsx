@@ -1,6 +1,7 @@
 "use client";
 
 import { ExportOscalButton } from "@/components/ExportOscalButton";
+import { ExportSspDocxButton } from "@/components/ExportSspDocxButton";
 import {
   AUTHORIZATION_BOUNDARY_HINT,
   CATEGORIZATION_HINT,
@@ -58,6 +59,7 @@ export type ProjectMetadataSectionProps = {
   onMetadataChange: (next: ProjectMetadata) => void;
   implementations: Record<string, ControlImplementation>;
   projectName?: string;
+  projectId?: string;
 };
 
 function newRowId(): string {
@@ -106,6 +108,7 @@ export function ProjectMetadataSection({
   onMetadataChange,
   implementations,
   projectName,
+  projectId,
 }: ProjectMetadataSectionProps) {
   const oscalAvailable = frameworkHasOscalSspExport(framework.id);
   const frameworkLabel = framework.title;
@@ -172,11 +175,14 @@ export function ProjectMetadataSection({
             </HelpLink>
           </p>
         </div>
-        <ExportOscalButton
-          framework={framework}
-          metadata={metadata}
-          implementations={implementations}
-        />
+        <div className="flex max-w-md flex-col items-stretch gap-4 sm:items-end">
+          {projectId ? <ExportSspDocxButton projectId={projectId} /> : null}
+          <ExportOscalButton
+            framework={framework}
+            metadata={metadata}
+            implementations={implementations}
+          />
+        </div>
       </div>
 
       <section aria-labelledby="system-identity-heading" className="space-y-4">

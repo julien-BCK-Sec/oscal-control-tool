@@ -9,7 +9,7 @@ OSCAL is the interchange and export format, not the application's internal domai
 The product focuses on making compliance documentation easier to produce, review, and maintain through collaboration, reusable implementation knowledge, operational workflows, and standards-based exports.
 
 The initial human-readable System Security Plan is a Control Freak product
-artifact. It will be produced from canonical project data. OSCAL remains a
+artifact produced from canonical project data. OSCAL remains a
 separate interchange/export path and is not the SSP domain.
 
 The application is intended to support multiple compliance frameworks over time through a common framework abstraction while preserving framework-specific guidance and exports.

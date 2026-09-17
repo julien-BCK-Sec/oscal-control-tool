@@ -74,7 +74,7 @@ export function ExportOscalButton({
   return (
     <div className="flex max-w-md flex-col items-stretch gap-2 sm:items-end">
       <button type="button" onClick={handleExport} className="btn">
-        Export OSCAL SSP
+        Export OSCAL SSP (JSON)
       </button>
       <p className="text-left text-xs sm:text-right">
         <HelpLink slug="oscal-export" hash="what-valid-means-here">

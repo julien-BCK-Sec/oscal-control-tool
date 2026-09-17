@@ -206,7 +206,23 @@ Milestone 07A capabilities:
 - Optional operational status, distinct from authorization or review status
 - Conservative NIST OSCAL adapter consumption of authored fields; IL4/CMMC
   OSCAL export remains disabled
-- Diagram modeling deferred to 07B
+- Diagrams were not modeled in 07A and remain deferred
+
+Milestone 07B capabilities:
+
+- Control Freak System Security Plan document/view model (`src/ssp/`) independent
+  of DOCX and OSCAL
+- Programmatic layout `cf-ssp-docx` version 1.0
+- On-demand in-memory Word export via `GET /api/projects/[projectId]/exports/ssp.docx`
+  (Node runtime, `project.read`, tenant isolation)
+- Available for all currently supported frameworks; OSCAL SSP export remains
+  NIST-only
+- Missing data uses render-only placeholders; empty collections mean
+  not documented
+- Organization-defined parameters remain unresolved; overlay assignments stay
+  separate from authoritative source statements
+- No new persistence, schema, or SQL migration
+- Diagrams remain deferred
 
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
@@ -263,14 +279,22 @@ Examples:
   and does not map SSP organization name to system-owner. Missing values
   remain explicit gaps. OSCAL is a sibling exporter, not the domain model.
 
-- Word (future)
+- Control Freak System Security Plan (Word). Canonical domain data is mapped
+  into an SSP document/view model (`src/ssp/`), then rendered with the
+  `cf-ssp-docx` 1.0 layout (`src/export/ssp-docx/`). Generation is server-side
+  and in memory. The Word file is not OSCAL, not an official FedRAMP/DoD/CMMC
+  package, and not stored.
+
 - PDF (future)
 
 Exporters adapt the domain model.
 
 They do not define it.
 
-Collaboration metadata is never included in OSCAL exports.
+Collaboration metadata is never included in OSCAL exports. The human-readable
+SSP may include optional ControlRecord owner labels and linked Evidence
+titles; it does not include collaboration assignments or review workflow
+status as implementation status.
 
 ---
 
@@ -318,7 +342,7 @@ requirePermission (src/authz)
 Repository / service (PostgreSQL)
         │
         ▼
-Domain / OSCAL export as needed
+Domain / OSCAL export or Control Freak SSP DOCX as needed
 ```
 
 Collaboration mutations follow the same path through authorized wrappers in

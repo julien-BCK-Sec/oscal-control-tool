@@ -48,7 +48,7 @@ export const HELP_SECTIONS: HelpSection[] = [
     label: "Frameworks and standards",
     order: 60,
     description:
-      "NIST SP 800-53 baselines, CMMC Level 2, DoD Cloud Impact Level 4, and OSCAL export.",
+      "NIST SP 800-53 baselines, CMMC Level 2, DoD Cloud Impact Level 4, human-readable SSP export, and OSCAL export.",
   },
   {
     id: "history",

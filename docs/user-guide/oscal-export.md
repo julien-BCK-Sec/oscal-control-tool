@@ -3,13 +3,13 @@ title: OSCAL export
 summary: How to export a System Security Plan, why some frameworks don't offer it, and what schema validation does and doesn't prove.
 section: frameworks
 order: 20
-related: frameworks, dod-cloud-il4, limitations
+related: frameworks, dod-cloud-il4, human-readable-ssp, limitations
 ---
 
 ## Exporting an SSP
 
 On a NIST SP 800-53 project's **Project details** tab, select
-**Export OSCAL SSP** to download a single OSCAL 1.2.2 System Security Plan
+**Export OSCAL SSP (JSON)** to download a single OSCAL 1.2.2 System Security Plan
 as a JSON file. It's built from the project's authored system
 characteristics (when present), its imported baseline profile, and one
 implemented-requirement entry per control with your narrative and, where
@@ -23,7 +23,8 @@ gaps. The system overview is not used as the authorization boundary. The
 SSP organization name is not treated as the system owner.
 
 OSCAL is an interchange format. It is not the Control Freak SSP domain and
-not a human-readable System Security Plan.
+not a human-readable System Security Plan. For the Word document, see
+[Human-readable SSP](/help/human-readable-ssp).
 
 ## CMMC projects don't have this button
 

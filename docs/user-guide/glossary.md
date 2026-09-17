@@ -3,7 +3,7 @@ title: Glossary
 summary: Short definitions for terms that mean something specific inside Control Freak.
 section: reference
 order: 20
-related: welcome, authoring-controls, evidence, dod-cloud-il4, projects
+related: welcome, authoring-controls, evidence, dod-cloud-il4, projects, human-readable-ssp
 ---
 
 - **Assignment** — a specific organization member assigned to a control as
@@ -68,8 +68,9 @@ related: welcome, authoring-controls, evidence, dod-cloud-il4, projects
   tenant roles, or control owner/reviewer assignments.
 - **SSP (System Security Plan)** — security documentation about a system.
   In Control Freak this means two related things: the canonical
-  system-characteristics and control data you author in a project, and
+  system-characteristics and control data you author in a project, the
+  Control Freak human-readable SSP Word file generated from that data, and
   (for NIST SP 800-53 projects only) the OSCAL SSP file you can export.
-  The future human-readable Control Freak SSP is a product document built
-  from that canonical data. It is not an OSCAL file rendered into Word.
+  The Control Freak SSP is a product document, not an OSCAL file rendered
+  into Word, and not an official FedRAMP, DoD, or CMMC package.
   CMMC Level 2 and DoD Cloud Impact Level 4 projects do not export OSCAL.

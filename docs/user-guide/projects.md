@@ -3,7 +3,7 @@ title: Create and manage projects
 summary: Creating a project, the tabs in the project workspace, and what the Overview tab shows you at a glance.
 section: projects
 order: 10
-related: frameworks, authoring-controls, version-history, oscal-export
+related: frameworks, authoring-controls, version-history, human-readable-ssp, oscal-export
 ---
 
 ## Creating a project
@@ -43,7 +43,7 @@ Opening a project puts you in its workspace, with five tabs:
 | Overview | A summary dashboard — see below |
 | Controls (or Requirements) | The browsable control/requirement tree and editor — see [Document controls and requirements](/help/authoring-controls) |
 | Evidence | The project's Evidence records and coverage — see [Evidence](/help/evidence) |
-| Project details | System characteristics and OSCAL export — see below and [OSCAL export](/help/oscal-export) |
+| Project details | System characteristics and exports — see below, [Human-readable SSP](/help/human-readable-ssp), and [OSCAL export](/help/oscal-export) |
 | Version history | Named versions and automatic snapshots — see [Version history](/help/version-history) |
 
 The workspace header also shows the project's framework label, its current
@@ -104,8 +104,10 @@ narratives, or Evidence.
 > documentation. They are not an Authority to Operate, Provisional
 > Authorization, assessment result, or application permission.
 
-NIST SP 800-53 projects can still [export OSCAL](/help/oscal-export) from
-this tab. CMMC and DoD Cloud IL4 projects cannot.
+Every supported framework can [export a human-readable SSP](/help/human-readable-ssp)
+as Word from this tab. NIST SP 800-53 projects can also
+[export OSCAL](/help/oscal-export). CMMC and DoD Cloud IL4 projects cannot
+export OSCAL.
 
 ## Autosave, undo, and conflicts
 
