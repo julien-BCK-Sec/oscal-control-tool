@@ -2,7 +2,8 @@
 
 ## Status
 
-Implemented.
+Implemented, on `main` (`4f85943`), preparing v0.7.0. Not yet tagged,
+deployed, or production verified.
 
 ## Purpose
 

@@ -5,10 +5,14 @@ Date: 2026-09-17
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application.
-Milestone 07B adds a Control Freak-owned human-readable System Security Plan
-as a Word download generated from saved project data. Milestone 07A added
-canonical SSP system characteristics on `project_json` schema v2. Milestone
-06B remains the current production release (v0.6.2)
+Milestones 07A and 07B form release **v0.7.0** (Control Freak —
+Human-Readable SSP). They are implemented on `main` and being prepared
+for tag and production deploy. **v0.6.2** remains the live production
+revision until that release is tagged and verified. Milestone 07A added
+canonical SSP system characteristics on `project_json` schema v2.
+Milestone 07B adds a Control Freak-owned human-readable System Security
+Plan as a Word download generated from saved project data. Milestone
+06B remains the previous production release
 for DoD Cloud Impact Level 4 tailoring correctness. Milestone 06A added
 DoD Cloud Impact Level 4 as a product-selectable framework on top of
 Milestone 05C (Render demo hosting), Milestone 05B
@@ -77,6 +81,42 @@ The application currently provides:
 
 OSCAL is an export/interchange format, not the internal editing model.
 Collaboration metadata is never exported as OSCAL.
+
+## Preparing release v0.7.0
+
+**v0.7.0** is Control Freak — Human-Readable SSP. It has not been tagged
+or deployed yet. **v0.6.2** remains the live production revision.
+
+07A (`project_json` schema v2, no SQL/schema migration) adds structured
+SSP system characteristics: system identity, SSP organization,
+authorization boundary, environment of operation, operational status,
+typed SSP roles, information types, explicit optional FIPS 199
+categorization, explicit optional DoD cloud impact-level assertion, and
+interconnection summaries. Framework selection never infers
+categorization or authorization. NIST OSCAL export consumes authored
+fields and no longer copies overview into `authorization-boundary` or
+organization name into `system-owner`.
+
+07B generates a human-readable SSP through canonical project data →
+document/view model → Control Freak layout `cf-ssp-docx` 1.0 → in-memory
+Word/DOCX (`docx@9.7.1` exact pin). The file is authenticated,
+server-side, and not persisted. It covers NIST Low/Moderate/High, CMMC
+Level 2, and DoD IL4 documentation frameworks. Missing system
+information uses placeholders; unresolved ODPs stay unresolved.
+Implementation documentation status is not compliance status. Linked
+Evidence is reference material, not automatically assessed. Local demo
+smoke (2026-09-17) downloaded and opened a Word SSP; V1 layout is
+functional, not the final desired presentation.
+
+This is not an official FedRAMP SSP/package, DoD authorization package,
+CMMC assessment artifact, or a certification/ATO/PA claim.
+
+Deferred: per-ODP framework/project resolution and project-authored ODP
+values (07C), richer responsibility/origination/inheritance semantics,
+substantial SSP template redesign, PDF, diagrams, official
+framework-specific authorization packages, CMMC/IL4 OSCAL SSP export,
+FedRAMP 2026 CPO/SDR-specific outputs, and DoD package-specific
+artifacts.
 
 ## Verified production release
 
@@ -505,16 +545,12 @@ cutover only.
 
 ## Next approved milestone
 
-Milestone **07C — Parameter and Control Fidelity**. Milestone 07B is
-implemented and manually accepted: a Control Freak System Security Plan
-can be exported as Word from Project details for every supported
-framework. Local demo smoke (2026-09-17) bootstrapped the canonical demo,
-signed in, downloaded a DOCX from **Export human-readable SSP (Word)**,
-and opened it. That confirms the end-to-end architecture. Layout
-`cf-ssp-docx` 1.0 is functional V1 presentation, not the final desired
-template; substantial redesign is deferred and is not a 07B blocker.
-Generation remains on-demand with render-only placeholders and no new
-persistence. Production remains **v0.6.2** until a later 07A/07B release.
+Milestones 07A and 07B are implemented on `main` (`4f85943`) and are
+being prepared as **v0.7.0**. They are not yet tagged, deployed, or
+production verified. **v0.6.2** remains the live production revision.
+The next approved product milestone after this release is **07C —
+Parameter and Control Fidelity**. Layout `cf-ssp-docx` 1.0 is functional
+V1 presentation, not the final desired template.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into

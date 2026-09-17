@@ -2,7 +2,8 @@
 
 ## Status
 
-Implemented and manually accepted.
+Implemented, manually accepted, and preparing v0.7.0. Not yet tagged,
+deployed, or production verified.
 
 Local demo smoke (2026-09-17): canonical demo environment bootstrapped;
 demo authentication succeeded; **Export human-readable SSP (Word)** was
