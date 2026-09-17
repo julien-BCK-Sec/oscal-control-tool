@@ -1,0 +1,10 @@
+{
+  "source": {
+    "description": "Explicit per-ODP IL4 mappings. Empty in Milestone 07C. Control-level overlay semantics remain authoritative until a mapping names a catalog parameter ID. Bracket-count similarity is not authority.",
+    "addendumWorkbookSha256": "80475917868603d65c01a0e82be7cdd9e12095ea08047b397a8244a9177b6fcd",
+    "tableD1PdfSha256": "fcb472f563283f293e224fcf72987584deb6019482a264a6536c2d5c1a5df51f",
+    "fedrampBaselineSha256": "fa3282f0f31356d8b001c64fcc105091826f0de88a294e380afd1e0b56a9830c",
+    "nistCatalogSha256": "01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062"
+  },
+  "mappings": []
+}

@@ -4,7 +4,10 @@ import type {
   FrameworkAuthoritativeValueStatus,
   FrameworkControl,
   FrameworkItemKind,
+  FrameworkParameterChoice,
+  FrameworkParameterMappingBasis,
   FrameworkParameterMetadata,
+  FrameworkParameterResolution,
   FrameworkProvider,
   FrameworkProvenanceText,
   FrameworkSelectionProvenance,
@@ -27,6 +30,7 @@ import type {
   ProvenanceText,
   SelectionProvenance,
 } from "./types";
+import { mapIl4DspavStatus } from "./status";
 
 export class InvalidDodCloudIl4ArtifactError extends Error {
   constructor(message: string) {
@@ -231,6 +235,14 @@ function parseOrganizationDefined(
         record.description,
         `item ${id} parameters.nistOrganizationDefined[${index}].description`,
       ),
+      altIdentifiers: requireStringArray(
+        record.altIdentifiers,
+        `${id} parameters.nistOrganizationDefined[${index}].altIdentifiers`,
+      ),
+      aggregatedParameterIds: requireStringArray(
+        record.aggregatedParameterIds,
+        `${id} parameters.nistOrganizationDefined[${index}].aggregatedParameterIds`,
+      ),
     };
     if (record.select !== undefined) {
       parsed.select = parseParameterSelect(
@@ -242,26 +254,129 @@ function parseOrganizationDefined(
   });
 }
 
+function requireStringArray(value: unknown, label: string): string[] {
+  return requireArray(value, label).map((entry, index) =>
+    requireStringValue(entry, `${label}[${index}]`),
+  );
+}
+
 function parseParameterSelect(
   value: unknown,
   label: string,
 ): NonNullable<OverlayParameterMetadata["nistOrganizationDefined"][number]["select"]> {
   const record = requireRecord(value, label);
-  const choices = requireArray(record.choices, `${label}.choices`).map(
-    (choice, index) => requireString(choice, `${label}.choices[${index}]`),
-  );
   const howMany = record.howMany;
-  if (howMany !== undefined && howMany !== "one" && howMany !== "one-or-more") {
+  if (howMany !== "one" && howMany !== "one-or-more") {
     throw new InvalidDodCloudIl4ArtifactError(
-      `${label}.howMany must be "one" or "one-or-more" when present`,
+      `${label}.howMany must be "one" or "one-or-more"`,
     );
   }
-  return {
-    ...(howMany === "one" || howMany === "one-or-more"
-      ? { howMany }
-      : {}),
-    choices,
-  };
+  const choices: FrameworkParameterChoice[] = requireArray(
+    record.choices,
+    `${label}.choices`,
+  ).map((choice, index) => {
+    const choiceRecord = requireRecord(choice, `${label}.choices[${index}]`);
+    const key = requireStringValue(choiceRecord.key, `${label}.choices[${index}].key`);
+    if (key !== String(index)) {
+      throw new InvalidDodCloudIl4ArtifactError(
+        `${label}.choices[${index}].key must be "${index}"`,
+      );
+    }
+    return {
+      key,
+      text: requireString(
+        choiceRecord.text,
+        `${label}.choices[${index}].text`,
+      ),
+      nestedParameterIds: requireStringArray(
+        choiceRecord.nestedParameterIds,
+        `${label}.choices[${index}].nestedParameterIds`,
+      ),
+    };
+  });
+  return { howMany, choices };
+}
+
+const MAPPING_BASES = new Set<FrameworkParameterMappingBasis>([
+  "catalog-unassigned",
+  "oscal-set-parameter",
+  "pinned-overlay-mapping",
+  "control-level-unmapped",
+]);
+
+const AUTHORITATIVE_STATUSES = new Set<FrameworkAuthoritativeValueStatus>([
+  "not-indicated",
+  "csp-organization-defined",
+  "baseline-inherited",
+  "may-use-baseline",
+  "overlay-explicit",
+  "satisfied-by-overlay",
+  "authoritative-value-required",
+  "source-conflict",
+]);
+
+function parseParameterResolutions(
+  value: unknown,
+  id: string,
+): FrameworkParameterResolution[] {
+  return requireArray(value, `item ${id} parameters.parameterResolutions`).map(
+    (entry, index) => {
+      const label = `item ${id} parameters.parameterResolutions[${index}]`;
+      const record = requireRecord(entry, label);
+      const status = requireString(record.status, `${label}.status`);
+      if (!AUTHORITATIVE_STATUSES.has(status as FrameworkAuthoritativeValueStatus)) {
+        throw new InvalidDodCloudIl4ArtifactError(`${label}.status is invalid`);
+      }
+      const mappingBasis = requireString(
+        record.mappingBasis,
+        `${label}.mappingBasis`,
+      );
+      if (!MAPPING_BASES.has(mappingBasis as FrameworkParameterMappingBasis)) {
+        throw new InvalidDodCloudIl4ArtifactError(
+          `${label}.mappingBasis is invalid`,
+        );
+      }
+      const parsed: FrameworkParameterResolution = {
+        controlId: requireString(record.controlId, `${label}.controlId`),
+        parameterId: requireString(record.parameterId, `${label}.parameterId`),
+        status: status as FrameworkAuthoritativeValueStatus,
+        mappingBasis: mappingBasis as FrameworkParameterMappingBasis,
+        values: requireStringArray(record.values, `${label}.values`),
+        sources: parseProvenanceList(record.sources, `${label}.sources`),
+      };
+      if (record.controlOverlaySummary !== undefined) {
+        const summary = requireRecord(
+          record.controlOverlaySummary,
+          `${label}.controlOverlaySummary`,
+        );
+        const summaryStatus = requireString(
+          summary.status,
+          `${label}.controlOverlaySummary.status`,
+        );
+        if (
+          !AUTHORITATIVE_STATUSES.has(
+            summaryStatus as FrameworkAuthoritativeValueStatus,
+          )
+        ) {
+          throw new InvalidDodCloudIl4ArtifactError(
+            `${label}.controlOverlaySummary.status is invalid`,
+          );
+        }
+        parsed.controlOverlaySummary = {
+          status: summaryStatus as FrameworkAuthoritativeValueStatus,
+          effectiveAssignmentText: optionalString(
+            summary.effectiveAssignmentText,
+            `${label}.controlOverlaySummary.effectiveAssignmentText`,
+          ),
+          effectiveAssignmentSource: optionalString(
+            summary.effectiveAssignmentSource,
+            `${label}.controlOverlaySummary.effectiveAssignmentSource`,
+          ),
+        };
+      }
+      return parsed;
+    },
+  );
 }
 
 function parseParameters(
@@ -272,6 +387,10 @@ function parseParameters(
   return {
     nistOrganizationDefined: parseOrganizationDefined(
       record.nistOrganizationDefined,
+      id,
+    ),
+    parameterResolutions: parseParameterResolutions(
+      record.parameterResolutions,
       id,
     ),
     fedrampAssignment: parseProvenanceText(
@@ -358,24 +477,6 @@ function mapItemKind(kind: OverlayItemKind): FrameworkItemKind {
   return "other";
 }
 
-function mapAuthoritativeValueStatus(
-  status: DspavStatus,
-): FrameworkAuthoritativeValueStatus {
-  if (status === "fedramp-explicitly-referenced") {
-    return "may-use-baseline";
-  }
-  if (status === "satisfied-by-addendum-value") {
-    return "satisfied-by-overlay";
-  }
-  if (status === "fedramp-base-inherited") {
-    return "baseline-inherited";
-  }
-  if (status === "dod-explicit") {
-    return "overlay-explicit";
-  }
-  return status;
-}
-
 function mapSelectionProvenance(
   provenance: SelectionProvenance,
 ): FrameworkSelectionProvenance {
@@ -399,6 +500,7 @@ function mapParameters(
 ): FrameworkParameterMetadata {
   return {
     organizationDefined: parameters.nistOrganizationDefined,
+    parameterResolutions: parameters.parameterResolutions,
     baselineAssignment: mapProvenance(parameters.fedrampAssignment),
     baselineAdditionalGuidance: mapProvenance(
       parameters.fedrampAdditionalGuidance,
@@ -407,7 +509,7 @@ function mapParameters(
     policyCrossCheck: mapProvenance(parameters.appendixD),
     policyCrossCheckIndicatesAuthoritativeValue:
       parameters.appendixDIndicatesDspav,
-    authoritativeValueStatus: mapAuthoritativeValueStatus(
+    authoritativeValueStatus: mapIl4DspavStatus(
       parameters.dspavStatus,
     ),
     effectiveAssignmentText: parameters.effectiveAssignmentText,

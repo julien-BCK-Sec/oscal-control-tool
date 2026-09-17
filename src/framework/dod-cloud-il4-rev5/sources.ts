@@ -18,6 +18,9 @@ export const ADDENDUM_WORKBOOK_SHA256 =
 export const APPENDIX_D_EXTRACT_VENDOR_FILE =
   "vendor/dod/cloud-il4-rev5/extracts/appendix-d-il4-parameter-notes.json";
 
+export const IL4_PARAMETER_MAPPINGS_VENDOR_FILE =
+  "vendor/dod/cloud-il4-rev5/extracts/il4-parameter-mappings.json";
+
 export const CSP_SRG_V1R7_PDF_SHA256 =
   "fcb472f563283f293e224fcf72987584deb6019482a264a6536c2d5c1a5df51f";
 

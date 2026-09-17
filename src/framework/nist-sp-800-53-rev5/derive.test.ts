@@ -86,11 +86,21 @@ describe("deriveNistSp80053Rev5Framework Low/Moderate/High", () => {
         (param) => param.id === "ac-01_odp.03",
       );
       assert.ok(odp03);
-      assert.deepEqual(odp03.select?.choices, [
-        "organization-level",
-        "mission/business process-level",
-        "system-level",
-      ]);
+      assert.equal(odp03.select?.howMany, "one-or-more");
+      assert.deepEqual(
+        odp03.select?.choices.map((choice) => choice.text),
+        [
+          "organization-level",
+          "mission/business process-level",
+          "system-level",
+        ],
+      );
+      const ac1Resolution = ac1.parameters?.parameterResolutions?.find(
+        (row) => row.parameterId === "ac-01_odp.03",
+      );
+      assert.equal(ac1Resolution?.status, "csp-organization-defined");
+      assert.equal(ac1Resolution?.mappingBasis, "catalog-unassigned");
+      assert.deepEqual(ac1Resolution?.values, []);
     });
   }
 

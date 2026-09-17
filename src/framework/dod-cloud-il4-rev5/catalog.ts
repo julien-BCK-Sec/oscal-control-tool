@@ -14,12 +14,13 @@ type CatalogPart = {
 type CatalogControlNode = {
   id?: string;
   title?: string;
-  params?: Array<{
-    id?: string;
-    label?: string;
-    guidelines?: Array<{ prose?: string }>;
-    select?: { "how-many"?: string; choice?: unknown[] };
-  }>;
+    params?: Array<{
+      id?: string;
+      label?: string;
+      guidelines?: Array<{ prose?: string }>;
+      select?: { "how-many"?: string; choice?: unknown[] };
+      props?: Array<{ name?: string; value?: string }>;
+    }>;
   parts?: CatalogPart[];
   controls?: CatalogControlNode[];
 };
