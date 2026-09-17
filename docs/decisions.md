@@ -1083,3 +1083,54 @@ Reason:
 Date:
 2026-09-16
 
+## ADR-031
+
+Decision:
+The first human-readable SSP is a Control Freak System Security Plan generated
+on demand as Word (`docx@9.7.1`, exact pin, server-only) from a dedicated
+document/view model. Layout identity is `cf-ssp-docx` version 1.0 and lives
+in code. There is no binary Word template, no generation-history table, no
+stored DOCX, and no `project_json` schema change.
+
+Pipeline:
+
+canonical domain (`project_json` schema v2 + framework read model +
+implementations + Evidence links + optional ControlRecord owner labels)
+→ SSP document/view model (`src/ssp/`, no DOCX types)
+→ Control Freak layout
+→ in-memory DOCX renderer (`src/export/ssp-docx/`)
+→ `GET /api/projects/[projectId]/exports/ssp.docx`
+
+Export requires a session and `project.read`. Cross-tenant access is
+not-found. Incomplete SSP fields do not block generation. The file reflects
+live saved server state. Named-version-targeted SSP export is out of scope.
+
+Missing values use render-only placeholders such as
+`[Not yet documented: {Field label}]`. Empty collections mean the information
+has not been documented, not that nothing exists. Derived overall FIPS impact
+is shown only when all three authored system CIA values exist, labeled as
+derived, and is not persisted. Framework selection does not populate
+categorization.
+
+Organization-defined parameters remain unresolved. Authoritative catalog
+statements stay separate from sourced framework-assignment blocks. Control
+Freak does not inline authoring effective-requirement presentation, invent
+DSPAV values, or choose source-conflict winners. Implementation
+documentation status is only `ControlImplementation.status`. Linked Evidence
+is a documentation reference, not an assessment result.
+
+The Control Freak SSP is not OSCAL, not an official FedRAMP/DoD/CMMC
+package, and not a PA/ATO artifact. Diagrams remain deferred.
+
+Reason:
+- Word must not become the domain model, and OSCAL must remain a sibling
+  interchange path.
+- Evidence and ControlRecords are not in the client `assembleProject` path;
+  `docx` must not ship to the browser.
+- A government Word template would pretend official-package identity that
+  V1 does not have.
+- Per-ODP resolution is 07C; inlining control-level assignments would over-claim.
+
+Date:
+2026-09-16
+

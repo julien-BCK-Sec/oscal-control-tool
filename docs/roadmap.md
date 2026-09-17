@@ -164,9 +164,22 @@ Missing values stay missing and are never inferred from framework
 selection, tenant organization, or collaboration assignments. The NIST
 OSCAL adapter consumes authored fields conservatively and stops copying
 overview into authorization-boundary or organization name into
-system-owner. IL4/CMMC OSCAL export remains disabled. Diagrams deferred
-to 07B. See `docs/milestones/07A-ssp-system-characteristics.md` and
+system-owner. IL4/CMMC OSCAL export remains disabled. Diagrams were not
+modeled in 07A and remain deferred. See
+`docs/milestones/07A-ssp-system-characteristics.md` and
 ADR-030.
+
+**Milestone 07B – Human-Readable SSP DOCX V1** (implemented)
+
+Control Freak System Security Plan Word export (`cf-ssp-docx` 1.0) generated
+on demand from saved project data. Document/view model in `src/ssp/` is
+independent of DOCX. Missing information uses render-only placeholders.
+Empty collections mean not documented. Organization-defined parameters
+remain unresolved; overlay assignments stay separate from source
+statements. Available for all currently supported frameworks. OSCAL SSP
+export remains a sibling NIST-only path. No new persistence or schema.
+Diagrams remain deferred. See
+`docs/milestones/07B-human-readable-ssp-docx-v1.md` and ADR-031.
 
 ## Future directions
 
@@ -180,14 +193,13 @@ Milestone 7 produces useful human-readable security documentation from
 Control Freak's canonical project data. OSCAL, framework-specific official
 templates, and generated prose are not the product domain.
 
-- **07B — Human-Readable SSP DOCX V1** (next approved after 07A) —
-  Control Freak-owned SSP document/view model and deterministic DOCX
-  renderer using 07A system characteristics plus control implementation
-  content. Explicit missing-data placeholders. No false
-  compliance/authorization claims. Diagram references may be added here.
-  Official FedRAMP/DoD package templates remain later work.
+- **07B — Human-Readable SSP DOCX V1** (implemented) — Control Freak-owned
+  SSP document/view model and server-side DOCX renderer using 07A system
+  characteristics plus control implementation content. Explicit missing-data
+  placeholders. No false compliance/authorization claims. Diagrams remain
+  deferred. Official FedRAMP/DoD package templates remain later work.
 
-- **07C — Parameter and Control Fidelity** — per-ODP framework resolution,
+- **07C — Parameter and Control Fidelity** (next approved after 07B) — per-ODP framework resolution,
   project-authored ODP values, per-ODP provenance, and safer requirement
   substitution. This is not a prerequisite for 07A or for the first honest
   07B SSP.
@@ -258,8 +270,8 @@ templates, and generated prose are not the product domain.
 
 - **Richer OSCAL SSP generation** — expand machine-readable system
   implementation output beyond the current supported SSP subset (today:
-  metadata, a single hardcoded system component, placeholder system
-  characteristics, and control-implementation entries — no ports/protocols,
+  authored system characteristics when mapped, a limited component model,
+  and control-implementation entries — no ports/protocols,
   leveraged authorizations, multiple components, or diagrams).
 
 - **OSCAL Component Definitions** — describe reusable system components and
