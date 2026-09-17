@@ -4,12 +4,13 @@ import { DEFAULT_PROJECT_METADATA } from "@/data/project";
 import {
   buildStoredProjectDocument,
   buildStoredProjectDocumentV1,
+  buildStoredProjectDocumentV2,
   migrateProjectDocument,
   parseProjectDocumentJson,
 } from "./document";
 
 describe("project document validation", () => {
-  it("migrates a valid v1 document to v2 without inferring system characteristics", () => {
+  it("migrates a valid v1 document to v3 without inferring system characteristics or parameter records", () => {
     const document = buildStoredProjectDocumentV1({
       id: "p1",
       name: "Demo",
@@ -30,7 +31,8 @@ describe("project document validation", () => {
     if (!parsed.ok) {
       return;
     }
-    assert.equal(parsed.document.schemaVersion, 2);
+    assert.equal(parsed.document.schemaVersion, 3);
+    assert.deepEqual(parsed.document.project.parameterRecords, {});
     assert.equal(parsed.document.project.implementations["ac-2.1"]?.narrative, "enh");
     assert.equal(parsed.document.project.metadata.systemName, "Demo");
     assert.equal(parsed.document.project.metadata.organizationName, "Org");
@@ -46,7 +48,7 @@ describe("project document validation", () => {
     assert.deepEqual(parsed.document.project.metadata.interconnections, []);
   });
 
-  it("round-trips a v2 document including system characteristics", () => {
+  it("round-trips a v3 document including parameter records", () => {
     const document = buildStoredProjectDocument({
       id: "p1",
       name: "Demo",
@@ -60,18 +62,59 @@ describe("project document validation", () => {
         ],
       },
       implementations: {},
+      parameterRecords: {
+        "ac-07_odp.01": {
+          controlId: "ac-7",
+          parameterId: "ac-07_odp.01",
+          intent: "organization-defined",
+          body: { form: "assignment", values: ["5"] },
+        },
+      },
     });
     const parsed = parseProjectDocumentJson(JSON.stringify(document));
     assert.equal(parsed.ok, true);
     if (!parsed.ok) {
       return;
     }
-    assert.equal(parsed.document.schemaVersion, 2);
+    assert.equal(parsed.document.schemaVersion, 3);
     assert.equal(
       parsed.document.project.metadata.authorizationBoundary,
       "Boundary",
     );
     assert.equal(parsed.document.project.metadata.systemRoles[0]?.name, "Ada");
+    assert.equal(
+      parsed.document.project.parameterRecords["ac-07_odp.01"]?.body?.form,
+      "assignment",
+    );
+  });
+
+  it("migrates a historical v2 document to v3 with empty parameter records and no narrative inference", () => {
+    const document = buildStoredProjectDocumentV2({
+      id: "p1",
+      name: "Demo",
+      frameworkId: "nist-sp-800-53-rev5-moderate",
+      metadata: {
+        ...DEFAULT_PROJECT_METADATA,
+        systemName: "Demo",
+      },
+      implementations: {
+        "ac-7": {
+          status: "implemented",
+          narrative: "FeatherAuth locks an account after five failed logon attempts within 15 minutes.",
+        },
+      },
+    });
+    const parsed = parseProjectDocumentJson(JSON.stringify(document));
+    assert.equal(parsed.ok, true);
+    if (!parsed.ok) {
+      return;
+    }
+    assert.equal(parsed.document.schemaVersion, 3);
+    assert.deepEqual(parsed.document.project.parameterRecords, {});
+    assert.match(
+      parsed.document.project.implementations["ac-7"]?.narrative ?? "",
+      /five failed/,
+    );
   });
 
   it("does not copy v1 extra keys into v2 metadata", () => {

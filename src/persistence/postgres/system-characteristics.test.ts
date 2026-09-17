@@ -88,7 +88,8 @@ describe("project_json schema v2 system characteristics", () => {
     assert.equal(loaded.project.metadata.securityCategorization, null);
     assert.equal(loaded.project.metadata.dodCloudImpactLevel, null);
     assert.deepEqual(loaded.project.metadata.systemRoles, []);
-    assert.equal(loaded.project.schemaVersion, 2);
+    assert.equal(loaded.project.schemaVersion, 3);
+    assert.deepEqual(loaded.project.parameterRecords, {});
 
     const rows = await db
       .select({ schemaVersion: projects.schemaVersion })
@@ -104,7 +105,7 @@ describe("project_json schema v2 system characteristics", () => {
       frameworkId: NIST_MODERATE_FRAMEWORK_ID,
       metadata: authoredCharacteristics,
     });
-    assert.equal(created.schemaVersion, 2);
+    assert.equal(created.schemaVersion, 3);
     assert.equal(
       created.metadata.authorizationBoundary,
       authoredCharacteristics.authorizationBoundary,
@@ -124,7 +125,7 @@ describe("project_json schema v2 system characteristics", () => {
     const parsed = parseProjectDocumentJson(rows[0]?.projectJson ?? "");
     assert.equal(parsed.ok, true);
     if (parsed.ok) {
-      assert.equal(parsed.document.schemaVersion, 2);
+      assert.equal(parsed.document.schemaVersion, 3);
       assert.equal(
         parsed.document.project.metadata.systemIdentifier,
         "CGDS-SGOP-001",
@@ -149,7 +150,7 @@ describe("project_json schema v2 system characteristics", () => {
       return;
     }
     const snapshot = await repo.getSnapshot(created.id, named.snapshot.id);
-    assert.equal(snapshot?.document.schemaVersion, 2);
+    assert.equal(snapshot?.document.schemaVersion, 3);
     assert.deepEqual(snapshot?.document.project.metadata, authoredCharacteristics);
 
     const cleared = await repo.save({
@@ -229,6 +230,7 @@ describe("project_json schema v2 system characteristics", () => {
     assert.equal(restored.project.metadata.securityCategorization, null);
     assert.equal(restored.project.metadata.dodCloudImpactLevel, null);
     assert.deepEqual(restored.project.metadata.systemRoles, []);
+    assert.deepEqual(restored.project.parameterRecords, {});
   });
 
   it("does not infer FIPS categorization or DoD IL from framework selection", async () => {

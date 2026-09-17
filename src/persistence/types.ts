@@ -1,8 +1,9 @@
 import type { ControlImplementation } from "@/data/implementation";
+import type { ProjectParameterRecords } from "@/data/parameter";
 import type { ProjectMetadata, ProjectMetadataInput } from "@/data/project";
 
 /** Current persisted project document schema version. */
-export const PROJECT_DOCUMENT_SCHEMA_VERSION = 2 as const;
+export const PROJECT_DOCUMENT_SCHEMA_VERSION = 3 as const;
 
 export type StoredProjectCore = {
   id: string;
@@ -10,6 +11,7 @@ export type StoredProjectCore = {
   frameworkId: string;
   metadata: ProjectMetadata;
   implementations: Record<string, ControlImplementation>;
+  parameterRecords: ProjectParameterRecords;
 };
 
 /**
@@ -33,6 +35,11 @@ export type StoredProjectDocumentV1 = {
 
 export type StoredProjectDocumentV2 = {
   schemaVersion: 2;
+  project: Omit<StoredProjectCore, "parameterRecords">;
+};
+
+export type StoredProjectDocumentV3 = {
+  schemaVersion: 3;
   project: StoredProjectCore;
 };
 
@@ -40,7 +47,7 @@ export type StoredProjectDocumentV2 = {
  * Versioned envelope stored in projects.project_json and snapshot rows.
  * Load/migrate always yields the current schema version.
  */
-export type StoredProjectDocument = StoredProjectDocumentV2;
+export type StoredProjectDocument = StoredProjectDocumentV3;
 
 /** Fully loaded project row as an application DTO (no Drizzle/SQLite types). */
 export type StoredProject = {
@@ -59,6 +66,7 @@ export type StoredProject = {
   updatedAt: string;
   metadata: ProjectMetadata;
   implementations: Record<string, ControlImplementation>;
+  parameterRecords: ProjectParameterRecords;
 };
 
 export type ProjectSummary = {
@@ -84,6 +92,7 @@ export type CreateProjectInput = {
   frameworkId: string;
   metadata?: ProjectMetadataInput;
   implementations?: Record<string, ControlImplementation>;
+  parameterRecords?: ProjectParameterRecords;
 };
 
 export type SaveProjectInput = {
@@ -97,6 +106,7 @@ export type SaveProjectInput = {
   frameworkId?: string;
   metadata: ProjectMetadataInput;
   implementations: Record<string, ControlImplementation>;
+  parameterRecords?: ProjectParameterRecords;
   /** Must match the current database revision or save returns conflict. */
   expectedRevision: number;
 };

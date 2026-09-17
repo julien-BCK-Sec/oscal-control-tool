@@ -8,6 +8,7 @@ export {
 export {
   buildStoredProjectDocument,
   buildStoredProjectDocumentV1,
+  buildStoredProjectDocumentV2,
   migrateProjectDocument,
   parseProjectDocumentJson,
   projectDocumentFingerprint,
@@ -45,5 +46,6 @@ export type {
   StoredProjectDocument,
   StoredProjectDocumentV1,
   StoredProjectDocumentV2,
+  StoredProjectDocumentV3,
 } from "./types";
 

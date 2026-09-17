@@ -1,3 +1,5 @@
+import { parseProjectParameterRecords } from "@/data/parameter";
+import type { ProjectParameterRecords } from "@/data/parameter";
 import { isControlImplementation } from "@/data/implementation";
 import {
   createProjectMetadata,
@@ -11,6 +13,7 @@ import {
   type StoredProjectDocument,
   type StoredProjectDocumentV1,
   type StoredProjectDocumentV2,
+  type StoredProjectDocumentV3,
 } from "./types";
 
 export type DocumentParseError =
@@ -81,6 +84,30 @@ function parseProjectCore(project: unknown): {
   };
 }
 
+function parseParameterRecords(value: unknown): ProjectParameterRecords | null {
+  return parseProjectParameterRecords(value);
+}
+
+function toV3Document(
+  core: {
+    id: string;
+    name: string;
+    frameworkId: string;
+    implementations: Record<string, ControlImplementation>;
+  },
+  metadata: ProjectMetadata,
+  parameterRecords: ProjectParameterRecords,
+): StoredProjectDocumentV3 {
+  return {
+    schemaVersion: 3,
+    project: {
+      ...core,
+      metadata,
+      parameterRecords,
+    },
+  };
+}
+
 function hasV1MetadataCore(value: unknown): value is {
   systemName: string;
   organizationName: string;
@@ -146,17 +173,15 @@ function parseV1(value: unknown): DocumentParseResult {
     };
   }
 
-  const document: StoredProjectDocumentV2 = {
-    schemaVersion: 2,
-    project: {
-      ...core,
-      metadata: migrateV1MetadataToV2({
-        systemName: project.metadata.systemName,
-        organizationName: project.metadata.organizationName,
-        systemDescription: project.metadata.systemDescription,
-      }),
-    },
-  };
+  const document = toV3Document(
+    core,
+    migrateV1MetadataToV2({
+      systemName: project.metadata.systemName,
+      organizationName: project.metadata.organizationName,
+      systemDescription: project.metadata.systemDescription,
+    }),
+    {},
+  );
 
   return { ok: true, document };
 }
@@ -201,19 +226,68 @@ function parseV2(value: unknown): DocumentParseResult {
 
   return {
     ok: true,
-    document: {
-      schemaVersion: 2,
-      project: {
-        ...core,
-        metadata,
+    document: toV3Document(core, metadata, {}),
+  };
+}
+
+function parseV3(value: unknown): DocumentParseResult {
+  if (!isRecord(value)) {
+    return {
+      ok: false,
+      error: { kind: "invalid-shape", message: "Document must be an object." },
+    };
+  }
+  if (value.schemaVersion !== 3) {
+    return {
+      ok: false,
+      error: {
+        kind: "unsupported-schema",
+        schemaVersion:
+          typeof value.schemaVersion === "number" ? value.schemaVersion : -1,
       },
-    },
+    };
+  }
+
+  const core = parseProjectCore(value.project);
+  if (core === null) {
+    return {
+      ok: false,
+      error: {
+        kind: "invalid-shape",
+        message: "Project id, name, and frameworkId are required.",
+      },
+    };
+  }
+
+  const project = value.project as Record<string, unknown>;
+  const metadata = parseProjectMetadata(project.metadata);
+  if (metadata === null) {
+    return {
+      ok: false,
+      error: { kind: "invalid-shape", message: "Invalid project metadata." },
+    };
+  }
+  const parameterRecords = parseParameterRecords(project.parameterRecords);
+  if (parameterRecords === null) {
+    return {
+      ok: false,
+      error: {
+        kind: "invalid-shape",
+        message: "Invalid project parameter records.",
+      },
+    };
+  }
+
+  return {
+    ok: true,
+    document: toV3Document(core, metadata, parameterRecords),
   };
 }
 
 /**
- * Migration chain: v1 documents are upgraded in memory to v2 with empty new
- * fields. Rows are not rewritten until the next save.
+ * Migration chain: v1/v2 documents are upgraded in memory to v3 with empty
+ * parameter records. Rows are not rewritten until the next save.
+ * Values are never inferred from narratives or framework assignment text.
  */
 export function migrateProjectDocument(raw: unknown): DocumentParseResult {
   if (!isRecord(raw)) {
@@ -247,6 +321,10 @@ export function migrateProjectDocument(raw: unknown): DocumentParseResult {
 
   if (schemaVersion === 2) {
     return parseV2(raw);
+  }
+
+  if (schemaVersion === 3) {
+    return parseV3(raw);
   }
 
   return {
@@ -295,7 +373,7 @@ export function buildStoredProjectDocumentV1(input: {
   };
 }
 
-export function buildStoredProjectDocument(input: {
+export function buildStoredProjectDocumentV2(input: {
   id: string;
   name: string;
   frameworkId: string;
@@ -318,15 +396,50 @@ export function buildStoredProjectDocument(input: {
   };
 }
 
+export function buildStoredProjectDocument(input: {
+  id: string;
+  name: string;
+  frameworkId: string;
+  metadata: ProjectMetadataInput;
+  implementations: Record<string, ControlImplementation>;
+  parameterRecords?: ProjectParameterRecords;
+}): StoredProjectDocumentV3 {
+  const metadata = parseProjectMetadata(input.metadata);
+  if (metadata === null) {
+    throw new Error("Invalid project metadata.");
+  }
+  const parameterRecords = parseParameterRecords(input.parameterRecords ?? {});
+  if (parameterRecords === null) {
+    throw new Error("Invalid project parameter records.");
+  }
+  return {
+    schemaVersion: 3,
+    project: {
+      id: input.id,
+      name: input.name,
+      frameworkId: input.frameworkId,
+      metadata,
+      implementations: { ...input.implementations },
+      parameterRecords,
+    },
+  };
+}
+
 export function serializeProjectDocument(
-  document: StoredProjectDocument | StoredProjectDocumentV1,
+  document:
+    | StoredProjectDocument
+    | StoredProjectDocumentV1
+    | StoredProjectDocumentV2,
 ): string {
   return JSON.stringify(document);
 }
 
 /** Stable content fingerprint for snapshot deduplication (excludes timestamps). */
 export function projectDocumentFingerprint(
-  document: StoredProjectDocument | StoredProjectDocumentV1,
+  document:
+    | StoredProjectDocument
+    | StoredProjectDocumentV1
+    | StoredProjectDocumentV2,
 ): string {
   return JSON.stringify({
     schemaVersion: document.schemaVersion,

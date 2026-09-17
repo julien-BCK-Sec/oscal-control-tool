@@ -64,6 +64,7 @@ function toStoredProject(
     updatedAt: row.updatedAt,
     metadata: document.project.metadata,
     implementations: document.project.implementations,
+    parameterRecords: document.project.parameterRecords,
   };
 }
 
@@ -117,6 +118,7 @@ export function createPostgresProjectRepository(
         frameworkId,
         metadata,
         implementations,
+        parameterRecords: input.parameterRecords ?? {},
       });
 
       await db.insert(projects).values({
@@ -143,6 +145,7 @@ export function createPostgresProjectRepository(
         updatedAt: createdAt,
         metadata: document.project.metadata,
         implementations: document.project.implementations,
+        parameterRecords: document.project.parameterRecords,
       };
     },
 
@@ -201,6 +204,7 @@ export function createPostgresProjectRepository(
               : loaded.project.metadata.systemName,
         },
         implementations: loaded.project.implementations,
+        parameterRecords: loaded.project.parameterRecords,
         expectedRevision: loaded.project.revision,
       });
 
@@ -264,6 +268,7 @@ export function createPostgresProjectRepository(
         frameworkId: loaded.project.frameworkId,
         metadata: loaded.project.metadata,
         implementations: loaded.project.implementations,
+        parameterRecords: loaded.project.parameterRecords,
       });
 
       const snapshot = await insertSnapshot({
@@ -326,6 +331,7 @@ export function createPostgresProjectRepository(
         frameworkId: loaded.project.frameworkId,
         metadata: loaded.project.metadata,
         implementations: loaded.project.implementations,
+        parameterRecords: loaded.project.parameterRecords,
       });
 
       const preRestore = await insertSnapshot({
@@ -343,6 +349,7 @@ export function createPostgresProjectRepository(
         name: restoredName,
         metadata: snapshot.document.project.metadata,
         implementations: snapshot.document.project.implementations,
+        parameterRecords: snapshot.document.project.parameterRecords,
         expectedRevision: loaded.project.revision,
       });
 
@@ -461,12 +468,27 @@ export function createPostgresProjectRepository(
       };
     }
 
+    let parameterRecords = input.parameterRecords;
+    if (parameterRecords === undefined) {
+      const existingParsed = parseProjectDocumentJson(row.projectJson);
+      if (!existingParsed.ok) {
+        return {
+          ok: false,
+          reason: "validation",
+          message:
+            "Cannot preserve parameter records from the stored project document.",
+        };
+      }
+      parameterRecords = existingParsed.document.project.parameterRecords;
+    }
+
     const document = buildStoredProjectDocument({
       id: input.id,
       name,
       frameworkId,
       metadata: input.metadata,
       implementations: input.implementations,
+      parameterRecords,
     });
 
     const validated = parseProjectDocumentJson(
@@ -644,6 +666,7 @@ export function createPostgresProjectRepository(
       frameworkId: loaded.project.frameworkId,
       metadata: loaded.project.metadata,
       implementations: loaded.project.implementations,
+      parameterRecords: loaded.project.parameterRecords,
     });
     const fingerprint = projectDocumentFingerprint(document);
 
