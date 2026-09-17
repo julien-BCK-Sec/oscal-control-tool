@@ -947,6 +947,7 @@ export function ProjectWorkspace({
               onMetadataChange={handleMetadataChange}
               implementations={implementations}
               projectName={name}
+              projectId={projectId}
             />
           </div>
         </div>

@@ -70,6 +70,7 @@ export const HELP_LANDING_GROUPS: HelpLandingGroup[] = [
     items: [
       { label: "Frameworks and standards", href: "/help/frameworks" },
       { label: "DoD Cloud Impact Level 4", href: "/help/dod-cloud-il4" },
+      { label: "Human-readable SSP", href: "/help/human-readable-ssp" },
       { label: "OSCAL export", href: "/help/oscal-export" },
     ],
   },
@@ -85,6 +86,7 @@ export const HELP_CONTEXTUAL_ANCHORS: Array<{ slug: string; headingId: string }>
   { slug: "evidence-coverage", headingId: "how-coverage-is-computed" },
   { slug: "oscal-export", headingId: "what-valid-means-here" },
   { slug: "oscal-export", headingId: "dod-cloud-il4-projects-do-not-have-this-button" },
+  { slug: "human-readable-ssp", headingId: "control-freak-ssp-vs-oscal-ssp" },
   { slug: "dod-cloud-il4", headingId: "how-nist-fedramp-and-dod-layers-appear" },
   { slug: "workflow-automation", headingId: "triggers-conditions-and-actions" },
   { slug: "projects", headingId: "system-characteristics" },

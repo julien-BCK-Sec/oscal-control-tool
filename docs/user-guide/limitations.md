@@ -3,7 +3,7 @@ title: Product limitations
 summary: A single, honest list of what's out of scope today, gathered from across the guide.
 section: reference
 order: 10
-related: welcome, frameworks, dod-cloud-il4, oscal-export
+related: welcome, frameworks, dod-cloud-il4, oscal-export, human-readable-ssp
 ---
 
 Control Freak is deliberately scoped to compliance authoring and control
@@ -43,9 +43,12 @@ limitations mentioned throughout the guide in one place.
   correctness, cross-reference integrity, or policy compliance.
 - There is no OSCAL import. You cannot bring an existing SSP into Control
   Freak; every project is authored from scratch inside the product.
-- Control Freak does not yet generate a human-readable Word or PDF SSP.
-  System characteristics on Project details are the canonical source for
-  that future document.
+- Control Freak generates a Control Freak-owned human-readable Word SSP
+  from saved project data. That file is not an official FedRAMP, DoD, or
+  CMMC package and is not OSCAL. Organization-defined parameters remain
+  unresolved until later work. Named-version Word export is not offered.
+  PDF SSP export is not implemented. See
+  [Human-readable SSP](/help/human-readable-ssp).
 
 ## Evidence
 

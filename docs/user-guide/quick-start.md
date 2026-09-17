@@ -3,7 +3,7 @@ title: Quick start: document your first control
 summary: A short product workflow for creating a project, documenting a control or requirement, adding Evidence, and submitting it for review.
 section: getting-started
 order: 15
-related: projects, authoring-controls, evidence, review-workflow, oscal-export
+related: projects, authoring-controls, evidence, review-workflow, human-readable-ssp, oscal-export
 ---
 
 This is a product workflow for documenting how your organization implements a
@@ -99,7 +99,12 @@ control metadata, collaboration, or Evidence. See
 
 ## 12. Export OSCAL only when the framework supports it
 
-On NIST SP 800-53 projects, **Export OSCAL SSP** on Project details
+On NIST SP 800-53 projects, **Export OSCAL SSP (JSON)** on Project details
 downloads a structurally validated SSP. CMMC and DoD Cloud Impact Level 4
 projects do not offer this button. Schema validation proves structure, not
 policy compliance. See [OSCAL export](/help/oscal-export).
+
+Every supported framework can **Export human-readable SSP (Word)** from
+Project details. That file reflects saved server state and is not an
+official authorization package. See
+[Human-readable SSP](/help/human-readable-ssp).
