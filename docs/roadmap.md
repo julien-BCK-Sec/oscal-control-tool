@@ -201,10 +201,10 @@ templates, and generated prose are not the product domain.
   placeholders. No false compliance/authorization claims. Diagrams remain
   deferred. Official FedRAMP/DoD package templates remain later work.
 
-- **07C — Parameter and Control Fidelity** (next approved after 07B; architecture proposed, not approved for implementation) — per-ODP framework resolution,
+- **07C — Parameter and Control Fidelity** (implemented on main, not released) — per-ODP framework resolution,
   project-authored ODP values, per-ODP provenance, and safer requirement
-  substitution. Research: `docs/research/07C-parameter-resolution-architecture.md`.
-  This is not a prerequisite for 07A or for the first honest 07B SSP.
+  substitution. ADR-032. Research: `docs/research/07C-parameter-resolution-architecture.md`.
+  Production remains v0.7.0. This is not a prerequisite that was required for 07A or the first honest 07B SSP.
 
 ### Assessment, findings, and remediation
 

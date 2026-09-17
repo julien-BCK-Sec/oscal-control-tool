@@ -1,11 +1,12 @@
 # Milestone 07C — Parameter Resolution & Control Fidelity
 
-**Status:** Architecture / Research complete; awaiting approval  
-**Release baseline:** v0.7.0 (`56e71ff`)  
+**Status:** Implemented on `main`; not released
+**Release baseline:** v0.7.0 (`56e71ff`) remains production
 **Depends on:** Milestones 06B, 07A, 07B  
-**Architecture proposal:** [`docs/research/07C-parameter-resolution-architecture.md`](../research/07C-parameter-resolution-architecture.md)
+**Architecture:** [`docs/research/07C-parameter-resolution-architecture.md`](../research/07C-parameter-resolution-architecture.md) (approved as ADR-032)
 
-This milestone is not approved for implementation. Do not begin runtime work until the architecture is reviewed.
+Architecture was approved. Runtime implementation is complete and is not a
+production release. Do not tag or deploy 07C in this phase.
 
 ---
 
@@ -966,6 +967,16 @@ Do not:
 The purpose of this STOP is to approve the canonical parameter-resolution model and authority/precedence rules before implementation begins.
 
 Routine research, code inspection, source inspection, local analysis, and documentation updates do not require intermediate approval.
+
+---
+
+## 25. Implementation status
+
+Implemented. ADR-032 records the approved architecture.
+
+IL4 per-ODP mapping pin set is empty and fail-closed. Responsibility/origination
+and NIST OSCAL SSP `set-parameters` remain deferred. CMMC/GRR have no invented
+ODP editors. Production remains v0.7.0; do not tag or deploy 07C.
 
 ---
 

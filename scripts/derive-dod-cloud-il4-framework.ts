@@ -15,6 +15,7 @@ import {
   ADDENDUM_WORKBOOK_SHA256,
   APPENDIX_D_EXTRACT_VENDOR_FILE,
   FEDRAMP_BASELINE_VENDOR_FILE,
+  IL4_PARAMETER_MAPPINGS_VENDOR_FILE,
   NIST_CATALOG_VENDOR_FILE,
   NIST_MODERATE_PROFILE_VENDOR_FILE,
 } from "../src/framework/dod-cloud-il4-rev5/sources";
@@ -73,6 +74,7 @@ function main(): void {
     addendum,
     appendixDNotes,
     fedrampSha256: fedramp.sha256,
+    parameterMappings: readJson(IL4_PARAMETER_MAPPINGS_VENDOR_FILE),
   });
   if (!result.ok) {
     console.error(result.message);

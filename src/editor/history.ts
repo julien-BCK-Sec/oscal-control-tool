@@ -5,6 +5,7 @@ import {
   controlRecordsEqual,
 } from "@/data/control-record";
 import type { ProjectMetadata } from "@/data/project";
+import type { ProjectParameterRecords } from "@/data/parameter";
 import {
   AUTOSAVE_DEBOUNCE_MS,
   EDITOR_HISTORY_LIMIT,
@@ -17,6 +18,7 @@ export type EditorWorkingCopy = {
   name: string;
   metadata: ProjectMetadata;
   implementations: Record<string, ControlImplementation>;
+  parameterRecords: ProjectParameterRecords;
   /** Lazily populated ControlRecord drafts keyed by control id. */
   controlRecords: Record<string, ControlRecordFields>;
 };
@@ -36,6 +38,12 @@ function cloneMetadata(metadata: ProjectMetadata): ProjectMetadata {
   };
 }
 
+function cloneParameterRecords(
+  records: ProjectParameterRecords,
+): ProjectParameterRecords {
+  return JSON.parse(JSON.stringify(records)) as ProjectParameterRecords;
+}
+
 export function cloneWorkingCopy(copy: EditorWorkingCopy): EditorWorkingCopy {
   return {
     name: copy.name,
@@ -46,6 +54,7 @@ export function cloneWorkingCopy(copy: EditorWorkingCopy): EditorWorkingCopy {
         { status: impl.status, narrative: impl.narrative },
       ]),
     ),
+    parameterRecords: cloneParameterRecords(copy.parameterRecords),
     controlRecords: cloneControlRecords(copy.controlRecords),
   };
 }
@@ -58,6 +67,7 @@ export function workingCopiesEqual(
     a.name === b.name &&
     JSON.stringify(a.metadata) === JSON.stringify(b.metadata) &&
     JSON.stringify(a.implementations) === JSON.stringify(b.implementations) &&
+    JSON.stringify(a.parameterRecords) === JSON.stringify(b.parameterRecords) &&
     controlRecordsEqual(a.controlRecords, b.controlRecords)
   );
 }

@@ -14,6 +14,7 @@ import {
   DEFAULT_CONTROL_IMPLEMENTATION,
   type ControlImplementation,
 } from "@/data/implementation";
+import type { ProjectParameterRecords } from "@/data/parameter";
 import {
   DEFAULT_CONTROL_RECORD_FIELDS,
   displayControlOwner,
@@ -77,6 +78,8 @@ export type ControlBrowserProps = {
   onImplementationsChange: (
     next: Record<string, ControlImplementation>,
   ) => void;
+  parameterRecords: ProjectParameterRecords;
+  onParameterRecordsChange: (next: ProjectParameterRecords) => void;
   controlRecords: Record<string, ControlRecordFields>;
   onControlRecordsChange: (next: Record<string, ControlRecordFields>) => void;
   controlReviewStatuses: Record<string, ControlReviewStatus>;
@@ -93,6 +96,7 @@ export type ControlBrowserProps = {
     Record<string, ControlEvidenceCoverage>
   >;
   canEditEvidence?: boolean;
+  canEditImplementation?: boolean;
   itemTerms?: FrameworkItemTerms;
 };
 
@@ -101,6 +105,8 @@ export function ControlBrowser({
   framework,
   implementations,
   onImplementationsChange,
+  parameterRecords,
+  onParameterRecordsChange,
   controlRecords,
   onControlRecordsChange,
   controlReviewStatuses,
@@ -111,6 +117,7 @@ export function ControlBrowser({
   onFocusRequestHandled,
   evidenceCoverageByControlId,
   canEditEvidence = false,
+  canEditImplementation = false,
   itemTerms = { singular: "control", plural: "controls" },
 }: ControlBrowserProps) {
   const itemsLabel = sentenceCase(itemTerms.plural);
@@ -669,6 +676,9 @@ export function ControlBrowser({
         onFocusCommentHandled={() => setPendingCommentId(null)}
         evidenceCoverage={coverageForControl(selected.id)}
         canEditEvidence={canEditEvidence}
+        canEditImplementation={canEditImplementation}
+        parameterRecords={parameterRecords}
+        onParameterRecordsChange={onParameterRecordsChange}
         itemTerms={itemTerms}
         onUpdateImplementation={(patch) =>
           updateImplementation(selected.id, patch)

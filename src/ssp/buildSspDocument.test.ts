@@ -44,6 +44,7 @@ function storedProject(
     updatedAt: patch.updatedAt ?? GENERATED_AT,
     metadata: patch.metadata ?? createProjectMetadata(),
     implementations: patch.implementations ?? {},
+    parameterRecords: patch.parameterRecords ?? {},
   };
 }
 
@@ -536,5 +537,124 @@ describe("buildSspDocument Evidence", () => {
     assert.doesNotMatch(serialized, /secret-owner/);
     assert.doesNotMatch(serialized, /ver-1/);
     assert.doesNotMatch(serialized, /ev-2/);
+  });
+});
+
+describe("buildSspDocument parameter resolution", () => {
+  it("preserves the source statement and synthesizes a partial resolved requirement", () => {
+    const ac7 = itemById(
+      inputFor(NIST_MODERATE_FRAMEWORK_ID, {
+        parameterRecords: {
+          "ac-07_odp.01": {
+            controlId: "ac-7",
+            parameterId: "ac-07_odp.01",
+            intent: "organization-defined",
+            body: { form: "assignment", values: ["5"] },
+          },
+          "ac-07_odp.02": {
+            controlId: "ac-7",
+            parameterId: "ac-07_odp.02",
+            intent: "organization-defined",
+            body: {
+              form: "assignment",
+              values: [
+                "Immediately upon receipt of a validated termination event",
+              ],
+            },
+          },
+        },
+      }),
+      "ac-7",
+    );
+    assert.ok(ac7);
+    assert.match(ac7.sourceStatement, /Unresolved ODP: ac-07_odp.01/);
+    assert.match(ac7.resolvedStatement, /limit of 5 consecutive invalid logon/);
+    assert.match(
+      ac7.resolvedStatement,
+      /Immediately upon receipt of a validated termination event/,
+    );
+    assert.match(ac7.resolvedStatement, /Unresolved ODP: ac-07_odp.03/);
+    assert.ok(
+      ac7.parameterResolutions.some(
+        (row) => row.id === "ac-07_odp.01" && row.state === "project-resolved",
+      ),
+    );
+    assert.ok(
+      ac7.parameterResolutions.some(
+        (row) => row.id === "ac-07_odp.03" && row.state === "unresolved",
+      ),
+    );
+  });
+
+  it("keeps documented deviations, DSPAV assertions, and conflict notes out of the resolved insert", () => {
+    const nist = itemById(
+      inputFor(NIST_MODERATE_FRAMEWORK_ID, {
+        parameterRecords: {
+          "ac-07_odp.01": {
+            controlId: "ac-7",
+            parameterId: "ac-07_odp.01",
+            intent: "documented-deviation",
+            body: { form: "assignment", values: ["5"] },
+          },
+        },
+      }),
+      "ac-7",
+    );
+    assert.ok(nist);
+    assert.doesNotMatch(nist.resolvedStatement, /limit of 5 consecutive/);
+
+    const dspav = itemById(
+      inputFor(DOD_CLOUD_IL4_FRAMEWORK_ID, {
+        parameterRecords: {
+          "ma-05.01_odp": {
+            controlId: "ma-5.1",
+            parameterId: "ma-05.01_odp",
+            intent: "dspav-assertion",
+            body: { form: "assignment", values: ["escort-only"] },
+            dspavSourceNote: "Restricted DSPAV",
+          },
+        },
+      }),
+      "ma-5.1",
+    );
+    assert.ok(dspav);
+    assert.match(dspav.resolvedStatement, /Unresolved ODP:/);
+    assert.doesNotMatch(dspav.resolvedStatement, /escort-only/);
+    assert.ok(
+      dspav.parameterAnnotations.some((row) => row.kind === "dspav-assertion"),
+    );
+
+    const conflict = itemById(
+      inputFor(DOD_CLOUD_IL4_FRAMEWORK_ID, {
+        parameterRecords: {
+          "ia-05.01_odp.01": {
+            controlId: "ia-5.1",
+            parameterId: "ia-05.01_odp.01",
+            intent: "conflict-proceeding",
+            notes: "Proceeded using FedRAMP additional guidance.",
+          },
+        },
+      }),
+      "ia-5.1",
+    );
+    assert.ok(conflict);
+    assert.ok(
+      conflict.parameterAnnotations.some(
+        (row) => row.kind === "conflict-proceeding",
+      ),
+    );
+    assert.ok(conflict.notices.some((row) => row.kind === "source-conflict"));
+  });
+
+  it("does not inline IL4 control-level overlay prose into individual inserts", () => {
+    const ac1 = itemById(inputFor(DOD_CLOUD_IL4_FRAMEWORK_ID), "ac-1");
+    assert.ok(ac1);
+    assert.match(ac1.sourceStatement, /Unresolved ODP:/);
+    assert.doesNotMatch(ac1.resolvedStatement, /at least every 3 years/i);
+    assert.ok(
+      ac1.frameworkAssignments.some((block) =>
+        /at least every 3 years/i.test(block.text),
+      ),
+    );
   });
 });

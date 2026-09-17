@@ -26,6 +26,8 @@ import {
   statementReferenceChrome,
 } from "@/components/controlBrowser/overlayPresentation";
 import type { ControlEvidenceCoverage } from "@/data/evidence";
+import type { ProjectParameterRecords } from "@/data/parameter";
+import { ParameterAuthoringPanel } from "@/components/controlBrowser/ParameterAuthoringPanel";
 import { DiscussionPanel } from "@/components/collaboration/DiscussionPanel";
 import { AssignmentControls } from "@/components/collaboration/AssignmentControls";
 import { useControlReviewTransition } from "@/components/controlBrowser/useControlReviewTransition";
@@ -63,6 +65,9 @@ export type ControlEditorWorkspaceProps = {
   onTransitionSuccess: () => void;
   evidenceCoverage?: ControlEvidenceCoverage | null;
   canEditEvidence?: boolean;
+  canEditImplementation?: boolean;
+  parameterRecords?: ProjectParameterRecords;
+  onParameterRecordsChange?: (next: ProjectParameterRecords) => void;
   itemTerms?: FrameworkItemTerms;
 };
 
@@ -86,6 +91,9 @@ export function ControlEditorWorkspace({
   onTransitionSuccess,
   evidenceCoverage = null,
   canEditEvidence = false,
+  canEditImplementation = false,
+  parameterRecords = {},
+  onParameterRecordsChange,
   itemTerms = { singular: "control", plural: "controls" },
 }: ControlEditorWorkspaceProps) {
   const overlay = buildOverlayPresentation(control);
@@ -248,6 +256,13 @@ export function ControlEditorWorkspace({
         <OverlayMetadataPanel presentation={overlay} />
       ) : null}
 
+      <ParameterAuthoringPanel
+        control={control}
+        records={parameterRecords}
+        onChange={(next) => onParameterRecordsChange?.(next)}
+        canEdit={canEditImplementation}
+      />
+
       <section aria-labelledby="narrative-heading" className="min-w-0">
         <SectionHeader
           title="Narrative"
@@ -260,6 +275,7 @@ export function ControlEditorWorkspace({
           <select
             id="implementation-status"
             value={implementation.status}
+            disabled={!canEditImplementation}
             onChange={(event) =>
               onUpdateImplementation({
                 status: event.target.value as ImplementationStatus,
@@ -284,6 +300,7 @@ export function ControlEditorWorkspace({
           <textarea
             id="implementation-narrative"
             value={implementation.narrative}
+            readOnly={!canEditImplementation}
             onChange={(event) =>
               onUpdateImplementation({
                 narrative: event.target.value,

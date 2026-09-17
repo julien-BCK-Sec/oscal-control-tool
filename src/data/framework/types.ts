@@ -9,15 +9,26 @@ export type FrameworkProvenanceText = {
 
 export type FrameworkParameterSelectHowMany = "one" | "one-or-more";
 
+export type FrameworkParameterChoice = {
+  /** Stable zero-based index as a decimal string. */
+  key: string;
+  text: string;
+  nestedParameterIds: readonly string[];
+};
+
 export type FrameworkParameterSelect = {
-  howMany?: FrameworkParameterSelectHowMany;
-  choices: readonly string[];
+  /** Always materialized. Omitted catalog how-many means "one". */
+  howMany: FrameworkParameterSelectHowMany;
+  choices: readonly FrameworkParameterChoice[];
 };
 
 export type FrameworkOrganizationDefinedParameter = {
   id: string;
   label: string;
   description: string;
+  altIdentifiers: readonly string[];
+  /** Child ODP IDs when this catalog param is an aggregate grouping. */
+  aggregatedParameterIds: readonly string[];
   /** Catalog select constraint when the parameter is a choice rather than free text. */
   select?: FrameworkParameterSelect;
 };
@@ -36,6 +47,26 @@ export type FrameworkAuthoritativeValueStatus =
   | "authoritative-value-required"
   | "source-conflict";
 
+export type FrameworkParameterMappingBasis =
+  | "catalog-unassigned"
+  | "oscal-set-parameter"
+  | "pinned-overlay-mapping"
+  | "control-level-unmapped";
+
+export type FrameworkParameterResolution = {
+  controlId: string;
+  parameterId: string;
+  status: FrameworkAuthoritativeValueStatus;
+  mappingBasis: FrameworkParameterMappingBasis;
+  values: readonly string[];
+  sources: readonly FrameworkProvenanceText[];
+  controlOverlaySummary?: {
+    status: FrameworkAuthoritativeValueStatus;
+    effectiveAssignmentText: string | null;
+    effectiveAssignmentSource: string | null;
+  };
+};
+
 /**
  * Selection facts for a framework item across catalog / external baseline /
  * overlay layers. Field names are generic so FedRAMP, IL5, and privacy
@@ -50,6 +81,7 @@ export type FrameworkSelectionProvenance = {
 
 export type FrameworkParameterMetadata = {
   organizationDefined: readonly FrameworkOrganizationDefinedParameter[];
+  parameterResolutions?: readonly FrameworkParameterResolution[];
   baselineAssignment?: FrameworkProvenanceText | null;
   baselineAdditionalGuidance?: FrameworkProvenanceText | null;
   overlayAssignment?: FrameworkProvenanceText | null;

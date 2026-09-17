@@ -12,6 +12,7 @@ import type {
   StoredProject,
 } from "@/persistence";
 import { DEMO_PROJECT_NAME, DEMO_SNAPSHOT_NAMES } from "./constants";
+import { DEMO_NIST_MODERATE_PARAMETER_RECORDS } from "./parameter-records";
 import {
   buildDemoImplementationsForStage,
   buildDemoMetadata,
@@ -110,7 +111,10 @@ async function saveStage(
   project: StoredProject,
   metadata: ProjectMetadata,
   implementations: Record<string, ControlImplementation>,
-  options: { requireCompleteBaseline: boolean },
+  options: {
+    requireCompleteBaseline: boolean;
+    parameterRecords?: StoredProject["parameterRecords"];
+  },
 ): Promise<StoredProject> {
   const validation = validateDemoProjectContent({
     metadata,
@@ -128,6 +132,7 @@ async function saveStage(
     frameworkId: NIST_MODERATE_FRAMEWORK_ID,
     metadata,
     implementations,
+    parameterRecords: options.parameterRecords,
     expectedRevision: project.revision,
   });
   if (!saved.ok) {
@@ -177,7 +182,11 @@ async function createCanonicalDemo(
         project,
         metadata,
         buildDemoImplementationsForStage(stage),
-        { requireCompleteBaseline: stage === finalStage },
+        {
+          requireCompleteBaseline: stage === finalStage,
+          parameterRecords:
+            stage === finalStage ? DEMO_NIST_MODERATE_PARAMETER_RECORDS : undefined,
+        },
       );
     }
 

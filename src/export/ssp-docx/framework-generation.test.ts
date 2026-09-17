@@ -34,6 +34,7 @@ function project(frameworkId: string): StoredProject {
     updatedAt: GENERATED_AT,
     metadata: createProjectMetadata({ systemName: "Generation Fixture" }),
     implementations: {},
+    parameterRecords: {},
   };
 }
 

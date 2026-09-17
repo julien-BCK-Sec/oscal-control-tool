@@ -1134,3 +1134,69 @@ Reason:
 Date:
 2026-09-16
 
+## ADR-032
+
+Decision:
+Parameter resolution is a first-class Control Freak capability with three
+distinct layers:
+
+1. **Catalog parameter** — immutable identity and structure from the pinned
+   NIST SP 800-53 Rev. 5 catalog (id, label, guidelines, select, alternate
+   identifiers, aggregate grouping, nested choice inserts).
+2. **Framework parameter resolution** — immutable reference data: authority
+   class, mapping basis, attributed values, and provenance. Not project data.
+3. **Project parameter record** — editable organization documentation stored
+   in `project_json` schema v3. Not a computed effective winner.
+
+Authored assignment values are flexible `string[]`. Catalog `select`
+semantics (`one`, `one-or-more`, omitted `how-many` meaning one) are
+preserved as structure. Nested choice/parameter relationships are modeled
+where the catalog defines them. Control Freak does not invent integer,
+duration, date, or enum datatypes for ODPs.
+
+Schema v2 documents migrate in memory to v3 with empty `parameterRecords`.
+Rows are not rewritten until the next save. Historical snapshots remain
+historically stored. Restore migrates through normal parsing. Values are
+never inferred from implementation narratives or framework assignment prose.
+
+Framework-authoritative values (including attributed baseline-inherited and
+overlay-explicit values) are not overridable. A project may record a
+`documented-deviation`; that does not replace the authoritative value in
+SSP synthesis.
+
+`may-use-baseline` is not automatic inheritance. The permitted baseline
+value participates in project-level SSP substitution only after explicit
+`accept-permitted-baseline`.
+
+DoD IL4 per-ODP overlay mapping starts **empty**. Unattributed ODPs are
+`control-level-unmapped`. Control-level 06B overlay metadata remains. Overlay
+prose is not substituted into individual inserts. Mappings, when later
+pinned, are validated fail-closed against catalog identity.
+
+DSPAV stays `authoritative-value-required`. A `dspav-assertion` is sibling
+project documentation, not a verified substitution.
+
+Source conflicts stay conflicts. A `conflict-proceeding` is sibling
+documentation, not a winner.
+
+Resolution is per insert. A control is never marked resolved as a whole
+because some ODPs have values.
+
+Aggregate/grouping catalog parameters are hidden from ordinary authoring;
+authors edit child ODP IDs.
+
+Responsibility/origination and NIST OSCAL SSP `set-parameters` are deferred.
+CMMC is not forced into NIST ODP semantics.
+
+Authoritative research: `docs/research/07C-parameter-resolution-architecture.md`.
+
+Reason:
+- 07B left inserts unresolved because control-level overlay text is not
+  param-id authority.
+- Application datatypes would reject legitimate organization prose.
+- Copying framework assignments into editable project records would collapse
+  authority and documentation.
+
+Date:
+2026-09-17
+

@@ -70,7 +70,7 @@ export function formatOdpLabel(
   }
   if (param.select?.choices.length) {
     const resolved = param.select.choices.map((choice) =>
-      replaceInsertsInProse(choice, byId, visiting),
+      replaceInsertsInProse(choice.text, byId, visiting),
     );
     const joined = resolved.join("; ");
     const howMany = param.select.howMany;

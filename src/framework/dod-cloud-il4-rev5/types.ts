@@ -29,23 +29,21 @@ export type TableD1AdjustmentKind =
   | "explicit-value"
   | "inclusion-only";
 
+import type {
+  FrameworkOrganizationDefinedParameter,
+  FrameworkParameterResolution,
+} from "@/data/framework/types";
+
 export type ProvenanceText = {
   text: string;
   source: string;
 };
 
-export type NistOrganizationDefinedParameter = {
-  id: string;
-  label: string;
-  description: string;
-  select?: {
-    howMany?: "one" | "one-or-more";
-    choices: readonly string[];
-  };
-};
+export type NistOrganizationDefinedParameter = FrameworkOrganizationDefinedParameter;
 
 export type OverlayParameterMetadata = {
   nistOrganizationDefined: NistOrganizationDefinedParameter[];
+  parameterResolutions: FrameworkParameterResolution[];
   fedrampAssignment: ProvenanceText | null;
   fedrampAdditionalGuidance: ProvenanceText | null;
   dodAssignment: ProvenanceText | null;

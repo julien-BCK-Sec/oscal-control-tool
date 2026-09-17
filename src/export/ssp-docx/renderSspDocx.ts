@@ -473,6 +473,11 @@ function itemChildren(item: SspFrameworkItem): FileChild[] {
       item.sourceStatement,
     ),
   );
+  if (item.parameterResolutions.length > 0) {
+    children.push(
+      labeledParagraph("Resolved requirement", item.resolvedStatement),
+    );
+  }
   if (item.unresolvedParameters.length > 0) {
     children.push(
       bodyParagraph("Unresolved organization-defined parameters:"),
@@ -507,6 +512,9 @@ function itemChildren(item: SspFrameworkItem): FileChild[] {
   }
   for (const notice of item.notices) {
     children.push(labeledParagraph(notice.title, notice.explanation));
+  }
+  for (const annotation of item.parameterAnnotations) {
+    children.push(labeledParagraph(annotation.title, annotation.text));
   }
   children.push(
     completenessParagraph("Implementation narrative", item.implementationNarrative),

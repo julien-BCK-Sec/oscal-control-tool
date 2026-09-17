@@ -223,6 +223,14 @@ describe("seedDemoProject", () => {
       loaded.project.implementations["pl-2"]?.narrative ?? "",
       /annual veterinary examination/i,
     );
+    assert.equal(
+      loaded.project.parameterRecords["ac-07_odp.01"]?.body?.form,
+      "assignment",
+    );
+    assert.equal(
+      loaded.project.parameterRecords["ac-01_odp.03"]?.body?.form,
+      "selection",
+    );
   });
 
   it("is idempotent when the demo already exists", async () => {

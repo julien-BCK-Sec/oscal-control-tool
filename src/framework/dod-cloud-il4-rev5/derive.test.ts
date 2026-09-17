@@ -28,6 +28,7 @@ import {
   ADDENDUM_EXTRACT_VENDOR_FILE,
   APPENDIX_D_EXTRACT_VENDOR_FILE,
   FEDRAMP_BASELINE_VENDOR_FILE,
+  IL4_PARAMETER_MAPPINGS_VENDOR_FILE,
   NIST_CATALOG_VENDOR_FILE,
   NIST_MODERATE_PROFILE_VENDOR_FILE,
 } from "./sources";
@@ -53,6 +54,7 @@ function loadInputs() {
     addendum: parseAddendumExtract(readJson(ADDENDUM_EXTRACT_VENDOR_FILE)),
     appendixDNotes: parseAppendixDExtract(readJson(APPENDIX_D_EXTRACT_VENDOR_FILE)),
     fedrampSha256: fedramp.sha256,
+    parameterMappings: readJson(IL4_PARAMETER_MAPPINGS_VENDOR_FILE),
   };
 }
 
@@ -184,6 +186,19 @@ describe("deriveDodCloudIl4Framework parameters and provenance", () => {
     assert.match(ac7.parameters.dodAssignment?.text ?? "", /three unsuccessful attempts/i);
     assert.equal(ac7.parameters.dspavStatus, "authoritative-value-required");
     assert.match(ac7.parameters.conditionality ?? "", /rate limiting/i);
+    assert.ok(ac7.parameters.nistOrganizationDefined.length > 0);
+    assert.equal(
+      ac7.parameters.parameterResolutions.length,
+      ac7.parameters.nistOrganizationDefined.length,
+    );
+    assert.ok(
+      ac7.parameters.parameterResolutions.every(
+        (row) =>
+          row.mappingBasis === "control-level-unmapped" &&
+          row.status === "authoritative-value-required" &&
+          row.values.length === 0,
+      ),
+    );
   });
 
   it("preserves the IA-5(1) FedRAMP vs DoD conflict without choosing a winner", () => {

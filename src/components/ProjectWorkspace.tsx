@@ -18,6 +18,7 @@ import { ProductHeader } from "@/components/design-system/layout/AppShell";
 import {
   createNamedVersionAction,
   createAutomaticSnapshotAction,
+  getProjectWorkspaceCapabilitiesAction,
   listSnapshotsAction,
   restoreSnapshotAction,
   saveProjectAction,
@@ -40,6 +41,7 @@ import {
   type ControlReviewStatus,
 } from "@/data/control-record";
 import type { ProjectMetadata } from "@/data/project";
+import type { ProjectParameterRecords } from "@/data/parameter";
 import type { Framework } from "@/data/framework";
 import type { FrameworkDescriptor } from "@/data/framework/types";
 import {
@@ -95,6 +97,7 @@ function initialWorkingCopy(
     name: project.name,
     metadata: project.metadata,
     implementations: project.implementations,
+    parameterRecords: project.parameterRecords,
     controlRecords,
   };
 }
@@ -128,6 +131,8 @@ export function ProjectWorkspace({
   const [implementations, setImplementations] = useState(
     initialProject.implementations,
   );
+  const [parameterRecords, setParameterRecords] =
+    useState<ProjectParameterRecords>(initialProject.parameterRecords);
   const [controlRecords, setControlRecords] =
     useState<Record<string, ControlRecordFields>>(initialRecordsMap);
   const [controlReviewStatuses, setControlReviewStatuses] = useState<
@@ -173,6 +178,7 @@ export function ProjectWorkspace({
     canArchive: false,
     canDelete: false,
   });
+  const [canEditImplementation, setCanEditImplementation] = useState(false);
   const itemTerms: FrameworkItemTerms = frameworkItemTerms(frameworkDescriptor);
 
   const historyRef = useRef(
@@ -241,14 +247,16 @@ export function ProjectWorkspace({
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const [caps, nextCoverage] = await Promise.all([
+      const [caps, workspaceCaps, nextCoverage] = await Promise.all([
         getEvidenceCapabilitiesAction(projectId),
+        getProjectWorkspaceCapabilitiesAction(projectId),
         getProjectEvidenceCoverageAction(projectId),
       ]);
       if (cancelled) {
         return;
       }
       setEvidenceCaps(caps);
+      setCanEditImplementation(workspaceCaps.canEditImplementation);
       setEvidenceCoverage(nextCoverage);
       setEvidenceCoverageLoading(false);
     })();
@@ -275,6 +283,7 @@ export function ProjectWorkspace({
     setName(copy.name);
     setMetadata(copy.metadata);
     setImplementations(copy.implementations);
+    setParameterRecords(copy.parameterRecords);
     setControlRecords(copy.controlRecords);
   }
 
@@ -335,7 +344,9 @@ export function ProjectWorkspace({
           JSON.stringify(current.metadata) !==
             JSON.stringify(savedCopyRef.current.metadata) ||
           JSON.stringify(current.implementations) !==
-            JSON.stringify(savedCopyRef.current.implementations);
+            JSON.stringify(savedCopyRef.current.implementations) ||
+          JSON.stringify(current.parameterRecords) !==
+            JSON.stringify(savedCopyRef.current.parameterRecords);
         const recordsDirty =
           JSON.stringify(current.controlRecords) !==
           JSON.stringify(savedCopyRef.current.controlRecords);
@@ -349,6 +360,7 @@ export function ProjectWorkspace({
               name: current.name,
               metadata: current.metadata,
               implementations: current.implementations,
+              parameterRecords: current.parameterRecords,
               expectedRevision: revisionRef.current,
             });
 
@@ -371,6 +383,7 @@ export function ProjectWorkspace({
               name: result.project.name,
               metadata: result.project.metadata,
               implementations: result.project.implementations,
+              parameterRecords: result.project.parameterRecords,
             };
             await refreshSnapshots();
           }
@@ -462,6 +475,7 @@ export function ProjectWorkspace({
       setName(next.name);
       setMetadata(next.metadata);
       setImplementations(next.implementations);
+      setParameterRecords(next.parameterRecords);
       setControlRecords(next.controlRecords);
       typingGroupRef.current = setTimeout(() => {
         historyRef.current.push(next);
@@ -473,6 +487,7 @@ export function ProjectWorkspace({
       setName(next.name);
       setMetadata(next.metadata);
       setImplementations(next.implementations);
+      setParameterRecords(next.parameterRecords);
       setControlRecords(next.controlRecords);
       syncHistoryFlags();
       typingGroupRef.current = setTimeout(() => {
@@ -487,6 +502,7 @@ export function ProjectWorkspace({
       name: workingCopyRef.current.name,
       metadata: next,
       implementations: workingCopyRef.current.implementations,
+      parameterRecords: workingCopyRef.current.parameterRecords,
       controlRecords: workingCopyRef.current.controlRecords,
     });
   }
@@ -498,6 +514,17 @@ export function ProjectWorkspace({
       name: workingCopyRef.current.name,
       metadata: workingCopyRef.current.metadata,
       implementations: next,
+      parameterRecords: workingCopyRef.current.parameterRecords,
+      controlRecords: workingCopyRef.current.controlRecords,
+    });
+  }
+
+  function handleParameterRecordsChange(next: ProjectParameterRecords) {
+    commitEdit({
+      name: workingCopyRef.current.name,
+      metadata: workingCopyRef.current.metadata,
+      implementations: workingCopyRef.current.implementations,
+      parameterRecords: next,
       controlRecords: workingCopyRef.current.controlRecords,
     });
   }
@@ -509,6 +536,7 @@ export function ProjectWorkspace({
       name: workingCopyRef.current.name,
       metadata: workingCopyRef.current.metadata,
       implementations: workingCopyRef.current.implementations,
+      parameterRecords: workingCopyRef.current.parameterRecords,
       controlRecords: next,
     });
   }
@@ -692,6 +720,7 @@ export function ProjectWorkspace({
       name: result.project.name,
       metadata: result.project.metadata,
       implementations: result.project.implementations,
+      parameterRecords: result.project.parameterRecords,
       // Snapshots restore project_json only; ControlRecords stay as currently saved.
       controlRecords: savedCopyRef.current.controlRecords,
     };
@@ -812,6 +841,7 @@ export function ProjectWorkspace({
             name: nextName,
             metadata,
             implementations,
+            parameterRecords,
             controlRecords,
           })
         }
@@ -870,6 +900,8 @@ export function ProjectWorkspace({
             framework={framework}
             implementations={implementations}
             onImplementationsChange={handleImplementationsChange}
+            parameterRecords={parameterRecords}
+            onParameterRecordsChange={handleParameterRecordsChange}
             controlRecords={controlRecords}
             onControlRecordsChange={handleControlRecordsChange}
             controlReviewStatuses={controlReviewStatuses}
@@ -893,6 +925,7 @@ export function ProjectWorkspace({
                 : undefined
             }
             canEditEvidence={evidenceCaps.canAssociate}
+            canEditImplementation={canEditImplementation}
             itemTerms={itemTerms}
           />
         </div>

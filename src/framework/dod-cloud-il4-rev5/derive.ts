@@ -15,6 +15,7 @@ import {
   IL4_TOTAL_COUNT,
   TABLE_D1_IL4_COUNT,
 } from "./identities";
+import { overlayParameterResolutions } from "@/framework/nist-sp-800-53-rev5/parameters";
 import { indexNistCatalog } from "./catalog";
 import {
   isGrrId,
@@ -23,11 +24,16 @@ import {
   normalizeFrameworkControlId,
 } from "./ids";
 import {
+  parseIl4ParameterMappings,
+  type Il4ParameterMappingIndex,
+} from "./parameter-mappings";
+import {
   ADDENDUM_WORKBOOK_SHA256,
   CSP_SRG_V1R7_PDF_SHA256,
   FEDRAMP_BASELINE_SHA256,
   NIST_CATALOG_SHA256,
 } from "./sources";
+import { mapIl4DspavStatus } from "./status";
 import type {
   AddendumExtract,
   AddendumExtractRow,
@@ -79,6 +85,7 @@ export type DeriveDodCloudIl4Input = {
   addendum: AddendumExtract;
   appendixDNotes: readonly AppendixDNote[];
   fedrampSha256: string;
+  parameterMappings: unknown;
 };
 
 function nonempty(text: string | undefined | null): string | null {
@@ -186,6 +193,7 @@ function classifyParameters(args: {
 
   return {
     nistOrganizationDefined: [],
+    parameterResolutions: [],
     fedrampAssignment: provenance(
       nonempty(fedrampRow?.fedrampAssignment ?? addendumRow.fedrampAssignment),
       fedrampRow ? FEDRAMP_SOURCE : ADDENDUM_SOURCE,
@@ -283,6 +291,46 @@ function tableD1RowProblems(args: {
   return problems;
 }
 
+function attachIl4ParameterResolutions(
+  controlId: string,
+  parameters: OverlayParameterMetadata,
+  mappings: Il4ParameterMappingIndex,
+): void {
+  const status = mapIl4DspavStatus(parameters.dspavStatus);
+  const controlMappings = mappings.get(controlId);
+  parameters.parameterResolutions = parameters.nistOrganizationDefined.map(
+    (param) => {
+      const pinned = controlMappings?.get(param.id);
+      if (pinned) {
+        return {
+          controlId,
+          parameterId: param.id,
+          status: pinned.status,
+          mappingBasis: "pinned-overlay-mapping" as const,
+          values: pinned.values,
+          sources: [
+            {
+              text: pinned.evidence,
+              source: "il4-parameter-mappings",
+            },
+          ],
+        };
+      }
+      return overlayParameterResolutions({
+        controlId,
+        params: [param],
+        status,
+        mappingBasis: "control-level-unmapped",
+        controlOverlaySummary: {
+          status,
+          effectiveAssignmentText: parameters.effectiveAssignmentText,
+          effectiveAssignmentSource: parameters.effectiveAssignmentSource,
+        },
+      })[0]!;
+    },
+  );
+}
+
 export function deriveDodCloudIl4Framework(
   input: DeriveDodCloudIl4Input,
 ): DerivationResult {
@@ -298,6 +346,23 @@ export function deriveDodCloudIl4Framework(
   const nistModerate = new Set(input.nistModerateIds);
   const fedrampById = new Map(input.fedrampRows.map((row) => [row.id, row]));
   const appendixById = parseAppendixNotes(input.appendixDNotes);
+  const allowedControlIds = new Set(
+    input.addendum.rows
+      .map((row) => normalizeFrameworkControlId(row.identifier))
+      .filter((id): id is string => Boolean(id)),
+  );
+  const paramsByControl = new Map(
+    [...catalog.byId.entries()].map(([id, control]) => [id, control.parameters]),
+  );
+  let mappings: Il4ParameterMappingIndex = new Map();
+  try {
+    mappings = parseIl4ParameterMappings(input.parameterMappings, {
+      allowedControlIds,
+      paramsByControl,
+    });
+  } catch (error) {
+    problems.push(error instanceof Error ? error.message : String(error));
+  }
   if (appendixById.size !== TABLE_D1_IL4_COUNT) {
     problems.push(
       `Table D-1 unique IDs ${appendixById.size} !== ${TABLE_D1_IL4_COUNT}`,
@@ -368,6 +433,7 @@ export function deriveDodCloudIl4Framework(
         parameters: {
           ...parameters,
           nistOrganizationDefined: [],
+          parameterResolutions: [],
         },
         dodSupplements: [],
         applicability: {
@@ -385,6 +451,7 @@ export function deriveDodCloudIl4Framework(
       continue;
     }
     parameters.nistOrganizationDefined = catalogControl.parameters;
+    attachIl4ParameterResolutions(id, parameters, mappings);
 
     const dodSupplements: ProvenanceText[] = [];
     if (SUPPLEMENT_IDS.has(id) && nonempty(row.dodFedrampPlusParameters)) {

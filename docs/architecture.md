@@ -26,7 +26,8 @@ runtime authority (ADR-026). `project_json.project.frameworkId` is a
 compatibility copy written from that column and is not used as an
 independent identity. Runtime views resolve the column ID through the
 registry rather than a global Moderate singleton. Live documents use
-schema v2; v1 envelopes migrate in memory on load.
+schema v3; v1/v2 envelopes migrate in memory on load. Schema v3 adds
+project-authored parameter records (ADR-032).
 
 ---
 
@@ -39,7 +40,9 @@ Contains:
 - Project
 - Control implementation
 - Project metadata, including canonical SSP system characteristics
-  (`project_json` schema v2; ADR-030)
+  (`project_json` schema v3; ADR-030, ADR-032)
+- Parameter resolution (catalog identity + framework resolution + project
+  records; ADR-032)
 - Domain services
 
 The domain model is the source of truth.
@@ -191,7 +194,8 @@ Milestone 06B capabilities:
 - Explicit FedRAMP base inheritance vs DoD explicit vs DoD-permitted FedRAMP value
 - AU-5(1) provenance from the DoD Addendum, not the pinned FedRAMP Moderate baseline
 - Fail-closed derivation when Table D-1 and Addendum relationships are inconsistent
-- Overlay classification remains control-level (not per-ODP)
+- Overlay classification remains control-level (not per-ODP) in 06B
+  metadata. 07C adds per-ODP resolution rows with an empty IL4 pin set.
 
 Milestone 07A capabilities:
 
@@ -219,13 +223,18 @@ Milestone 07B capabilities:
   NIST-only
 - Missing data uses render-only placeholders; empty collections mean
   not documented
-- Organization-defined parameters remain unresolved; overlay assignments stay
-  separate from authoritative source statements
-- No new persistence, schema, or SQL migration
+- Organization-defined parameters remain unresolved in the source statement;
+  overlay assignments stay separate from authoritative source statements
+- 07C synthesizes a resolved requirement from the SSP document model using
+  the domain resolution engine (ADR-032)
+- No new SQL migration
 - Diagrams remain deferred
 
-Milestone 07C (architecture proposed, not implemented): per-ODP identity,
-project-authored parameter records, and requirement substitution. See
+Milestone 07C (implemented, not released): per-ODP catalog identity,
+immutable framework parameter resolution, `project_json` schema v3
+parameter records, ODP authoring UI, and partial SSP substitution. IL4
+per-ODP mappings start empty. OSCAL `set-parameters` and
+responsibility/origination are deferred. See ADR-032 and
 `docs/research/07C-parameter-resolution-architecture.md`.
 
 Actor identity for activity rows comes from the authenticated session for user

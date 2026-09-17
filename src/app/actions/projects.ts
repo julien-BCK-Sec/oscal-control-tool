@@ -5,6 +5,7 @@ import {
   assertProductSelectableFrameworkId,
 } from "@/data/framework";
 import { isControlImplementation } from "@/data/implementation";
+import { parseProjectParameterRecords } from "@/data/parameter";
 import { parseProjectMetadata } from "@/data/project";
 import { getProjectRepository } from "@/persistence/server";
 import type {
@@ -18,7 +19,7 @@ import type {
   StoredProject,
 } from "@/persistence/types";
 import type { ProjectRepository } from "@/persistence/repository";
-import { AuthorizationError, type OrgContext } from "@/authz/authorize";
+import { AuthorizationError, can, type OrgContext } from "@/authz/authorize";
 import {
   getSessionUser,
   resolveDefaultOrganizationId,
@@ -170,6 +171,7 @@ export async function saveProjectAction(input: {
   name: string;
   metadata: unknown;
   implementations: unknown;
+  parameterRecords?: unknown;
   expectedRevision: number;
 }): Promise<SaveProjectResult> {
   const id = requireNonEmptyString(input.id, "id");
@@ -191,6 +193,18 @@ export async function saveProjectAction(input: {
       reason: "validation",
       message: error instanceof Error ? error.message : "Invalid implementations.",
     };
+  }
+  let parameterRecords: SaveProjectInput["parameterRecords"];
+  if (input.parameterRecords !== undefined) {
+    const parsed = parseProjectParameterRecords(input.parameterRecords);
+    if (parsed === null) {
+      return {
+        ok: false,
+        reason: "validation",
+        message: "Invalid project parameter records.",
+      };
+    }
+    parameterRecords = parsed;
   }
 
   if (
@@ -216,6 +230,7 @@ export async function saveProjectAction(input: {
     name,
     metadata,
     implementations,
+    parameterRecords,
     expectedRevision: input.expectedRevision,
   });
 
@@ -338,4 +353,28 @@ export async function createAutomaticSnapshotAction(
     return null;
   }
   return createAutomaticSnapshotForOrg(repo, ctx, id);
+}
+
+export type ProjectWorkspaceCapabilities = {
+  canEditImplementation: boolean;
+  canUpdateProject: boolean;
+};
+
+export async function getProjectWorkspaceCapabilitiesAction(
+  projectId: string,
+): Promise<ProjectWorkspaceCapabilities> {
+  const empty: ProjectWorkspaceCapabilities = {
+    canEditImplementation: false,
+    canUpdateProject: false,
+  };
+  const id = requireNonEmptyString(projectId, "projectId");
+  const repo = await getProjectRepository();
+  const ctx = await resolveProjectOrgContext(repo, id);
+  if (!ctx) {
+    return empty;
+  }
+  return {
+    canEditImplementation: can(ctx, ctx.organizationId, "control.edit_implementation"),
+    canUpdateProject: can(ctx, ctx.organizationId, "project.update"),
+  };
 }

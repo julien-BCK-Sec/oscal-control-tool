@@ -150,8 +150,13 @@ Control Freak today.
 
 A control-level effective assignment can resolve only some of a control’s
 NIST organization-defined parameters. Other ODPs on the same control may
-still require organization input. Control Freak does not currently store
-or present resolution state per individual ODP.
+still require organization input.
+
+Per-ODP project authoring is available on the control workspace. Until an
+explicit pinned mapping attributes overlay text to an individual ODP, IL4
+overlay assignments stay at control level and are not substituted into
+each insert. See
+[Organization-defined parameters](/help/authoring-controls#organization-defined-parameters).
 
 ## DoD assignment required
 

@@ -33,6 +33,10 @@ export const HELP_LANDING_GROUPS: HelpLandingGroup[] = [
         label: "Understand the three statuses",
         href: "/help/authoring-controls#the-three-status-fields-in-detail",
       },
+      {
+        label: "Author organization-defined parameters",
+        href: "/help/authoring-controls#organization-defined-parameters",
+      },
       { label: "Submit work for review", href: "/help/review-workflow" },
     ],
   },
@@ -83,6 +87,7 @@ export const HELP_LANDING_ITEMS: HelpLandingItem[] = HELP_LANDING_GROUPS.flatMap
 /** Heading anchors used by in-product contextual Help links. */
 export const HELP_CONTEXTUAL_ANCHORS: Array<{ slug: string; headingId: string }> = [
   { slug: "authoring-controls", headingId: "the-three-status-fields-in-detail" },
+  { slug: "authoring-controls", headingId: "organization-defined-parameters" },
   { slug: "evidence-coverage", headingId: "how-coverage-is-computed" },
   { slug: "oscal-export", headingId: "what-valid-means-here" },
   { slug: "oscal-export", headingId: "dod-cloud-il4-projects-do-not-have-this-button" },

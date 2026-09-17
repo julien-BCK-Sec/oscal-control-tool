@@ -7,7 +7,7 @@ import {
   NIST_MODERATE_IDENTITY,
   type NistSp80053Rev5Identity,
 } from "./identities";
-import { extractOrganizationDefinedParameters } from "./parameters";
+import { catalogUnassignedResolutions, extractOrganizationDefinedParameters } from "./parameters";
 
 /**
  * Profile features supported by this narrow resolver.
@@ -54,12 +54,13 @@ type CatalogControlNode = {
   id?: string;
   title?: string;
   class?: string;
-  params?: Array<{
-    id?: string;
-    label?: string;
-    guidelines?: Array<{ prose?: string }>;
-    select?: { "how-many"?: string; choice?: unknown[] };
-  }>;
+    params?: Array<{
+      id?: string;
+      label?: string;
+      guidelines?: Array<{ prose?: string }>;
+      select?: { "how-many"?: string; choice?: unknown[] };
+      props?: Array<{ name?: string; value?: string }>;
+    }>;
   parts?: CatalogPart[];
   controls?: CatalogControlNode[];
 };
@@ -407,6 +408,10 @@ export function deriveNistSp80053Rev5Framework(
         ? {
             parameters: {
               organizationDefined: indexed.parameters,
+              parameterResolutions: catalogUnassignedResolutions(
+                indexed.id,
+                indexed.parameters,
+              ),
             },
           }
         : {}),

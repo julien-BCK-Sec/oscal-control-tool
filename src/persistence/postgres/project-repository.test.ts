@@ -655,4 +655,78 @@ describe("snapshots and versions", () => {
       assert.deepEqual(loaded.project.implementations, {});
     }
   });
+
+  it("saves and reloads project parameter records without inferring from narratives", async () => {
+    const { repo } = await tempRepo();
+    const created = await repo.create({
+      name: "ODP",
+      frameworkId: NIST_MODERATE_FRAMEWORK_ID,
+      implementations: {
+        "ac-7": {
+          status: "implemented",
+          narrative: "Locks after five failed attempts in 15 minutes.",
+        },
+      },
+    });
+    assert.deepEqual(created.parameterRecords, {});
+    const saved = await repo.save({
+      id: created.id,
+      name: created.name,
+      metadata: created.metadata,
+      implementations: created.implementations,
+      parameterRecords: {
+        "ac-07_odp.01": {
+          controlId: "ac-7",
+          parameterId: "ac-07_odp.01",
+          intent: "organization-defined",
+          body: { form: "assignment", values: ["5"] },
+        },
+        "removed-odp": {
+          controlId: "ac-99",
+          parameterId: "removed-odp",
+          intent: "organization-defined",
+          body: { form: "assignment", values: ["orphan kept"] },
+        },
+      },
+      expectedRevision: created.revision,
+    });
+    assert.equal(saved.ok, true);
+    if (!saved.ok) {
+      return;
+    }
+    assert.equal(saved.project.schemaVersion, 3);
+    assert.equal(
+      saved.project.parameterRecords["ac-07_odp.01"]?.body?.form,
+      "assignment",
+    );
+    assert.equal(
+      saved.project.parameterRecords["removed-odp"]?.body?.form,
+      "assignment",
+    );
+    const loaded = await repo.load(created.id);
+    assert.equal(loaded.ok, true);
+    if (!loaded.ok) {
+      return;
+    }
+    assert.deepEqual(
+      loaded.project.parameterRecords["removed-odp"],
+      saved.project.parameterRecords["removed-odp"],
+    );
+    assert.match(loaded.project.implementations["ac-7"]?.narrative ?? "", /five failed/);
+    const preserved = await repo.save({
+      id: created.id,
+      name: created.name,
+      metadata: created.metadata,
+      implementations: created.implementations,
+      expectedRevision: saved.project.revision,
+    });
+    assert.equal(preserved.ok, true);
+    if (!preserved.ok) {
+      return;
+    }
+    assert.equal(
+      preserved.project.parameterRecords["removed-odp"]?.body?.form,
+      "assignment",
+    );
+  });
 });

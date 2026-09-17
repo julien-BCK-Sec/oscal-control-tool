@@ -24,6 +24,7 @@ import {
   buildIl4ProjectDescription,
   buildSupportingMetadata,
 } from "@/seed/demo/supporting";
+import { DEMO_IL4_PARAMETER_RECORDS } from "@/seed/demo/parameter-records";
 
 export type DemoProjectsResult = {
   flagship: StoredProject;
@@ -44,6 +45,7 @@ async function findOrCreateProject(
   frameworkId: string,
   metadata: ProjectMetadata,
   implementations: Record<string, ControlImplementation>,
+  parameterRecords?: StoredProject["parameterRecords"],
 ): Promise<{ project: StoredProject; created: boolean }> {
   const listed = await repository.list(organizationId);
   const existing = listed.find((row) => row.name === name);
@@ -62,6 +64,7 @@ async function findOrCreateProject(
     frameworkId,
     metadata,
     implementations,
+    parameterRecords,
   });
   return { project, created: true };
 }
@@ -72,6 +75,7 @@ async function ensureSupporting(
   key: CanonicalProjectKey,
   implementations: Record<string, ControlImplementation>,
   systemDescription: string,
+  parameterRecords?: StoredProject["parameterRecords"],
 ): Promise<{ project: StoredProject; created: boolean }> {
   const spec = CANONICAL_PROJECTS[key];
   return findOrCreateProject(
@@ -81,6 +85,7 @@ async function ensureSupporting(
     spec.frameworkId,
     buildSupportingMetadata(key, systemDescription),
     implementations,
+    parameterRecords,
   );
 }
 
@@ -149,6 +154,7 @@ export async function ensureDemoProjects(
     "il4",
     buildIl4Implementations(),
     buildIl4ProjectDescription(),
+    DEMO_IL4_PARAMETER_RECORDS,
   );
   if (il4.created) created.push(CANONICAL_PROJECTS.il4.name);
 
