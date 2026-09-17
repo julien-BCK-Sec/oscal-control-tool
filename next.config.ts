@@ -16,7 +16,7 @@ const allowedDevOrigins =
  */
 const nextConfig: NextConfig = {
   ...(allowedDevOrigins ? { allowedDevOrigins } : {}),
-  serverExternalPackages: ["better-sqlite3", "@aws-sdk/client-s3"],
+  serverExternalPackages: ["better-sqlite3", "@aws-sdk/client-s3", "docx"],
   experimental: {
     serverActions: {
       bodySizeLimit: "2mb",
