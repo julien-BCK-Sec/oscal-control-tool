@@ -169,7 +169,7 @@ modeled in 07A and remain deferred. See
 `docs/milestones/07A-ssp-system-characteristics.md` and
 ADR-030.
 
-**Milestone 07B – Human-Readable SSP DOCX V1** (implemented)
+**Milestone 07B – Human-Readable SSP DOCX V1** (implemented, manually accepted)
 
 Control Freak System Security Plan Word export (`cf-ssp-docx` 1.0) generated
 on demand from saved project data. Document/view model in `src/ssp/` is
@@ -178,7 +178,9 @@ Empty collections mean not documented. Organization-defined parameters
 remain unresolved; overlay assignments stay separate from source
 statements. Available for all currently supported frameworks. OSCAL SSP
 export remains a sibling NIST-only path. No new persistence or schema.
-Diagrams remain deferred. See
+Diagrams remain deferred. Local demo smoke (2026-09-17) downloaded and
+opened a Word SSP from the UI; V1 layout is functional, not final
+presentation. See
 `docs/milestones/07B-human-readable-ssp-docx-v1.md` and ADR-031.
 
 ## Future directions
@@ -193,7 +195,7 @@ Milestone 7 produces useful human-readable security documentation from
 Control Freak's canonical project data. OSCAL, framework-specific official
 templates, and generated prose are not the product domain.
 
-- **07B — Human-Readable SSP DOCX V1** (implemented) — Control Freak-owned
+- **07B — Human-Readable SSP DOCX V1** (implemented, manually accepted) — Control Freak-owned
   SSP document/view model and server-side DOCX renderer using 07A system
   characteristics plus control implementation content. Explicit missing-data
   placeholders. No false compliance/authorization claims. Diagrams remain

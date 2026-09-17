@@ -2,7 +2,15 @@
 
 ## Status
 
-Implemented.
+Implemented and manually accepted.
+
+Local demo smoke (2026-09-17): canonical demo environment bootstrapped;
+demo authentication succeeded; **Export human-readable SSP (Word)** was
+initiated from Project details; the DOCX downloaded and opened. That
+verifies the end-to-end 07B architecture (canonical data → document/view
+model → `cf-ssp-docx` layout → renderer → authenticated download). The
+V1 layout is functional and is not the final desired presentation;
+substantial template redesign is deferred and is not a 07B blocker.
 
 ## Purpose
 

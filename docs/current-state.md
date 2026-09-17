@@ -1,6 +1,6 @@
 # Current Project State
 
-Date: 2026-09-16
+Date: 2026-09-17
 
 ## Product Position
 
@@ -506,11 +506,15 @@ cutover only.
 ## Next approved milestone
 
 Milestone **07C — Parameter and Control Fidelity**. Milestone 07B is
-implemented on this branch: a Control Freak System Security Plan can be
-exported as Word from Project details for every supported framework. The
-document uses layout `cf-ssp-docx` 1.0, render-only placeholders, and
-server-side generation with no new persistence. Production remains
-**v0.6.2** until a later 07A/07B release.
+implemented and manually accepted: a Control Freak System Security Plan
+can be exported as Word from Project details for every supported
+framework. Local demo smoke (2026-09-17) bootstrapped the canonical demo,
+signed in, downloaded a DOCX from **Export human-readable SSP (Word)**,
+and opened it. That confirms the end-to-end architecture. Layout
+`cf-ssp-docx` 1.0 is functional V1 presentation, not the final desired
+template; substantial redesign is deferred and is not a 07B blocker.
+Generation remains on-demand with render-only placeholders and no new
+persistence. Production remains **v0.6.2** until a later 07A/07B release.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into
