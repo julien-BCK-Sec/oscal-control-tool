@@ -49,6 +49,45 @@ export type SspUnresolvedParameter = {
   label: string;
 };
 
+export type SspParameterResolutionState =
+  | "unresolved"
+  | "project-resolved"
+  | "framework-authoritative"
+  | "accepted-baseline";
+
+export type SspParameterResolution = {
+  id: string;
+  label: string;
+  state: SspParameterResolutionState;
+  unresolvedReason:
+    | "organization-defined"
+    | "may-use-baseline"
+    | "authoritative-value-required"
+    | "source-conflict"
+    | "control-level-unmapped"
+    | "orphan"
+    | "missing-catalog"
+    | null;
+  displayText: string | null;
+  placeholder: string | null;
+  provenanceLabel: string | null;
+};
+
+export type SspParameterAnnotationKind =
+  | "documented-deviation"
+  | "dspav-assertion"
+  | "conflict-proceeding"
+  | "permitted-baseline-available"
+  | "orphan"
+  | "project-documentation";
+
+export type SspParameterAnnotation = {
+  parameterId: string;
+  kind: SspParameterAnnotationKind;
+  title: string;
+  text: string;
+};
+
 export type SspFrameworkAssignment = {
   text: string;
   sourceLabel: string;
@@ -66,7 +105,10 @@ export type SspFrameworkItem = {
   originId: string | null;
   parentId: string | null;
   sourceStatement: string;
+  resolvedStatement: string;
   unresolvedParameters: SspUnresolvedParameter[];
+  parameterResolutions: SspParameterResolution[];
+  parameterAnnotations: SspParameterAnnotation[];
   frameworkAssignments: SspFrameworkAssignment[];
   supplements: SspProvenanceText[];
   notices: SspNotice[];

@@ -6,11 +6,15 @@ Date: 2026-09-17
 
 Control Freak is a collaborative compliance authoring application.
 Milestones 07A and 07B are released and production verified as **v0.7.0**
-(Control Freak — Human-Readable SSP). Milestone 07A added canonical SSP
-system characteristics on `project_json` schema v2. Milestone 07B adds a
-Control Freak-owned human-readable System Security Plan as a Word
-download generated from saved project data. Milestone 06B remains the
-previous production release
+(Control Freak — Human-Readable SSP). Milestone 07C implements parameter
+resolution and control fidelity on `main` and is **not released**. Production
+remains v0.7.0. Milestone 07A added canonical SSP system characteristics on
+`project_json` schema v2. Milestone 07B adds a Control Freak-owned
+human-readable System Security Plan as a Word download generated from saved
+project data. Live documents now use `project_json` schema v3 when saved
+(v2 loads in memory as v3 with empty parameter records). Milestone 06B remains
+the previous production release for DoD Cloud Impact Level 4 tailoring
+correctness.
 for DoD Cloud Impact Level 4 tailoring correctness. Milestone 06A added
 DoD Cloud Impact Level 4 as a product-selectable framework on top of
 Milestone 05C (Render demo hosting), Milestone 05B
@@ -101,7 +105,8 @@ document/view model → Control Freak layout `cf-ssp-docx` 1.0 → in-memory
 Word/DOCX (`docx@9.7.1` exact pin). The file is authenticated,
 server-side, and not persisted. It covers NIST Low/Moderate/High, CMMC
 Level 2, and DoD IL4 documentation frameworks. Missing system
-information uses placeholders; unresolved ODPs stay unresolved.
+information uses placeholders; unresolved ODPs stay unresolved unless a
+07C parameter record or mapped framework value can be substituted.
 Implementation documentation status is not compliance status. Linked
 Evidence is reference material, not automatically assessed. Local demo
 smoke (2026-09-17) downloaded and opened a Word SSP; V1 layout is
@@ -110,12 +115,11 @@ functional, not the final desired presentation.
 This is not an official FedRAMP SSP/package, DoD authorization package,
 CMMC assessment artifact, or a certification/ATO/PA claim.
 
-Deferred: per-ODP framework/project resolution and project-authored ODP
-values (07C), richer responsibility/origination/inheritance semantics,
-substantial SSP template redesign, PDF, diagrams, official
-framework-specific authorization packages, CMMC/IL4 OSCAL SSP export,
-FedRAMP 2026 CPO/SDR-specific outputs, and DoD package-specific
-artifacts.
+Milestone 07C adds per-ODP catalog identity, immutable framework parameter
+resolution, `project_json` schema v3 parameter records, a resolution engine,
+ODP authoring UI, and partial SSP requirement synthesis. IL4 per-ODP overlay
+mappings start empty and fail closed. Responsibility/origination and OSCAL
+`set-parameters` remain deferred. 07C is not released.
 
 ## Verified production release
 
@@ -529,10 +533,12 @@ cutover only.
   product-selectable with overlay metadata on the framework read model;
   OSCAL SSP export is disabled
   (`frameworkHasOscalSspExport("dod-cloud-il4-rev5") === false`).
-- Overlay assignment classification is control-level, not per NIST ODP.
-- Per-ODP resolution and project-authored ODP values remain future work
-  (Milestone 07C). The 07B Word SSP preserves source statements, identifies
-  unresolved ODPs, and shows control-level framework assignments separately.
+- Overlay assignment classification remains control-level for 06B metadata.
+  07C adds per-ODP framework resolution rows; the IL4 pin set is empty, so
+  overlay prose is not substituted into individual inserts.
+- Per-ODP project-authored values exist in schema v3 `parameterRecords`.
+  The 07B Word SSP still preserves source statements and now also renders a
+  resolved requirement synthesized by `src/ssp/` (not by the DOCX renderer).
 - Human-readable SSP Word export reflects live saved server state only;
   named-version-targeted SSP export is not offered.
 - Diagrams, component inventory, and PDF SSP export remain deferred.
@@ -557,16 +563,14 @@ cutover only.
 
 ## Next approved milestone
 
-Milestone **07C — Parameter and Control Fidelity**. Architecture/research
-is written in `docs/research/07C-parameter-resolution-architecture.md`
-and is **not approved for implementation**. Milestones 07A and 07B are
-released and production verified as **v0.7.0**. Layout `cf-ssp-docx` 1.0
-is functional V1 presentation, not the final desired template.
+Milestone **07C — Parameter and Control Fidelity** is implemented on `main`
+and is **not released**. Production remains **v0.7.0**. Architecture is
+ADR-032. Do not begin another milestone in this phase. Do not tag or deploy
+07C.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into
-Word, not a FedRAMP package, and not a DoD PA/ATO package. Per-ODP
-resolution remains 07C work.
+Word, not a FedRAMP package, and not a DoD PA/ATO package.
 
 Word/PDF authorization-package export for official FedRAMP/DoD templates
 and future IL5/IL6 work remain unscheduled on `docs/roadmap.md`.

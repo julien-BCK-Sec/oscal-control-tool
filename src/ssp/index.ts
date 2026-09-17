@@ -19,6 +19,8 @@ export type {
   SspItemKind,
   SspNotice,
   SspNoticeKind,
+  SspParameterAnnotation,
+  SspParameterResolution,
   SspProvenanceText,
   SspRoleRow,
   SspUnresolvedParameter,

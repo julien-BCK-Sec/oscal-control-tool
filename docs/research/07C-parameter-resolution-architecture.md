@@ -1,6 +1,6 @@
 # 07C — Parameter Resolution Architecture
 
-**Status:** Architecture proposal. Not approved for implementation.  
+**Status:** Approved (ADR-032). Implemented; not released.
 **Date:** 2026-09-17  
 **Release baseline:** v0.7.0 (`56e71ff`)  
 **Milestone:** `docs/milestones/07C-parameter-resolution-control-fidelity.md`

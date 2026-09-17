@@ -67,6 +67,7 @@ function storedProject(): StoredProject {
         narrative: "Policy draft in review.",
       },
     },
+    parameterRecords: {},
   };
 }
 

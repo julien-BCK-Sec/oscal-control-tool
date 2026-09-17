@@ -161,10 +161,10 @@ pinning limitation (`docs/user-guide/dod-cloud-il4.md`,
 incapable of overlays. Do not fabricate a profile.
 
 Implemented requirements currently export the project narrative as
-`description`. They do not emit `set-parameters`. Milestone 07C research
-proposes keeping that exporter unchanged until a follow-on adapter can
-consume mapped `param-id` + `values[]` without over-claiming IL4 overlay
-prose (`docs/research/07C-parameter-resolution-architecture.md`).
+`description`. They do not emit `set-parameters`. Milestone 07C deferred
+OSCAL parameter serialization; a follow-on adapter can consume mapped
+`param-id` + `values[]` without over-claiming IL4 overlay prose
+(`docs/research/07C-parameter-resolution-architecture.md`, ADR-032).
 
 ### Future target
 

@@ -33,6 +33,7 @@ import {
 } from "./labels";
 import { humanizeSourceStatement } from "./odp";
 import { mapOverlayForSsp } from "./overlay";
+import { resolveControlForSsp } from "./resolveStatement";
 import {
   COMPLETENESS_NOTICE_PARAGRAPHS,
   documented,
@@ -186,6 +187,10 @@ function mapFrameworkItem(
   const implementation =
     input.project.implementations[control.id] ?? DEFAULT_CONTROL_IMPLEMENTATION;
   const humanized = humanizeSourceStatement(control);
+  const synthesized = resolveControlForSsp(
+    control,
+    input.project.parameterRecords,
+  );
   const overlay = mapOverlayForSsp(control);
   const record: ControlRecord | undefined = input.controlRecordsByControlId.get(
     control.id,
@@ -202,7 +207,10 @@ function mapFrameworkItem(
       terms.singular === "requirement" ? control.originId?.trim() || null : null,
     parentId: parentControlId(control.id),
     sourceStatement: humanized.text,
+    resolvedStatement: synthesized.resolvedStatement,
     unresolvedParameters: humanized.unresolvedParameters,
+    parameterResolutions: synthesized.parameterResolutions,
+    parameterAnnotations: synthesized.parameterAnnotations,
     frameworkAssignments: overlay.assignments,
     supplements: overlay.supplements,
     notices: overlay.notices,
