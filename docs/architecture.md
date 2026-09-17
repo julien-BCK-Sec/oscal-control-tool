@@ -224,6 +224,10 @@ Milestone 07B capabilities:
 - No new persistence, schema, or SQL migration
 - Diagrams remain deferred
 
+Milestone 07C (architecture proposed, not implemented): per-ODP identity,
+project-authored parameter records, and requirement substitution. See
+`docs/research/07C-parameter-resolution-architecture.md`.
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 

@@ -557,10 +557,11 @@ cutover only.
 
 ## Next approved milestone
 
-Milestone **07C — Parameter and Control Fidelity**. Milestones 07A and
-07B are released and production verified as **v0.7.0**. Layout
-`cf-ssp-docx` 1.0 is functional V1 presentation, not the final desired
-template.
+Milestone **07C — Parameter and Control Fidelity**. Architecture/research
+is written in `docs/research/07C-parameter-resolution-architecture.md`
+and is **not approved for implementation**. Milestones 07A and 07B are
+released and production verified as **v0.7.0**. Layout `cf-ssp-docx` 1.0
+is functional V1 presentation, not the final desired template.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into
