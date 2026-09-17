@@ -1,6 +1,24 @@
 export type { AssembleProjectInput, Project } from "./project";
 export { assembleProject } from "./project";
 export type {
+  EffectiveParameter,
+  ParameterAnnotation,
+  ParameterSubstitution,
+} from "./parameter-resolution";
+export {
+  resolveControlParameters,
+  resolveParameter,
+  substitutionDisplayText,
+} from "./parameter-resolution";
+export type { ParameterEditorMode } from "./parameter-authoring";
+export {
+  frameworkStatusLabel,
+  parameterEditorMode,
+  parameterPrompt,
+  resolutionStateLabel,
+  visibleAuthoringParameters,
+} from "./parameter-authoring";
+export type {
   CompletionProgress,
   FamilyCompletion,
 } from "./completion";
