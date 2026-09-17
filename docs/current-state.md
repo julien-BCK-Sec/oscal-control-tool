@@ -5,14 +5,12 @@ Date: 2026-09-17
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application.
-Milestones 07A and 07B form release **v0.7.0** (Control Freak —
-Human-Readable SSP). They are implemented on `main` and being prepared
-for tag and production deploy. **v0.6.2** remains the live production
-revision until that release is tagged and verified. Milestone 07A added
-canonical SSP system characteristics on `project_json` schema v2.
-Milestone 07B adds a Control Freak-owned human-readable System Security
-Plan as a Word download generated from saved project data. Milestone
-06B remains the previous production release
+Milestones 07A and 07B are released and production verified as **v0.7.0**
+(Control Freak — Human-Readable SSP). Milestone 07A added canonical SSP
+system characteristics on `project_json` schema v2. Milestone 07B adds a
+Control Freak-owned human-readable System Security Plan as a Word
+download generated from saved project data. Milestone 06B remains the
+previous production release
 for DoD Cloud Impact Level 4 tailoring correctness. Milestone 06A added
 DoD Cloud Impact Level 4 as a product-selectable framework on top of
 Milestone 05C (Render demo hosting), Milestone 05B
@@ -82,10 +80,11 @@ The application currently provides:
 OSCAL is an export/interchange format, not the internal editing model.
 Collaboration metadata is never exported as OSCAL.
 
-## Preparing release v0.7.0
+## Release v0.7.0
 
-**v0.7.0** is Control Freak — Human-Readable SSP. It has not been tagged
-or deployed yet. **v0.6.2** remains the live production revision.
+**v0.7.0** is Control Freak — Human-Readable SSP. Tagged, deployed, and
+production verified. The tag points at the release-preparation commit
+and was not moved after later documentation.
 
 07A (`project_json` schema v2, no SQL/schema migration) adds structured
 SSP system characteristics: system identity, SSP organization,
@@ -120,30 +119,43 @@ artifacts.
 
 ## Verified production release
 
-**v0.6.2** (`f7455a4ba5ec54963faa4761641ee345b40d5b83`) is the live
-production revision. Milestone 06B is implemented, committed, released, and
-production verified. The v0.6.2 tag was not moved after this documentation
-commit.
+**v0.7.0** (`56e71ff51e59038b708c6b422f983877dc4c3938`) is the live
+production revision. Milestones 07A and 07B are implemented, released, and
+production verified (2026-09-17). Render deploy `dep-dam2j6ff3r2c73e8haeg`
+matches the tagged commit. The v0.7.0 tag was not moved after this
+documentation commit.
 
-**v0.6.1** (`eb12b69`) is the previous 06A live release and is **not** the
-current production revision. **v0.6.0** (`48ae30f`) is the 06A merge commit
-that failed the Render Docker Help packaging build.
+**v0.6.2** (`f7455a4`) is the previous 06B live release and is **not** the
+current production revision. **v0.6.1** (`eb12b69`) is the previous 06A live
+release. **v0.6.0** (`48ae30f`) is the 06A merge commit that failed the
+Render Docker Help packaging build.
 
 Hosted demo (`docs/deploy-render.md`): service `oscal-control-tool`, source
 branch `main`, auto-deploy **off**, `DEPLOYMENT_MODE=demo`. Health
-`GET /api/health` returns HTTP 200. Redeploy of v0.6.2 logged demo bootstrap
-`orgs +0, users +0, projects +0`.
+`GET /api/health` returns HTTP 200. Redeploy of v0.7.0 logged migrations
+complete and demo bootstrap `orgs +0, users +0, projects +0`. Canonical
+demo authentication succeeded.
 
-Production smoke confirmed IL4 remains selectable, Snow Goose Cloud Impact
-Level 4 (Demo) loads with population 345, NIST Low/Moderate/High and CMMC
-Level 2 remain available (including Strategic Goose Operations Platform),
-IL4 OSCAL SSP export remains unavailable, and NIST OSCAL SSP export remains
-available. Representative 06B presentation: AC-1 is “FedRAMP base, inherited
-for IL4” sourced from FedRAMP Moderate; AU-5(1) is “DoD permits FedRAMP
-value” sourced from DoD IL4; SC-24 shows an Effective requirement captioned
-“DoD IL4 adjustment” with DSPAV/Addendum text sourced from DoD IL4; IA-5(1)
-remains a source conflict with no silent winner; SC-46 remains conditional
-on CDS usage; GRR-1 remains a first-class IL4 general readiness requirement.
+Production smoke confirmed NIST Low/Moderate/High, CMMC Level 2, and DoD
+Cloud IL4 remain selectable and representative demo projects load.
+Structured SSP system-characteristics UI loads on Project details.
+Snow Goose IL4 does not acquire a FIPS categorization or DoD IL assertion
+from framework selection. **Export human-readable SSP (Word)** succeeds
+for NIST Moderate, CMMC, and IL4: Word MIME type, safe `.docx` filename,
+non-empty valid DOCX, Control Freak SSP identity, disclaimer language,
+system-characteristics sections, security-requirements/control
+implementations, unresolved ODP treatment, and generation metadata.
+V1 layout `cf-ssp-docx` 1.0 remains functional, not the final desired
+presentation. NIST OSCAL SSP export remains available; CMMC and IL4 OSCAL
+SSP export remain unavailable. CMMC Word SSP uses requirement framing and
+does not invent MET/NOT MET/SPRS/certification claims. IL4 population
+remains 345 with first-class GRRs. Representative IL4 semantics hold:
+AC-1 FedRAMP base inherited for IL4; AU-5(1) DoD permits FedRAMP value;
+SC-24 DoD IL4 adjustment; IA-5(1) source conflict with no silent winner;
+SC-46 conditional CDS applicability; GRR-1 first-class. Unauthenticated
+SSP export is 401; viewers with `project.read` can export; cross-tenant
+access is 404 and does not leak project existence. Generated SSPs are
+not persisted; export logs are IDs/bytes/duration metadata.
 
 Current stack:
 
@@ -545,12 +557,10 @@ cutover only.
 
 ## Next approved milestone
 
-Milestones 07A and 07B are implemented on `main` (`4f85943`) and are
-being prepared as **v0.7.0**. They are not yet tagged, deployed, or
-production verified. **v0.6.2** remains the live production revision.
-The next approved product milestone after this release is **07C —
-Parameter and Control Fidelity**. Layout `cf-ssp-docx` 1.0 is functional
-V1 presentation, not the final desired template.
+Milestone **07C — Parameter and Control Fidelity**. Milestones 07A and
+07B are released and production verified as **v0.7.0**. Layout
+`cf-ssp-docx` 1.0 is functional V1 presentation, not the final desired
+template.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into

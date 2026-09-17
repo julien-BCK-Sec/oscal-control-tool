@@ -41,22 +41,26 @@ A later redeploy of the same service, without resetting PostgreSQL, logs
 `orgs +0, users +0, projects +0` and preserves user edits plus uploaded
 Evidence objects.
 
-## Verified production release (Milestone 06B)
+## Verified production release (Milestones 07A and 07B)
 
-Live revision: **v0.6.2** (`f7455a4`). Source branch is **`main`**.
-Auto-deploy is **off**. `DEPLOYMENT_MODE=demo`. Health `GET /api/health`
-returns HTTP 200 on the custom domain. Redeploy preserved canonical demo
-data (`orgs +0, users +0, projects +0`).
+Live revision: **v0.7.0** (`56e71ff`). Render deploy
+`dep-dam2j6ff3r2c73e8haeg`. Source branch is **`main`**. Auto-deploy is
+**off**. `DEPLOYMENT_MODE=demo`. Health `GET /api/health` returns HTTP
+200 on the custom domain. Production verification date: 2026-09-17.
+Redeploy preserved canonical demo data (`orgs +0, users +0, projects
++0`). The v0.7.0 tag was not moved after this documentation commit.
 
-06B production smoke confirmed IL4 remains selectable, Snow Goose Cloud
-Impact Level 4 (Demo) loads with 345 items, NIST and CMMC options remain
-available, IL4 OSCAL SSP export remains unavailable, NIST OSCAL SSP export
-remains available, and 06B presentation holds for AC-1, AU-5(1), SC-24,
-IA-5(1), SC-46, and GRR-1.
+07A/07B production smoke confirmed structured SSP system characteristics,
+human-readable Word SSP export for NIST/CMMC/IL4, no inferred
+categorization on Snow Goose IL4, NIST OSCAL SSP export still available,
+CMMC/IL4 OSCAL SSP export still unavailable, IL4 population 345 with
+representative overlay semantics, and unauthenticated/cross-tenant SSP
+export denied. V1 SSP layout remains intentionally non-final.
 
-**v0.6.1** (`eb12b69`) is the previous 06A live release. **v0.6.0**
-(`48ae30f`) is the 06A merge commit that failed the Docker Help packaging
-build; `.dockerignore` exceptions from `7d2034f` remain in the image.
+**v0.6.2** (`f7455a4`) is the previous 06B live release. **v0.6.1**
+(`eb12b69`) is the previous 06A live release. **v0.6.0** (`48ae30f`) is
+the 06A merge commit that failed the Docker Help packaging build;
+`.dockerignore` exceptions from `7d2034f` remain in the image.
 
 ## Seeded demo vs normal install
 

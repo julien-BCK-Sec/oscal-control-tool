@@ -153,7 +153,7 @@ Addendum-supplied text. See
 `docs/milestones/06B-dod-il4-tailoring-semantics-correction.md` and
 `docs/research/06B-il4-tailoring-semantics-audit.md`.
 
-**Milestone 07A – SSP System Characteristics** (implemented, preparing v0.7.0)
+**Milestone 07A – SSP System Characteristics** (implemented, released as v0.7.0, production verified)
 
 Canonical system-level SSP information on `project_json` schema v2:
 system identity, SSP organization, authorization boundary, environment of
@@ -169,7 +169,7 @@ modeled in 07A and remain deferred. See
 `docs/milestones/07A-ssp-system-characteristics.md` and
 ADR-030.
 
-**Milestone 07B – Human-Readable SSP DOCX V1** (implemented, manually accepted, preparing v0.7.0)
+**Milestone 07B – Human-Readable SSP DOCX V1** (implemented, manually accepted, released as v0.7.0, production verified)
 
 Control Freak System Security Plan Word export (`cf-ssp-docx` 1.0) generated
 on demand from saved project data. Document/view model in `src/ssp/` is
@@ -195,7 +195,7 @@ Milestone 7 produces useful human-readable security documentation from
 Control Freak's canonical project data. OSCAL, framework-specific official
 templates, and generated prose are not the product domain.
 
-- **07B — Human-Readable SSP DOCX V1** (implemented, manually accepted, preparing v0.7.0) — Control Freak-owned
+- **07B — Human-Readable SSP DOCX V1** (implemented, manually accepted, released as v0.7.0, production verified) — Control Freak-owned
   SSP document/view model and server-side DOCX renderer using 07A system
   characteristics plus control implementation content. Explicit missing-data
   placeholders. No false compliance/authorization claims. Diagrams remain

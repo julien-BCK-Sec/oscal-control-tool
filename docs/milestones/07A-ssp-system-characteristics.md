@@ -2,8 +2,9 @@
 
 ## Status
 
-Implemented, on `main` (`4f85943`), preparing v0.7.0. Not yet tagged,
-deployed, or production verified.
+Implemented, released, and production verified as v0.7.0 (`56e71ff`).
+The v0.7.0 tag was not moved after the post-production documentation
+commit.
 
 ## Purpose
 

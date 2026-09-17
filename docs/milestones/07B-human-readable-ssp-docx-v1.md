@@ -2,8 +2,9 @@
 
 ## Status
 
-Implemented, manually accepted, and preparing v0.7.0. Not yet tagged,
-deployed, or production verified.
+Implemented, manually accepted, released, and production verified as
+v0.7.0 (`56e71ff`). The v0.7.0 tag was not moved after the
+post-production documentation commit.
 
 Local demo smoke (2026-09-17): canonical demo environment bootstrapped;
 demo authentication succeeded; **Export human-readable SSP (Word)** was
