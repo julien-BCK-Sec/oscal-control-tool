@@ -133,11 +133,15 @@ inference or grammar rewriting.
 
 Milestone 08A (authoring workspace UX and information hierarchy) is
 implemented on `feat/08A-authoring-workspace-ux` and is **not merged**.
-It adds progressive disclosure around requirement, ODP, implementation,
-and evidence authoring, compact resolved ODP rows, a collapsible
-operations inspector, System-tab labeling for system characteristics,
-and documentation-completeness captions. ODP summaries are derived from
-`resolveControlParameters`. It does not add a compliance score, change
+The first implementation added progressive disclosure around requirement,
+ODP, implementation, and evidence authoring, a collapsible operations
+inspector, System-tab labeling, and documentation-completeness captions.
+Manual acceptance then found the ODP surface still too heavy: unresolved
+parameters no longer force the section open; shared overlay conditions
+are explained once at section scope; author-facing status is
+Resolved/Unresolved; catalog/resolution diagnostics stay behind Details.
+Author-facing surfaces prioritize what the author needs to understand or
+do. 08A is not accepted. It does not add a compliance score, change
 ADR-032, or alter SSP/OSCAL semantics.
 
 ## Verified production release
@@ -585,10 +589,11 @@ cutover only.
 
 Do not begin Milestone 08B. Milestone **08A — Authoring Workspace UX and
 Information Hierarchy** is implemented on `feat/08A-authoring-workspace-ux`
-and is **not merged, tagged, or released**. Milestone **07C** remains
-implemented and manually accepted on `main`, **not released**. Production
-remains **v0.7.0**. Architecture remains ADR-032. Do not tag or deploy 07C
-or 08A.
+and is **not merged, tagged, or released**. Manual acceptance identified
+an ODP visual-complexity correction still on that branch. 08A is **not
+accepted**. Milestone **07C** remains implemented and manually accepted
+on `main`, **not released**. Production remains **v0.7.0**. Architecture
+remains ADR-032. Do not tag or deploy 07C or 08A.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into

@@ -239,6 +239,21 @@ export type ParameterAuthoringSummary = {
   caption: string;
 };
 
+function parameterAuthoringCaption(
+  resolvedCount: number,
+  total: number,
+  unresolvedCount: number,
+): string {
+  if (total === 0) {
+    return "None on this item";
+  }
+  const resolved = `${resolvedCount} of ${total} resolved`;
+  if (unresolvedCount <= 0) {
+    return resolved;
+  }
+  return `${resolved} · ${unresolvedCount} need attention`;
+}
+
 /**
  * Compact authoring counts from canonical EffectiveParameter substitutions.
  * Nested parameters are counted only while their parent choice is selected.
@@ -257,15 +272,143 @@ export function parameterAuthoringSummary(
     }
   }
   const total = ids.length;
+  const unresolvedCount = total - resolvedCount;
   return {
     total,
     resolvedCount,
-    unresolvedCount: total - resolvedCount,
-    caption:
-      total === 0
-        ? "None on this item"
-        : `${resolvedCount}/${total} resolved`,
+    unresolvedCount,
+    caption: parameterAuthoringCaption(resolvedCount, total, unresolvedCount),
   };
+}
+
+/**
+ * Unresolved parameters must not force the ODP section open. Complexity is
+ * why the author needs a collapsed summary first.
+ */
+export function parameterOdpSectionDefaultOpen(
+  summary: ParameterAuthoringSummary,
+): boolean {
+  void summary;
+  return false;
+}
+
+export function parameterDetailsDefaultOpen(): boolean {
+  return false;
+}
+
+export function authorFacingStatusLabel(effective: EffectiveParameter): string {
+  if (effective.substitution.kind === "value") {
+    return "Resolved";
+  }
+  if (effective.substitution.reason === "orphan") {
+    return "Orphaned";
+  }
+  return "Unresolved";
+}
+
+export function sharedAuthorableEditorMode(
+  control: FrameworkControl,
+  resolved: readonly EffectiveParameter[],
+  records: ProjectParameterRecords,
+): ParameterEditorMode | null {
+  const ids = currentlyAuthorableParameterIds(control, records);
+  if (ids.length === 0) {
+    return null;
+  }
+  const byId = new Map(resolved.map((row) => [row.parameterId, row]));
+  let shared: ParameterEditorMode | null = null;
+  for (const id of ids) {
+    const row = byId.get(id);
+    if (!row) {
+      return null;
+    }
+    const mode = parameterEditorMode(row);
+    if (shared === null) {
+      shared = mode;
+      continue;
+    }
+    if (mode !== shared) {
+      return null;
+    }
+  }
+  return shared;
+}
+
+export type SharedParameterSectionNotice = {
+  mode: ParameterEditorMode;
+  title: string;
+  body: string;
+  helpSlug: string;
+  helpHash?: string;
+};
+
+/**
+ * Section-level copy for a condition shared by every currently authorable
+ * parameter. Mixed modes return null so distinct states stay distinct.
+ */
+export function sharedParameterSectionNotice(
+  mode: ParameterEditorMode | null,
+): SharedParameterSectionNotice | null {
+  if (mode === "control-level-unmapped") {
+    return {
+      mode,
+      title: "Parameter-specific overlay assignments unavailable",
+      body: "This control has an overlay assignment, but the authoritative source does not map that assignment to individual catalog parameters. Project documentation can be recorded below but does not resolve these parameters in the SSP.",
+      helpSlug: "dod-cloud-il4",
+      helpHash: "parameter-assignments",
+    };
+  }
+  if (mode === "may-use-baseline") {
+    return {
+      mode,
+      title: "Permitted baseline values are not accepted automatically",
+      body: "DoD permits the baseline value. It is not used in the resolved requirement until someone explicitly accepts it for each parameter, or authors an organization value.",
+      helpSlug: "authoring-controls",
+      helpHash: "organization-defined-parameters",
+    };
+  }
+  if (mode === "authoritative-value-required") {
+    return {
+      mode,
+      title: "Authoritative external value required",
+      body: "An authoritative value is required from a restricted source (for example DSPAV). Control Freak does not invent that value. A project assertion is documentation only and is not substituted into the SSP.",
+      helpSlug: "dod-cloud-il4",
+      helpHash: "dod-assignment-required",
+    };
+  }
+  if (mode === "source-conflict") {
+    return {
+      mode,
+      title: "Source interpretation requires review",
+      body: "Authoritative sources disagree. Both remain visible. A proceeding note does not choose a winner or resolve the parameter.",
+      helpSlug: "dod-cloud-il4",
+      helpHash: "source-interpretation-requires-review",
+    };
+  }
+  return null;
+}
+
+export function authorFacingStatusHint(
+  mode: ParameterEditorMode,
+  sharedMode: ParameterEditorMode | null,
+): string | null {
+  if (sharedMode !== null && mode === sharedMode && sharedParameterSectionNotice(sharedMode)) {
+    return null;
+  }
+  switch (mode) {
+    case "may-use-baseline":
+      return "DoD permits the baseline value. Accept it explicitly or author an organization value.";
+    case "authoritative-value-required":
+      return "An authoritative external value is required. Control Freak does not invent it.";
+    case "source-conflict":
+      return "Authoritative sources disagree. A proceeding note does not choose a winner.";
+    case "control-level-unmapped":
+      return "Overlay assignment is not mapped to this parameter. Project documentation does not resolve it in the SSP.";
+    case "orphan":
+      return "Preserved on the project and excluded from SSP substitution.";
+    default:
+      return null;
+  }
 }
 
 /**

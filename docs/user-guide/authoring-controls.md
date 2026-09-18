@@ -145,21 +145,28 @@ NIST SP 800-53 controls can include organization-defined parameters (ODPs).
 Author those values on the control workspace. Control Freak does **not**
 infer them from the implementation narrative.
 
-The ODP editor shows a compact **n/m resolved** summary derived from the
+The ODP editor shows a compact **n of m resolved** summary derived from the
 same resolution engine used for SSP substitution. Unresolved parameters
-expand the section by default. Fully resolved parameters can be collapsed
-to a value preview; use **Edit value** (or **Show details** when
-read-only) to open the editor. Catalog IDs, provenance, and insert
-context stay behind **Catalog details**.
+do **not** force the section open — a control with many unresolved ODPs is
+exactly where a collapsed summary is most useful. Open **Review
+parameters** to author values. Resolved assignment rows stay compact;
+use **Edit** to change a value. Catalog IDs, mapping basis, provenance,
+and insert context stay behind **Details**, which starts collapsed.
+
+When every currently authorable parameter shares the same overlay
+condition (for example, a control-level assignment with no per-ODP
+mapping), that explanation appears once at the section, not on every
+row. Distinct parameter states are not grouped together.
+
+Author-facing status is **Resolved** or **Unresolved**. Technical
+resolver wording remains in Details.
 
 Each expanded editor still shows:
 
 - the catalog prompt (label or guideline);
-- surrounding catalog statement context for assignment fields, so the
-  value is understood as one insert rather than the whole requirement;
-- the framework-derived value and source, when one exists;
-- the project's authored value;
-- the current resolution state.
+- a concise description;
+- the editable project value, catalog choices, or required action;
+- the current resolved/unresolved state.
 
 Flexible text is expected. A value may be `15 minutes` or a longer
 operational sentence. Catalog **select** parameters use the catalog's own

@@ -17,6 +17,8 @@ export type AuthoringDisclosureProps = {
   collapseHint?: string;
   children: ReactNode;
   className?: string;
+  /** Compact row disclosure: chevron + title only, no trailing Show/Hide. */
+  compact?: boolean;
 };
 
 /**
@@ -35,6 +37,7 @@ export function AuthoringDisclosure({
   collapseHint = "Hide",
   children,
   className = "",
+  compact = false,
 }: AuthoringDisclosureProps) {
   const generatedId = useId();
   const headingId = titleId ?? generatedId;
@@ -55,17 +58,31 @@ export function AuthoringDisclosure({
         aria-controls={panelId}
         onClick={() => setExpanded((current) => !current)}
         onKeyDown={preserveNativeControlKeys}
-        className="group flex w-full items-start gap-2 rounded-sm py-1 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        className={
+          compact
+            ? "group flex w-full items-center gap-1.5 rounded-sm py-0.5 text-left text-xs text-text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            : "group flex w-full items-start gap-2 rounded-sm py-1 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        }
       >
         <span
           aria-hidden="true"
-          className="mt-0.5 text-[10px] text-text-muted group-hover:text-text-secondary"
+          className={
+            compact
+              ? "text-[10px] text-text-muted group-hover:text-text-secondary"
+              : "mt-0.5 text-[10px] text-text-muted group-hover:text-text-secondary"
+          }
         >
           {expanded ? "▼" : "▶"}
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="text-sm font-semibold tracking-tight text-foreground">
+            <span
+              className={
+                compact
+                  ? "text-xs font-medium text-text-secondary"
+                  : "text-sm font-semibold tracking-tight text-foreground"
+              }
+            >
               {title}
             </span>
             {summary ? (
@@ -78,7 +95,9 @@ export function AuthoringDisclosure({
             </span>
           ) : null}
         </span>
-        <span className="shrink-0 text-xs text-text-muted">{hint}</span>
+        {compact ? null : (
+          <span className="shrink-0 text-xs text-text-muted">{hint}</span>
+        )}
       </button>
       <div id={panelId} hidden={!expanded} className={expanded ? "mt-2" : undefined}>
         {children}

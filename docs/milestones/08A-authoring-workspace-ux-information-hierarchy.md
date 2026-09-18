@@ -1,6 +1,10 @@
 Milestone 08A — Authoring Workspace UX & Information Hierarchy
 
-Status: Implemented on `feat/08A-authoring-workspace-ux` (not merged, not released)
+Status: Implemented on `feat/08A-authoring-workspace-ux` (not merged, not released, not accepted)
+
+Manual acceptance (2026-09-18) identified remaining ODP visual complexity after the first implementation. A correction pass is on this branch: unresolved ODPs no longer force the section open; shared overlay conditions appear once at section scope; author-facing status is Resolved/Unresolved; catalog/resolution diagnostics default collapsed behind Details; parameter rows are a single dense surface rather than a card per ODP.
+
+Author-facing surfaces prioritize what the author needs to understand or do; catalog/resolution diagnostics remain available through progressive disclosure.
 Depends on: Milestone 07C accepted on main
 Production baseline at planning time: v0.7.0
 Primary goal: Reduce cognitive load and vertical sprawl in the authoring experience without removing information, weakening framework semantics, or turning Control Freak into a low-density generic SaaS UI.
@@ -145,11 +149,11 @@ The ODP section must expose a compact state summary before requiring the author 
 
 Example presentation:
 
-Organization-defined parameters · 4/8 resolved
+Organization-defined parameters · 0 of 8 resolved · 8 need attention
 
-For a fully resolved control, the collapsed state may provide a compact summary of authored/resolved values and an Edit/Expand action.
+Unresolved parameters must not force the section open. A control with many unresolved ODPs is precisely where automatic expansion creates the most visual complexity.
 
-For an unresolved control, the summary must make the outstanding count obvious.
+The collapsed state must make outstanding count and any shared overlay condition obvious. The author opens the section to work.
 
 The count must use the existing 07C resolution model and must not create a second interpretation of resolution state.
 

@@ -6,12 +6,18 @@ import {
   nistModerateFrameworkProvider,
 } from "@/data/framework";
 import {
+  authorFacingStatusHint,
+  authorFacingStatusLabel,
   catalogChoiceVisibleText,
   parameterAuthoringSummary,
+  parameterDetailsDefaultOpen,
   parameterEditorMode,
   parameterInsertContext,
+  parameterOdpSectionDefaultOpen,
   parameterPrompt,
   parameterUsesCompactResolvedPresentation,
+  sharedAuthorableEditorMode,
+  sharedParameterSectionNotice,
   visibleAuthoringParameters,
   withCatalogSelection,
 } from "./parameter-authoring";
@@ -165,7 +171,10 @@ describe("parameterAuthoringSummary", () => {
     assert.ok(summary.total >= 1);
     assert.equal(summary.resolvedCount, 0);
     assert.equal(summary.unresolvedCount, summary.total);
-    assert.equal(summary.caption, `${summary.resolvedCount}/${summary.total} resolved`);
+    assert.equal(
+      summary.caption,
+      `${summary.resolvedCount} of ${summary.total} resolved · ${summary.unresolvedCount} need attention`,
+    );
   });
 
   it("counts AC-7 nested parameters only after the parent choice is selected", () => {
@@ -232,6 +241,7 @@ describe("parameterAuthoringSummary", () => {
     );
     assert.equal(done.resolvedCount, 4);
     assert.equal(done.unresolvedCount, 0);
+    assert.equal(done.caption, "4 of 4 resolved");
   });
 
   it("summarizes AC-1 as ODP-heavy without treating empty records as resolved", () => {
@@ -334,5 +344,89 @@ describe("parameterUsesCompactResolvedPresentation", () => {
       }),
       false,
     );
+  });
+});
+
+describe("ODP section presentation rules", () => {
+  it("does not open the ODP section because parameters are unresolved", () => {
+    const ac1 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-1");
+    assert.ok(ac1);
+    const summary = parameterAuthoringSummary(
+      ac1,
+      resolveControlParameters(ac1, {}),
+      {},
+    );
+    assert.ok(summary.unresolvedCount >= 8);
+    assert.equal(parameterOdpSectionDefaultOpen(summary), false);
+    assert.equal(parameterDetailsDefaultOpen(), false);
+  });
+
+  it("groups IL4 AC-1 unmapped overlay context at section scope", () => {
+    const ac1 = dodCloudIl4FrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-1");
+    assert.ok(ac1);
+    const resolved = resolveControlParameters(ac1, {});
+    const shared = sharedAuthorableEditorMode(ac1, resolved, {});
+    assert.equal(shared, "control-level-unmapped");
+    const notice = sharedParameterSectionNotice(shared);
+    assert.ok(notice);
+    assert.match(notice.title, /parameter-specific overlay assignments unavailable/i);
+    assert.match(notice.body, /does not map/i);
+    assert.equal(
+      authorFacingStatusHint("control-level-unmapped", shared),
+      null,
+    );
+  });
+
+  it("does not attach IL4 overlay context to NIST Moderate AC-1", () => {
+    const ac1 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-1");
+    assert.ok(ac1);
+    const resolved = resolveControlParameters(ac1, {});
+    const shared = sharedAuthorableEditorMode(ac1, resolved, {});
+    assert.notEqual(shared, "control-level-unmapped");
+    assert.equal(sharedParameterSectionNotice(shared), null);
+  });
+
+  it("does not group mixed AC-7 assignment and selection states", () => {
+    const ac7 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-7");
+    assert.ok(ac7);
+    const resolved = resolveControlParameters(ac7, {});
+    assert.equal(sharedAuthorableEditorMode(ac7, resolved, {}), null);
+    assert.equal(sharedParameterSectionNotice(null), null);
+  });
+
+  it("keeps DSPAV author-facing status unresolved and distinct from unmapped overlay", () => {
+    const ma51 = dodCloudIl4FrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ma-5.1");
+    assert.ok(ma51);
+    const records = {
+      "ma-05.01_odp": {
+        controlId: "ma-5.1",
+        parameterId: "ma-05.01_odp",
+        intent: "dspav-assertion" as const,
+        body: { form: "assignment" as const, values: ["escort-only"] },
+        dspavSourceNote: "Restricted DSPAV",
+      },
+    };
+    const resolved = resolveControlParameters(ma51, records);
+    const target = resolved.find((row) => row.parameterId === "ma-05.01_odp");
+    assert.ok(target);
+    assert.equal(target.substitution.kind, "unresolved");
+    assert.equal(authorFacingStatusLabel(target), "Unresolved");
+    assert.equal(parameterEditorMode(target), "authoritative-value-required");
+    const shared = sharedAuthorableEditorMode(ma51, resolved, records);
+    if (shared === "authoritative-value-required") {
+      const notice = sharedParameterSectionNotice(shared);
+      assert.ok(notice);
+      assert.notEqual(notice.mode, "control-level-unmapped");
+    }
   });
 });
