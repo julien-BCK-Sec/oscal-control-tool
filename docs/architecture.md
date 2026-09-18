@@ -16,7 +16,7 @@ Responsibilities:
 - FrameworkProvider
 - FrameworkControl (optional overlay parameter, provenance, supplement, and applicability metadata; ADR-029)
 - Framework metadata (catalog, revision, profile, optional item terms, optional OSCAL export fields, optional `productSelectable`)
-- Control Browser overlay presentation (effective requirement when known assignments can be inlined; classification caption separate from artifact source; untouched source statement; supplements; DSPAV and source-conflict notices)
+- Control Browser overlay presentation (effective requirement when known assignments can be inlined; classification caption separate from artifact source; untouched source statement; compact framework/overlay summary with DSPAV, source-conflict, and conditional notices remaining visible; detailed assignment/guidance/provenance disclosed on demand)
 - Generic Evidence/workflow/collaboration against registered framework item IDs, including IL4 GRRs (WP5); overlay metadata is not operational state
 - Framework derivation (pinned NIST SP 800-53 Rev. 5 Low / Moderate / High OSCAL; pinned NIST SP 800-171 Rev. 2 CSV for CMMC Level 2; DoD IL4 Moderate / MMx overlay artifact from FedRAMP Moderate + Addendum extract + Table D-1 delta, ADR-029)
 
@@ -241,8 +241,9 @@ responsibility/origination are deferred. See ADR-032 and
 
 Milestone 08A (implemented on `feat/08A-authoring-workspace-ux`, not
 merged): progressive disclosure in the control authoring workspace,
-compact ODP presentation derived from the 07C resolution engine, a
-collapsible operations inspector, System-tab system-characteristics
+compact ODP presentation derived from the 07C resolution engine, compact
+framework/overlay context where overlay reference material already exists,
+a collapsible operations inspector, System-tab system-characteristics
 sections with documentation-completeness captions, and toolbar placement
 for Word/OSCAL export. Presentation flags may use localStorage. No
 schema, authorization, or resolution-path change.

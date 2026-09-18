@@ -45,6 +45,12 @@ Below the header:
   wording. On DoD Cloud Impact Level 4 projects, a derived **Effective
   requirement** may appear first when authoritative assignments are
   known. See [DoD Cloud Impact Level 4](/help/dod-cloud-il4).
+- **Framework context** — on overlay items that still have notices or
+  leftover FedRAMP/DoD source-layer material, a compact summary of the
+  important condition and framework relationship. Assignment values,
+  additional guidance, supplements, provenance, and Help stay behind
+  **Show framework details**. Ordinary NIST and CMMC items do not show
+  this section.
 - **Organization-defined parameters** — explicit project values for
   catalog ODPs, kept separate from the narrative. The section heading
   shows how many currently authorable parameters are resolved. Expand it

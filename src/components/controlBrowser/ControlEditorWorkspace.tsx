@@ -23,6 +23,7 @@ import {
   buildOverlayPresentation,
   frameworkItemSingular,
   isGeneralReadinessItem,
+  overlayHasReferenceMaterial,
   statementReferenceChrome,
 } from "@/components/controlBrowser/overlayPresentation";
 import {
@@ -181,9 +182,7 @@ export function ControlEditorWorkspace({
     );
   }
 
-  const overlayHasExtra =
-    overlay !== null &&
-    (overlay.notices.length > 0 || overlay.layers.length > 0);
+  const overlayHasExtra = overlayHasReferenceMaterial(overlay);
   const showHumanReadablePrimary =
     Boolean(overlay?.effectiveRequirement) ||
     (authoring.hasParamInserts && !isGeneralReadinessItem(control));

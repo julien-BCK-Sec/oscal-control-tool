@@ -4,7 +4,9 @@ Status: Implemented on `feat/08A-authoring-workspace-ux` (not merged, not releas
 
 Manual acceptance (2026-09-18) identified remaining ODP visual complexity after the first implementation. A correction pass is on this branch: unresolved ODPs no longer force the section open; shared overlay conditions appear once at section scope; author-facing status is Resolved/Unresolved; catalog/resolution diagnostics default collapsed behind Details; parameter rows are a single dense surface rather than a card per ODP.
 
-Author-facing surfaces prioritize what the author needs to understand or do; catalog/resolution diagnostics remain available through progressive disclosure.
+A later manual-acceptance finding is also on this branch: IL4 framework/overlay reference cards (assignment-required notices, FedRAMP/DoD layers, Help) were too visually dominant in the primary authoring column. Framework-specific source and overlay detail now uses progressive disclosure. Important author-facing conditions remain visible in the primary control surface; detailed inheritance, assignment, provenance, and source information remains available on demand. Ordinary NIST/CMMC items do not gain a generic framework section.
+
+Author-facing surfaces prioritize what the author needs to understand or do; supporting catalog/resolution/reference detail remains available through progressive disclosure. 08A is not accepted until this correction is manually reviewed.
 Depends on: Milestone 07C accepted on main
 Production baseline at planning time: v0.7.0
 Primary goal: Reduce cognitive load and vertical sprawl in the authoring experience without removing information, weakening framework semantics, or turning Control Freak into a low-density generic SaaS UI.
@@ -142,6 +144,10 @@ The human-readable requirement remains the primary requirement presentation.
 Canonical/source material remains available but visually secondary. Do not remove source fidelity or make the human-readable rendering authoritative.
 
 The source statement may remain collapsed by default where that is consistent with current behavior.
+
+Framework-specific source and overlay detail uses progressive disclosure. Important author-facing conditions remain visible in the primary control surface; detailed inheritance, assignment, provenance, and source information remains available on demand.
+
+Do not add a generic framework section to ordinary NIST or CMMC items merely for visual consistency. Show framework/overlay disclosure only where overlay notices or leftover source-layer material already exist. Keep that section separate from the source statement and from ODP authoring. Unresolved or fail-closed overlay conditions do not force the supporting reference material open.
 
 4.2 Organization-defined parameters
 

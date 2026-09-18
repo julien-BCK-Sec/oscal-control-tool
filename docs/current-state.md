@@ -140,9 +140,14 @@ Manual acceptance then found the ODP surface still too heavy: unresolved
 parameters no longer force the section open; shared overlay conditions
 are explained once at section scope; author-facing status is
 Resolved/Unresolved; catalog/resolution diagnostics stay behind Details.
-Author-facing surfaces prioritize what the author needs to understand or
-do. 08A is not accepted. It does not add a compliance score, change
-ADR-032, or alter SSP/OSCAL semantics.
+A later correction collapsed IL4 framework/overlay reference cards behind
+the same disclosure pattern: important conditions such as DoD assignment
+required stay visible in the compact summary; FedRAMP/DoD assignment,
+guidance, and provenance remain available on demand. Ordinary NIST
+controls do not gain a generic framework section. Author-facing surfaces
+prioritize what the author needs to understand or do. 08A is not
+accepted. It does not add a compliance score, change ADR-032, or alter
+SSP/OSCAL semantics.
 
 ## Verified production release
 

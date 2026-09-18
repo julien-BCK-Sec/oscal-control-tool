@@ -1,4 +1,11 @@
+"use client";
+
 import type { OverlayPresentation } from "@/components/controlBrowser/overlayPresentation";
+import {
+  overlayFrameworkDetailsDefaultOpen,
+  overlayFrameworkSummary,
+} from "@/components/controlBrowser/overlayPresentation";
+import { AuthoringDisclosure } from "@/components/authoring/AuthoringDisclosure";
 import {
   Card,
   CardContent,
@@ -41,118 +48,136 @@ function noticeBadgeVariant(
 /**
  * Overlay assignments, supplements, and interpretation notices.
  * Separate from the normative catalog statement. Never color-only.
+ * Compact summary stays visible; source/assignment detail is disclosed.
  */
 export function OverlayMetadataPanel({
   presentation,
 }: OverlayMetadataPanelProps) {
+  const summary = overlayFrameworkSummary(presentation);
+  if (!summary) {
+    return null;
+  }
+
   return (
-    <Stack gap="md">
-      {presentation.notices.map((notice) => (
-        <section
-          key={notice.kind}
-          aria-labelledby={`overlay-notice-${notice.kind}`}
-          className="rounded-md border border-border bg-surface-secondary/50 px-4 py-3"
-        >
-          <div className="flex flex-wrap items-start gap-2">
-            <h3
-              id={`overlay-notice-${notice.kind}`}
-              className="text-sm font-semibold tracking-tight text-foreground"
-            >
-              {notice.title}
-            </h3>
-            <StatusBadge
-              label={noticeBadgeLabel(notice.kind)}
-              variant={noticeBadgeVariant(notice.kind)}
-              size="sm"
-            />
-          </div>
-          <FormHint className="mt-1.5" role="status">
-            {notice.explanation}
-          </FormHint>
-        </section>
-      ))}
-
-      {presentation.layers.map((layer) => {
-        const headingId = `overlay-layer-${layer.heading.replace(/\s+/g, "-").toLowerCase()}`;
-        return (
-          <Card
-            key={layer.heading}
-            variant="surface"
-            aria-labelledby={headingId}
+    <AuthoringDisclosure
+      title={summary.title}
+      titleId="overlay-framework-heading"
+      summary={summary.statusLine ?? summary.relationshipLine ?? undefined}
+      description={
+        summary.statusLine ? summary.relationshipLine ?? undefined : undefined
+      }
+      defaultOpen={overlayFrameworkDetailsDefaultOpen()}
+      expandHint="Show framework details"
+      collapseHint="Hide framework details"
+    >
+      <Stack gap="md">
+        {presentation.notices.map((notice) => (
+          <section
+            key={notice.kind}
+            aria-labelledby={`overlay-notice-${notice.kind}`}
+            className="rounded-md border border-border bg-surface-secondary/50 px-4 py-3"
           >
-            <CardHeader>
-              <CardTitle id={headingId}>{layer.heading}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Stack gap="sm">
-                {layer.assignments.map((block, index) => (
-                  <div key={`assignment-${index}`}>
-                    <h4 className="text-xs font-medium text-text-secondary">
-                      Assignment values
-                    </h4>
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
-                      {block.text}
-                    </p>
-                    <p className="mt-1 text-xs text-text-muted">
-                      Source: {block.sourceLabel}
-                    </p>
-                  </div>
-                ))}
-                {layer.additionalGuidance.map((block, index) => (
-                  <div key={`guidance-${index}`}>
-                    <h4 className="text-xs font-medium text-text-secondary">
-                      Additional requirements / guidance
-                    </h4>
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
-                      {block.text}
-                    </p>
-                    <p className="mt-1 text-xs text-text-muted">
-                      Source: {block.sourceLabel}
-                    </p>
-                  </div>
-                ))}
-                {layer.supplements.map((block, index) => (
-                  <div key={`supplement-${index}`}>
-                    <h4 className="text-xs font-medium text-text-secondary">
-                      Supplemental requirements
-                    </h4>
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
-                      {block.text}
-                    </p>
-                    <p className="mt-1 text-xs text-text-muted">
-                      Source: {block.sourceLabel}
-                    </p>
-                  </div>
-                ))}
-                {layer.applicability ? (
-                  <div>
-                    <h4 className="text-xs font-medium text-text-secondary">
-                      Applicability
-                    </h4>
-                    <p className="mt-1 text-sm leading-relaxed text-text-secondary">
-                      Conditional: {layer.applicability.label}.
-                    </p>
-                    {layer.applicability.notes ? (
-                      <FormHint className="mt-1">
-                        {layer.applicability.notes}
-                      </FormHint>
-                    ) : null}
-                  </div>
-                ) : null}
-              </Stack>
-            </CardContent>
-          </Card>
-        );
-      })}
+            <div className="flex flex-wrap items-start gap-2">
+              <h3
+                id={`overlay-notice-${notice.kind}`}
+                className="text-sm font-semibold tracking-tight text-foreground"
+              >
+                {notice.title}
+              </h3>
+              <StatusBadge
+                label={noticeBadgeLabel(notice.kind)}
+                variant={noticeBadgeVariant(notice.kind)}
+                size="sm"
+              />
+            </div>
+            <FormHint className="mt-1.5" role="status">
+              {notice.explanation}
+            </FormHint>
+          </section>
+        ))}
 
-      <p className="text-xs">
-        <HelpLink
-          slug="dod-cloud-il4"
-          hash="how-nist-fedramp-and-dod-layers-appear"
-        >
-          How Control Freak presents overlay requirements
-        </HelpLink>
-      </p>
-    </Stack>
+        {presentation.layers.map((layer) => {
+          const headingId = `overlay-layer-${layer.heading.replace(/\s+/g, "-").toLowerCase()}`;
+          return (
+            <Card
+              key={layer.heading}
+              variant="surface"
+              aria-labelledby={headingId}
+            >
+              <CardHeader>
+                <CardTitle id={headingId}>{layer.heading}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Stack gap="sm">
+                  {layer.assignments.map((block, index) => (
+                    <div key={`assignment-${index}`}>
+                      <h4 className="text-xs font-medium text-text-secondary">
+                        Assignment values
+                      </h4>
+                      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
+                        {block.text}
+                      </p>
+                      <p className="mt-1 text-xs text-text-muted">
+                        Source: {block.sourceLabel}
+                      </p>
+                    </div>
+                  ))}
+                  {layer.additionalGuidance.map((block, index) => (
+                    <div key={`guidance-${index}`}>
+                      <h4 className="text-xs font-medium text-text-secondary">
+                        Additional requirements / guidance
+                      </h4>
+                      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
+                        {block.text}
+                      </p>
+                      <p className="mt-1 text-xs text-text-muted">
+                        Source: {block.sourceLabel}
+                      </p>
+                    </div>
+                  ))}
+                  {layer.supplements.map((block, index) => (
+                    <div key={`supplement-${index}`}>
+                      <h4 className="text-xs font-medium text-text-secondary">
+                        Supplemental requirements
+                      </h4>
+                      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
+                        {block.text}
+                      </p>
+                      <p className="mt-1 text-xs text-text-muted">
+                        Source: {block.sourceLabel}
+                      </p>
+                    </div>
+                  ))}
+                  {layer.applicability ? (
+                    <div>
+                      <h4 className="text-xs font-medium text-text-secondary">
+                        Applicability
+                      </h4>
+                      <p className="mt-1 text-sm leading-relaxed text-text-secondary">
+                        Conditional: {layer.applicability.label}.
+                      </p>
+                      {layer.applicability.notes ? (
+                        <FormHint className="mt-1">
+                          {layer.applicability.notes}
+                        </FormHint>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </Stack>
+              </CardContent>
+            </Card>
+          );
+        })}
+
+        <p className="text-xs">
+          <HelpLink
+            slug="dod-cloud-il4"
+            hash="how-nist-fedramp-and-dod-layers-appear"
+          >
+            How Control Freak presents overlay requirements
+          </HelpLink>
+        </p>
+      </Stack>
+    </AuthoringDisclosure>
   );
 }

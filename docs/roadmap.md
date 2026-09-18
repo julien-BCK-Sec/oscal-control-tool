@@ -206,7 +206,7 @@ templates, and generated prose are not the product domain.
   substitution. ADR-032. Research: `docs/research/07C-parameter-resolution-architecture.md`.
   Production remains v0.7.0. This is not a prerequisite that was required for 07A or the first honest 07B SSP.
 
-- **08A — Authoring Workspace UX and Information Hierarchy** (implemented on `feat/08A-authoring-workspace-ux`, not merged, not released) — progressive disclosure and compact state summaries in control authoring, ODP presentation, the operations inspector, and System characteristics. Preserves 07C semantics. No compliance score.
+- **08A — Authoring Workspace UX and Information Hierarchy** (implemented on `feat/08A-authoring-workspace-ux`, not merged, not released) — progressive disclosure and compact state summaries in control authoring, ODP presentation, framework/overlay reference material, the operations inspector, and System characteristics. Preserves 07C semantics. No compliance score.
 
 ### Assessment, findings, and remediation
 
