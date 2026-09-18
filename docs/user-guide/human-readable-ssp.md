@@ -8,7 +8,7 @@ related: oscal-export, projects, authoring-controls, dod-cloud-il4, limitations
 
 ## Export human-readable SSP (Word)
 
-On **Project details**, select **Export human-readable SSP (Word)** to download
+Select **Export Word SSP** in the workspace toolbar to download
 a Control Freak System Security Plan as a `.docx` file. The file is generated
 on the server from the **last saved** project, including system
 characteristics, implementation narratives, documentation status, linked

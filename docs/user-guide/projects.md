@@ -43,14 +43,15 @@ Opening a project puts you in its workspace, with five tabs:
 | Overview | A summary dashboard — see below |
 | Controls (or Requirements) | The browsable control/requirement tree and editor — see [Document controls and requirements](/help/authoring-controls) |
 | Evidence | The project's Evidence records and coverage — see [Evidence](/help/evidence) |
-| Project details | System characteristics and exports — see below, [Human-readable SSP](/help/human-readable-ssp), and [OSCAL export](/help/oscal-export) |
+| System | System characteristics — see below. Word and OSCAL exports live in the workspace toolbar; see [Human-readable SSP](/help/human-readable-ssp) and [OSCAL export](/help/oscal-export) |
 | Version history | Named versions and automatic snapshots — see [Version history](/help/version-history) |
 
 The workspace header also shows the project's framework label, its current
 revision number, autosave status ("Saved", "Unsaved changes", "Saving…",
-"Save failed", or "Conflict"), and Undo / Redo buttons for the implementation
-editor. If a save conflicts with changes made elsewhere, a **Reload latest**
-option appears — reload before continuing rather than overwriting someone
+"Save failed", or "Conflict"), Undo / Redo, and export actions (**Export
+Word SSP**, and **Export OSCAL** when the framework supports it). If a save
+conflicts with changes made elsewhere, a **Reload latest** option
+appears — reload before continuing rather than overwriting someone
 else's work.
 
 ## The Overview tab
@@ -74,17 +75,19 @@ place:
   review/validate the project once everything is complete.
 - **Recent versions** — the most recent named versions and automatic
   snapshots, with a link into the full [version history](/help/version-history).
-- **Project details** — a summary of the system name, SSP organization, and
-  overview, with a link to edit them on the Project details tab.
+- **System** — a summary of the system name, SSP organization, and
+  overview, with a link to edit them on the System tab.
 
 ## System characteristics
 
-The **Project details** tab is where you author facts about the system
-itself. These fields feed a future Control Freak System Security Plan.
-They are optional. You can keep documenting controls even when they are
-empty. Empty fields stay empty — Control Freak does not fill them in from
-the project's framework, your tenant organization, control assignments,
-narratives, or Evidence.
+The **System** tab is where you author facts about the system itself.
+These fields feed the Control Freak System Security Plan. They are
+optional. You can keep documenting controls even when they are empty.
+Empty fields stay empty — Control Freak does not fill them in from the
+project's framework, your tenant organization, control assignments,
+narratives, or Evidence. Each section shows a documentation-completeness
+caption (for example "Not documented" or "2 fields undocumented"). That
+caption is not a compliance or authorization score.
 
 | Section | What you record | What it is not |
 | --- | --- | --- |
@@ -105,9 +108,9 @@ narratives, or Evidence.
 > Authorization, assessment result, or application permission.
 
 Every supported framework can [export a human-readable SSP](/help/human-readable-ssp)
-as Word from this tab. NIST SP 800-53 projects can also
-[export OSCAL](/help/oscal-export). CMMC and DoD Cloud IL4 projects cannot
-export OSCAL.
+as Word from the workspace toolbar. NIST SP 800-53 projects can also
+[export OSCAL](/help/oscal-export) from the same toolbar. CMMC and DoD Cloud
+IL4 projects cannot export OSCAL.
 
 ## Autosave, undo, and conflicts
 

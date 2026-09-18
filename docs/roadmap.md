@@ -159,7 +159,7 @@ Canonical system-level SSP information on `project_json` schema v2:
 system identity, SSP organization, authorization boundary, environment of
 operation, typed SSP roles, information types, optional FIPS 199 CIA
 categorization, optional DoD cloud impact-level assertion, operational
-status, and interconnections. Users author these on Project details.
+status, and interconnections. Users author these on the System tab.
 Missing values stay missing and are never inferred from framework
 selection, tenant organization, or collaboration assignments. The NIST
 OSCAL adapter consumes authored fields conservatively and stops copying
@@ -205,6 +205,8 @@ templates, and generated prose are not the product domain.
   project-authored ODP values, per-ODP provenance, and safer requirement
   substitution. ADR-032. Research: `docs/research/07C-parameter-resolution-architecture.md`.
   Production remains v0.7.0. This is not a prerequisite that was required for 07A or the first honest 07B SSP.
+
+- **08A — Authoring Workspace UX and Information Hierarchy** (implemented on `feat/08A-authoring-workspace-ux`, not merged, not released) — progressive disclosure and compact state summaries in control authoring, ODP presentation, the operations inspector, and System characteristics. Preserves 07C semantics. No compliance score.
 
 ### Assessment, findings, and remediation
 

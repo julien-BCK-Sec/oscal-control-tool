@@ -51,7 +51,7 @@ The application currently provides:
 - Operational metadata and activity history (including collaboration and
   evidence link/unlink events)
 - Version history
-- Canonical SSP system characteristics authored on Project details
+- Canonical SSP system characteristics authored on the System tab
   (`project_json` schema v2): system identity, SSP organization, authorization
   boundary, environment of operation, typed SSP roles, information types,
   optional FIPS 199 CIA categorization, optional DoD cloud impact-level
@@ -131,6 +131,15 @@ source statement. Nested choice editors sit under the selected choice.
 Assignment fields show surrounding catalog insert context. No datatype
 inference or grammar rewriting.
 
+Milestone 08A (authoring workspace UX and information hierarchy) is
+implemented on `feat/08A-authoring-workspace-ux` and is **not merged**.
+It adds progressive disclosure around requirement, ODP, implementation,
+and evidence authoring, compact resolved ODP rows, a collapsible
+operations inspector, System-tab labeling for system characteristics,
+and documentation-completeness captions. ODP summaries are derived from
+`resolveControlParameters`. It does not add a compliance score, change
+ADR-032, or alter SSP/OSCAL semantics.
+
 ## Verified production release
 
 **v0.7.0** (`56e71ff51e59038b708c6b422f983877dc4c3938`) is the live
@@ -152,7 +161,7 @@ demo authentication succeeded.
 
 Production smoke confirmed NIST Low/Moderate/High, CMMC Level 2, and DoD
 Cloud IL4 remain selectable and representative demo projects load.
-Structured SSP system-characteristics UI loads on Project details.
+Structured SSP system-characteristics UI loads on the System tab.
 Snow Goose IL4 does not acquire a FIPS categorization or DoD IL assertion
 from framework selection. **Export human-readable SSP (Word)** succeeds
 for NIST Moderate, CMMC, and IL4: Word MIME type, safe `.docx` filename,
@@ -183,7 +192,8 @@ Current stack:
 - SQLite tooling retained only for offline cutover from legacy deployments
 - Browser localStorage retained only for non-authoritative UI preferences
   (theme preference `system` | `light` | `dark`, ADR-022; control-navigation
-  pane width `cf-control-nav-width`; authoritative data is PostgreSQL)
+  pane width `cf-control-nav-width`; operations inspector expanded flag
+  `control-freak:operations-inspector-expanded`; authoritative data is PostgreSQL)
 
 ## Architecture
 
@@ -573,10 +583,12 @@ cutover only.
 
 ## Next approved milestone
 
-Do not begin another milestone. Milestone **07C — Parameter and Control
-Fidelity** is implemented, manually accepted, and **not released**.
-Production remains **v0.7.0**. Architecture remains ADR-032. Do not tag or
-deploy 07C.
+Do not begin Milestone 08B. Milestone **08A — Authoring Workspace UX and
+Information Hierarchy** is implemented on `feat/08A-authoring-workspace-ux`
+and is **not merged, tagged, or released**. Milestone **07C** remains
+implemented and manually accepted on `main`, **not released**. Production
+remains **v0.7.0**. Architecture remains ADR-032. Do not tag or deploy 07C
+or 08A.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into

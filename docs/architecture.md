@@ -239,6 +239,14 @@ substitution. IL4 per-ODP mappings start empty. OSCAL `set-parameters` and
 responsibility/origination are deferred. See ADR-032 and
 `docs/research/07C-parameter-resolution-architecture.md`.
 
+Milestone 08A (implemented on `feat/08A-authoring-workspace-ux`, not
+merged): progressive disclosure in the control authoring workspace,
+compact ODP presentation derived from the 07C resolution engine, a
+collapsible operations inspector, System-tab system-characteristics
+sections with documentation-completeness captions, and toolbar placement
+for Word/OSCAL export. Presentation flags may use localStorage. No
+schema, authorization, or resolution-path change.
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 

@@ -50,7 +50,7 @@ related: welcome, authoring-controls, evidence, dod-cloud-il4, projects, human-r
   written (Not started, In progress, Implemented, Not applicable).
 - **Organization** — the tenant that owns projects and team members; roles
   are assigned per organization. Distinct from the SSP organization named
-  on Project details.
+  on the System tab.
 - **Project** — a single documentation effort against one framework.
 - **Review status** — where a control is in the review workflow (Not
   Reviewed, Ready for Review, Under Review, Changes Requested, Approved),

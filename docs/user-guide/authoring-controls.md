@@ -29,7 +29,10 @@ original NIST SP 800-171 number for CMMC requirements) and summarizes its
 current **Implementation**, **Review**, and **Narrative** status with
 badges, plus its assigned **Owner**. The primary review action available
 from the current review status (see [Review workflow](/help/review-workflow))
-appears here too on wider screens.
+appears here too on wider screens. On wide screens, **Show operations**
+opens the ownership, review, assignment, discussion, and history inspector;
+it starts collapsed so authoring keeps the width. The same inspector stays
+visible when the layout stacks on small screens.
 
 Below the header:
 
@@ -43,18 +46,20 @@ Below the header:
   requirement** may appear first when authoritative assignments are
   known. See [DoD Cloud Impact Level 4](/help/dod-cloud-il4).
 - **Organization-defined parameters** — explicit project values for
-  catalog ODPs, kept separate from the narrative. See
+  catalog ODPs, kept separate from the narrative. The section heading
+  shows how many currently authorable parameters are resolved. Expand it
+  to edit. See
   [Organization-defined parameters](/help/authoring-controls#organization-defined-parameters).
-- **Narrative** — your implementation text, plus a **Narrative status**
+- **Implementation** — your implementation text, plus a **Narrative status**
   field (see below).
-- **Evidence** — Evidence records linked to this control. See
-  [Evidence](/help/evidence).
+- **Evidence** — Evidence records linked to this control, with the existing
+  coverage caption. Linked records are documentation references, not an
+  assessment. See [Evidence](/help/evidence).
 
-A sidebar alongside the narrative holds operational metadata, in this
-order: **Ownership**, **Implementation** (metadata), **Review**,
-**Assignments**, **Discussions**, and **History**. Assignments,
-Discussions, and History are covered in
-[Collaboration](/help/collaboration).
+When **Show operations** is selected, the inspector still contains
+**Ownership**, **Implementation** metadata, **Review**, **Assignments**,
+**Discussions**, and **History**. Assignments, Discussions, and History
+are covered in [Collaboration](/help/collaboration).
 
 ## Ownership fields
 
@@ -140,10 +145,16 @@ NIST SP 800-53 controls can include organization-defined parameters (ODPs).
 Author those values on the control workspace. Control Freak does **not**
 infer them from the implementation narrative.
 
-The ODP editor shows:
+The ODP editor shows a compact **n/m resolved** summary derived from the
+same resolution engine used for SSP substitution. Unresolved parameters
+expand the section by default. Fully resolved parameters can be collapsed
+to a value preview; use **Edit value** (or **Show details** when
+read-only) to open the editor. Catalog IDs, provenance, and insert
+context stay behind **Catalog details**.
 
-- the catalog prompt (label or guideline), with the parameter ID as
-  secondary metadata;
+Each expanded editor still shows:
+
+- the catalog prompt (label or guideline);
 - surrounding catalog statement context for assignment fields, so the
   value is understood as one insert rather than the whole requirement;
 - the framework-derived value and source, when one exists;

@@ -99,12 +99,12 @@ control metadata, collaboration, or Evidence. See
 
 ## 12. Export OSCAL only when the framework supports it
 
-On NIST SP 800-53 projects, **Export OSCAL SSP (JSON)** on Project details
+On NIST SP 800-53 projects, **Export OSCAL** in the workspace toolbar
 downloads a structurally validated SSP. CMMC and DoD Cloud Impact Level 4
 projects do not offer this button. Schema validation proves structure, not
 policy compliance. See [OSCAL export](/help/oscal-export).
 
-Every supported framework can **Export human-readable SSP (Word)** from
-Project details. That file reflects saved server state and is not an
+Every supported framework can **Export Word SSP** from the workspace
+toolbar. That file reflects saved server state and is not an
 official authorization package. See
 [Human-readable SSP](/help/human-readable-ssp).

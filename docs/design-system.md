@@ -172,10 +172,14 @@ percentage bar.
 - **ProductHeader** — brand lockup (sm+) / mark (mobile); optional context;
   trailing actions via `AuthenticatedHeaderActions` (notifications + account
   menu). Account menu includes Theme preference (System / Light / Dark).
-- **Workspace** — ProductHeader + WorkspaceHeader (project name, tabs, undo) +
-  tab panels.
-- **Control editor** — sticky control header; `SplitLayout` main (~70%) +
-  operational sidebar (~30%); stacks on small screens.
+- **Workspace** — ProductHeader + WorkspaceHeader (project name, tabs, undo,
+  Word/OSCAL export actions) + tab panels.
+- **Control editor** — sticky control header with glanceable owner /
+  implementation / review state; main column sections for requirement,
+  organization-defined parameters, implementation, and evidence;
+  operations inspector (~30%) collapsible on `lg+` (localStorage
+  presentation preference only) and always stacked on small screens.
+
 - **Review actions** — desktop: primary action in control header only; Review
   card shows secondary actions + status context (primary still available on
   mobile in the card). Behavior uses the centralized review transition module.
@@ -187,10 +191,14 @@ percentage bar.
 - Control header primary action: `lg+` only; Review card carries actions on
   narrow viewports.
 - Sidebar sticky under `lg` only; stacks below the narrative on mobile.
+  The operations inspector may be collapsed on `lg+`; it remains visible
+  in the stacked mobile layout.
 
 ## Accessibility expectations
 
 - Visible `:focus-visible` rings on interactive controls.
+- Disclosure toggles use native buttons so Space/Enter follow ordinary
+  activation; workspace shortcuts still yield to focused text fields.
 - Labels associated with inputs (`FormLabel` + `htmlFor`).
 - Buttons for actions (not clickable divs).
 - Status badges include text; unassigned owner announced via `role="status"`.
