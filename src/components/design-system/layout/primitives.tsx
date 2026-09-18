@@ -48,19 +48,29 @@ export type SplitLayoutProps = {
   main: ReactNode;
   side: ReactNode;
   className?: string;
+  /** When false on `lg+`, the operations column is hidden. It still stacks on small screens. */
+  sideVisible?: boolean;
 };
 
 /**
  * Responsive two-column layout: main ~70%, side ~30%; stacks on small screens.
  */
-export function SplitLayout({ main, side, className = "" }: SplitLayoutProps) {
+export function SplitLayout({
+  main,
+  side,
+  className = "",
+  sideVisible = true,
+}: SplitLayoutProps) {
   return (
     <div
       className={`flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-6 ${className}`}
     >
       <div className="min-w-0 flex-1 space-y-5 lg:basis-[70%]">{main}</div>
       <aside
-        className="flex w-full shrink-0 flex-col gap-3 lg:sticky lg:top-4 lg:w-[min(100%,var(--layout-sidebar))] lg:basis-[30%] lg:self-start"
+        id="control-operations-panel"
+        className={`flex w-full shrink-0 flex-col gap-3 lg:sticky lg:top-4 lg:w-[min(100%,var(--layout-sidebar))] lg:basis-[30%] lg:self-start ${
+          sideVisible ? "" : "lg:hidden"
+        }`}
         aria-label="Control operations"
       >
         {side}

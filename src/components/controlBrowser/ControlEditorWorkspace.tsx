@@ -25,13 +25,24 @@ import {
   isGeneralReadinessItem,
   statementReferenceChrome,
 } from "@/components/controlBrowser/overlayPresentation";
-import type { ControlEvidenceCoverage } from "@/data/evidence";
+import {
+  formatControlEvidenceCoverageCaption,
+  type ControlEvidenceCoverage,
+} from "@/data/evidence";
 import type { ProjectParameterRecords } from "@/data/parameter";
 import { ParameterAuthoringPanel } from "@/components/controlBrowser/ParameterAuthoringPanel";
 import { DiscussionPanel } from "@/components/collaboration/DiscussionPanel";
 import { AssignmentControls } from "@/components/collaboration/AssignmentControls";
 import { useControlReviewTransition } from "@/components/controlBrowser/useControlReviewTransition";
+import { useOperationsInspectorExpanded } from "@/components/controlBrowser/useOperationsInspectorExpanded";
+import { operationsInspectorSummary } from "@/components/controlBrowser/operationsInspector";
 import { splitRequirementSegments } from "@/components/controlBrowser/requirementText";
+import {
+  controlImplementationStatusLabel,
+  controlReviewStatusLabel,
+  displayControlOwner,
+} from "@/data/control-record";
+import { AuthoringDisclosure } from "@/components/authoring/AuthoringDisclosure";
 import {
   FormField,
   FormHint,
@@ -107,6 +118,14 @@ export function ControlEditorWorkspace({
     onReviewStatusChange,
     onTransitionSuccess,
     itemSingular,
+  });
+  const operations = useOperationsInspectorExpanded();
+  const operationsSummary = operationsInspectorSummary({
+    ownerLabel: displayControlOwner(fields.owner),
+    implementationLabel: controlImplementationStatusLabel(
+      fields.implementationStatus,
+    ),
+    reviewLabel: controlReviewStatusLabel(reviewStatus),
   });
 
   function renderSourceStatement(text: string, keyPrefix: string) {
@@ -263,14 +282,19 @@ export function ControlEditorWorkspace({
         canEdit={canEditImplementation}
       />
 
-      <section aria-labelledby="narrative-heading" className="min-w-0">
-        <SectionHeader
-          title="Narrative"
-          titleId="narrative-heading"
-          description="Narrative completion is based on whether implementation text has been provided."
-        />
-
-        <FormField className="mt-4 max-w-xs">
+      <AuthoringDisclosure
+        title="Implementation"
+        titleId="narrative-heading"
+        summary={
+          STATUS_OPTIONS.find((option) => option.value === implementation.status)
+            ?.label ?? implementation.status
+        }
+        description="Narrative completion is based on whether implementation text has been provided."
+        defaultOpen
+        expandHint="Show narrative"
+        collapseHint="Hide narrative"
+      >
+        <FormField className="mt-1 max-w-xs">
           <FormLabel htmlFor="implementation-status">Narrative status</FormLabel>
           <select
             id="implementation-status"
@@ -310,17 +334,35 @@ export function ControlEditorWorkspace({
             className="field mt-1.5 min-h-[min(50vh,28rem)] resize-y text-[15px] leading-relaxed"
           />
         </FormField>
-      </section>
+      </AuthoringDisclosure>
 
-      <ControlEvidencePanel
-        projectId={projectId}
-        controlId={control.id}
-        refreshToken={activityRefreshToken}
-        canEdit={canEditEvidence}
-        coverage={evidenceCoverage}
-        onActivity={onTransitionSuccess}
-        itemSingular={itemSingular}
-      />
+      <AuthoringDisclosure
+        title="Evidence"
+        titleId="control-evidence-heading"
+        summary={
+          evidenceCoverage
+            ? formatControlEvidenceCoverageCaption(evidenceCoverage)
+            : undefined
+        }
+        description="Linked records are documentation references, not an assessment of this item."
+        defaultOpen={
+          !evidenceCoverage ||
+          evidenceCoverage.coverageState === "required_missing"
+        }
+        expandHint="Show evidence"
+        collapseHint="Hide evidence"
+      >
+        <ControlEvidencePanel
+          projectId={projectId}
+          controlId={control.id}
+          refreshToken={activityRefreshToken}
+          canEdit={canEditEvidence}
+          coverage={evidenceCoverage}
+          onActivity={onTransitionSuccess}
+          itemSingular={itemSingular}
+          embedded
+        />
+      </AuthoringDisclosure>
     </>
   );
 
@@ -391,11 +433,18 @@ export function ControlEditorWorkspace({
         pending={reviewTransition.pending}
         pendingAction={reviewTransition.pendingAction}
         onPrimaryAction={(action) => void reviewTransition.runAction(action)}
+        operationsOpen={operations.expanded}
+        onToggleOperations={operations.toggle}
+        operationsSummary={operationsSummary}
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
         <div className="px-4 py-4 sm:px-6 lg:py-5">
-          <SplitLayout main={main} side={side} />
+          <SplitLayout
+            main={main}
+            side={side}
+            sideVisible={operations.expanded}
+          />
         </div>
       </div>
     </div>
