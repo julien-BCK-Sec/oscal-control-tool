@@ -13,9 +13,12 @@ import {
   catalogChoiceVisibleText,
   frameworkStatusLabel,
   nestedParametersForChoice,
+  isFailClosedParameterMode,
+  parameterAuthoringSummary,
   parameterEditorMode,
   parameterInsertContext,
   parameterPrompt,
+  parameterUsesCompactResolvedPresentation,
   resolutionStateLabel,
   visibleAuthoringParameters,
   withCatalogSelection,
@@ -30,6 +33,7 @@ import {
   type EffectiveParameter,
 } from "@/domain/parameter-resolution";
 import { preserveNativeControlKeys } from "@/editor/keyboard-target";
+import { AuthoringDisclosure } from "@/components/authoring/AuthoringDisclosure";
 import { HelpLink } from "@/components/help/HelpLink";
 import { Button } from "@/components/design-system/button/Button";
 import { StatusBadge } from "@/components/design-system/badge/StatusBadge";
@@ -38,7 +42,6 @@ import {
   FormHint,
   FormLabel,
 } from "@/components/design-system/form/FormField";
-import { SectionHeader } from "@/components/design-system/layout/primitives";
 
 export type ParameterAuthoringPanelProps = {
   control: FrameworkControl;
@@ -176,6 +179,19 @@ function ParameterField({
 
   const selectedKeys =
     project?.body?.form === "selection" ? [...project.body.selectedChoiceKeys] : [];
+  const failClosed = isFailClosedParameterMode(mode);
+  const compactResolved = parameterUsesCompactResolvedPresentation({
+    substitutionKind: effective.substitution.kind,
+    nested,
+    failClosed,
+    mode,
+  });
+  const [editing, setEditing] = useState(!compactResolved);
+  const resolvedPreview =
+    effective.substitution.kind === "value"
+      ? substitutionDisplayText(effective.substitution.values)
+      : null;
+  const showEditor = editing || !compactResolved;
 
   return (
     <article
@@ -207,25 +223,63 @@ function ParameterField({
           size="sm"
         />
       </div>
-      {param.description.trim() ? (
+      {param.description.trim() && showEditor ? (
         <FormHint className="mt-1.5">{param.description.trim()}</FormHint>
       ) : null}
-      <p className="mt-1 text-xs text-text-muted">
-        {frameworkStatusLabel(effective)}. Parameter ID {param.id}
-        {param.altIdentifiers.length > 0
-          ? ` (also ${param.altIdentifiers.join(", ")})`
-          : ""}
-        .
-      </p>
-      {frameworkValues ? (
+      {!showEditor && resolvedPreview ? (
         <p className="mt-2 text-sm text-text-secondary">
-          Framework value: <span className="font-medium text-foreground">{frameworkValues}</span>
+          <span className="font-medium text-foreground">{resolvedPreview}</span>
         </p>
       ) : null}
-      {provenance ? (
-        <p className="mt-1 text-xs text-text-muted">Source: {provenance}</p>
+      {!showEditor ? (
+        <div className="mt-2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setEditing(true)}
+            onKeyDown={onNativeKeyDown}
+          >
+            {canEdit ? "Edit value" : "Show details"}
+          </Button>
+        </div>
+      ) : null}
+      {!showEditor ? (
+        <p className="mt-1 text-xs text-text-muted">Catalog ID {param.id}</p>
+      ) : !nested || failClosed ? (
+        <AuthoringDisclosure
+          title="Catalog details"
+          titleId={`${fieldId}-details`}
+          summary={param.id}
+          defaultOpen={failClosed}
+          expandHint="Show"
+          collapseHint="Hide"
+          className="mt-2"
+        >
+          <p className="text-xs text-text-muted">
+            {frameworkStatusLabel(effective)}. Parameter ID {param.id}
+            {param.altIdentifiers.length > 0
+              ? ` (also ${param.altIdentifiers.join(", ")})`
+              : ""}
+            .
+          </p>
+          {frameworkValues ? (
+            <p className="mt-2 text-sm text-text-secondary">
+              Framework value: <span className="font-medium text-foreground">{frameworkValues}</span>
+            </p>
+          ) : null}
+          {provenance ? (
+            <p className="mt-1 text-xs text-text-muted">Source: {provenance}</p>
+          ) : null}
+          {insertContext ? (
+            <FormHint>
+              Appears in the requirement as: {insertContext}
+            </FormHint>
+          ) : null}
+        </AuthoringDisclosure>
       ) : null}
 
+      {showEditor ? (
+        <div>
       {mode === "framework-authoritative" ? (
         <FormField className="mt-3">
           <FormLabel htmlFor={`${fieldId}-deviation`}>
@@ -503,6 +557,8 @@ function ParameterField({
           preserved and is not used in SSP substitution.
         </FormHint>
       ) : null}
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -539,24 +595,28 @@ export function ParameterAuthoringPanel({
     ]),
   );
   const orphans = resolved.filter((row) => row.substitution.kind === "unresolved" && row.substitution.reason === "orphan");
+  const summary = parameterAuthoringSummary(control, resolved, records);
 
   if (visible.length === 0 && orphans.length === 0) {
     return null;
   }
 
   return (
-    <section aria-labelledby="parameter-authoring-heading" className="min-w-0">
-      <SectionHeader
-        title="Organization-defined parameters"
-        titleId="parameter-authoring-heading"
-        description="Author parameter values here. Control Freak does not infer them from the implementation narrative."
-      />
-      <p className="mt-2 text-xs">
+    <AuthoringDisclosure
+      title="Organization-defined parameters"
+      titleId="parameter-authoring-heading"
+      summary={summary.caption}
+      description="Author parameter values here. Control Freak does not infer them from the implementation narrative."
+      defaultOpen={summary.unresolvedCount > 0 || orphans.length > 0}
+      expandHint="Show editors"
+      collapseHint="Hide editors"
+    >
+      <p className="mb-3 text-xs">
         <HelpLink slug="authoring-controls" hash="organization-defined-parameters">
           How parameter values relate to framework assignments
         </HelpLink>
       </p>
-      <div className="mt-3 flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         {visible.map((param) => {
           const effective = resolvedById.get(param.id);
           if (!effective) {
@@ -591,6 +651,6 @@ export function ParameterAuthoringPanel({
           </article>
         ))}
       </div>
-    </section>
+    </AuthoringDisclosure>
   );
 }

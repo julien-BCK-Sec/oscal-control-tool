@@ -151,6 +151,123 @@ export function nestedParametersForChoice(
   return nested;
 }
 
+export function selectedNestedParameters(
+  param: FrameworkOrganizationDefinedParameter,
+  records: ProjectParameterRecords,
+  byId: Map<string, FrameworkOrganizationDefinedParameter>,
+): FrameworkOrganizationDefinedParameter[] {
+  const project = records[param.id];
+  const selectedKeys =
+    project?.body?.form === "selection" ? [...project.body.selectedChoiceKeys] : [];
+  const nested: FrameworkOrganizationDefinedParameter[] = [];
+  const seen = new Set<string>();
+  for (const choice of param.select?.choices ?? []) {
+    if (!selectedKeys.includes(choice.key)) {
+      continue;
+    }
+    for (const nestedParam of nestedParametersForChoice(choice, byId)) {
+      if (seen.has(nestedParam.id)) {
+        continue;
+      }
+      seen.add(nestedParam.id);
+      nested.push(nestedParam);
+    }
+  }
+  return nested;
+}
+
+export function isFailClosedParameterMode(mode: ParameterEditorMode): boolean {
+  return (
+    mode === "authoritative-value-required" ||
+    mode === "source-conflict" ||
+    mode === "control-level-unmapped" ||
+    mode === "may-use-baseline" ||
+    mode === "orphan"
+  );
+}
+
+/**
+ * Compact resolved rows hide the editor until Edit. Selection rows stay
+ * expanded so nested catalog editors remain visible.
+ */
+export function parameterUsesCompactResolvedPresentation(input: {
+  substitutionKind: EffectiveParameter["substitution"]["kind"];
+  nested?: boolean;
+  failClosed: boolean;
+  mode: ParameterEditorMode;
+}): boolean {
+  return (
+    input.substitutionKind === "value" &&
+    !input.nested &&
+    !input.failClosed &&
+    input.mode !== "selection"
+  );
+}
+
+export function currentlyAuthorableParameterIds(
+  control: FrameworkControl,
+  records: ProjectParameterRecords,
+): string[] {
+  const visible = visibleAuthoringParameters(control);
+  const byId = new Map(
+    (control.parameters?.organizationDefined ?? []).map((param) => [
+      param.id,
+      param,
+    ]),
+  );
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const param of visible) {
+    if (!seen.has(param.id)) {
+      seen.add(param.id);
+      ids.push(param.id);
+    }
+    for (const nested of selectedNestedParameters(param, records, byId)) {
+      if (!seen.has(nested.id)) {
+        seen.add(nested.id);
+        ids.push(nested.id);
+      }
+    }
+  }
+  return ids;
+}
+
+export type ParameterAuthoringSummary = {
+  total: number;
+  resolvedCount: number;
+  unresolvedCount: number;
+  caption: string;
+};
+
+/**
+ * Compact authoring counts from canonical EffectiveParameter substitutions.
+ * Nested parameters are counted only while their parent choice is selected.
+ */
+export function parameterAuthoringSummary(
+  control: FrameworkControl,
+  resolved: readonly EffectiveParameter[],
+  records: ProjectParameterRecords,
+): ParameterAuthoringSummary {
+  const ids = currentlyAuthorableParameterIds(control, records);
+  const byId = new Map(resolved.map((row) => [row.parameterId, row]));
+  let resolvedCount = 0;
+  for (const id of ids) {
+    if (byId.get(id)?.substitution.kind === "value") {
+      resolvedCount += 1;
+    }
+  }
+  const total = ids.length;
+  return {
+    total,
+    resolvedCount,
+    unresolvedCount: total - resolvedCount,
+    caption:
+      total === 0
+        ? "None on this item"
+        : `${resolvedCount}/${total} resolved`,
+  };
+}
+
 /**
  * Update the parent selection record only. Nested project records are left
  * in place when a choice is deselected.
