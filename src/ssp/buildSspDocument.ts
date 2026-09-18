@@ -208,7 +208,7 @@ function mapFrameworkItem(
     parentId: parentControlId(control.id),
     sourceStatement: humanized.text,
     resolvedStatement: synthesized.resolvedStatement,
-    unresolvedParameters: humanized.unresolvedParameters,
+    unresolvedParameters: synthesized.unresolvedParameters,
     parameterResolutions: synthesized.parameterResolutions,
     parameterAnnotations: synthesized.parameterAnnotations,
     frameworkAssignments: overlay.assignments,

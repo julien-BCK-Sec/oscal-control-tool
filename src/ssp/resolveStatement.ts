@@ -12,6 +12,7 @@ import { unresolvedOdpPlaceholder } from "./placeholders";
 import type {
   SspParameterAnnotation,
   SspParameterResolution,
+  SspUnresolvedParameter,
 } from "./types";
 
 function parameterCatalogMap(control: FrameworkControl) {
@@ -24,12 +25,65 @@ function parameterCatalogMap(control: FrameworkControl) {
   return map;
 }
 
+type SynthesisCollector = {
+  unresolved: SspUnresolvedParameter[];
+  resolutions: SspParameterResolution[];
+  seen: Set<string>;
+};
+
+function toResolution(
+  id: string,
+  effective: EffectiveParameter | undefined,
+  label: string,
+): SspParameterResolution {
+  if (!effective || effective.substitution.kind === "unresolved") {
+    return {
+      id,
+      label,
+      state: "unresolved",
+      unresolvedReason:
+        effective?.substitution.kind === "unresolved"
+          ? effective.substitution.reason
+          : "organization-defined",
+      displayText: null,
+      placeholder: unresolvedOdpPlaceholder(id, label),
+      provenanceLabel: null,
+    };
+  }
+  return {
+    id,
+    label,
+    state: resolutionState(effective),
+    unresolvedReason: null,
+    displayText: substitutionDisplayText(effective.substitution.values),
+    placeholder: null,
+    provenanceLabel: provenanceLabel(effective),
+  };
+}
+
+function recordVisitedInsert(
+  collector: SynthesisCollector,
+  id: string,
+  effective: EffectiveParameter | undefined,
+  label: string,
+): void {
+  if (collector.seen.has(id)) {
+    return;
+  }
+  collector.seen.add(id);
+  const resolution = toResolution(id, effective, label);
+  collector.resolutions.push(resolution);
+  if (resolution.state === "unresolved") {
+    collector.unresolved.push({ id, label });
+  }
+}
+
 function insertReplacement(
   parameterId: string,
-  control: FrameworkControl,
   byId: Map<string, EffectiveParameter>,
   catalogById: ReturnType<typeof parameterCatalogMap>,
   visiting: Set<string>,
+  collector: SynthesisCollector,
 ): string {
   if (visiting.has(parameterId)) {
     return unresolvedOdpPlaceholder(
@@ -42,7 +96,7 @@ function insertReplacement(
     visiting.add(parameterId);
     const joined = catalog.aggregatedParameterIds
       .map((childId) =>
-        insertReplacement(childId, control, byId, catalogById, visiting),
+        insertReplacement(childId, byId, catalogById, visiting, collector),
       )
       .join("; ");
     visiting.delete(parameterId);
@@ -50,16 +104,17 @@ function insertReplacement(
   }
   const effective = byId.get(parameterId);
   const label = formatOdpLabel(parameterId, catalogById);
+  recordVisitedInsert(collector, parameterId, effective, label);
   if (!effective || effective.substitution.kind === "unresolved") {
     return unresolvedOdpPlaceholder(parameterId, label);
   }
   visiting.add(parameterId);
   const expanded = replaceInserts(
     substitutionDisplayText(effective.substitution.values),
-    control,
     byId,
     catalogById,
     visiting,
+    collector,
   );
   visiting.delete(parameterId);
   return expanded;
@@ -67,33 +122,61 @@ function insertReplacement(
 
 function replaceInserts(
   text: string,
-  control: FrameworkControl,
   byId: Map<string, EffectiveParameter>,
   catalogById: ReturnType<typeof parameterCatalogMap>,
   visiting: Set<string>,
+  collector: SynthesisCollector,
 ): string {
   const pattern = new RegExp(
     PARAM_INSERT_PATTERN.source,
     PARAM_INSERT_PATTERN.flags,
   );
   return text.replace(pattern, (_match, rawId: string) =>
-    insertReplacement(rawId.trim(), control, byId, catalogById, visiting),
+    insertReplacement(rawId.trim(), byId, catalogById, visiting, collector),
   );
+}
+
+export type SynthesizedControlStatement = {
+  resolvedStatement: string;
+  unresolvedParameters: SspUnresolvedParameter[];
+  parameterResolutions: SspParameterResolution[];
+};
+
+/**
+ * Single per-insert walk used for the resolved requirement and the unresolved
+ * parameter list. Nested inserts are reported only when a resolved ancestor
+ * substitution still contains them.
+ */
+export function synthesizeControlStatement(
+  control: FrameworkControl,
+  resolved: readonly EffectiveParameter[],
+): SynthesizedControlStatement {
+  const byId = new Map(resolved.map((row) => [row.parameterId, row]));
+  const catalogById = parameterCatalogMap(control);
+  const collector: SynthesisCollector = {
+    unresolved: [],
+    resolutions: [],
+    seen: new Set(),
+  };
+  const resolvedStatement = replaceInserts(
+    control.statement,
+    byId,
+    catalogById,
+    new Set(),
+    collector,
+  );
+  return {
+    resolvedStatement,
+    unresolvedParameters: collector.unresolved,
+    parameterResolutions: collector.resolutions,
+  };
 }
 
 export function synthesizeResolvedStatement(
   control: FrameworkControl,
   resolved: readonly EffectiveParameter[],
 ): string {
-  const byId = new Map(resolved.map((row) => [row.parameterId, row]));
-  const catalogById = parameterCatalogMap(control);
-  return replaceInserts(
-    control.statement,
-    control,
-    byId,
-    catalogById,
-    new Set(),
-  );
+  return synthesizeControlStatement(control, resolved).resolvedStatement;
 }
 
 function provenanceLabel(effective: EffectiveParameter): string | null {
@@ -128,58 +211,7 @@ export function mapParameterResolutions(
   control: FrameworkControl,
   resolved: readonly EffectiveParameter[],
 ): SspParameterResolution[] {
-  const catalogById = parameterCatalogMap(control);
-  const statementIds: string[] = [];
-  const seen = new Set<string>();
-  const pattern = new RegExp(
-    PARAM_INSERT_PATTERN.source,
-    PARAM_INSERT_PATTERN.flags,
-  );
-  for (const match of control.statement.matchAll(pattern)) {
-    const id = match[1]?.trim();
-    if (!id || seen.has(id)) {
-      continue;
-    }
-    seen.add(id);
-    const catalog = catalogById.get(id);
-    if (catalog && isAggregateCatalogParameter(catalog)) {
-      for (const childId of catalog.aggregatedParameterIds) {
-        if (!seen.has(childId)) {
-          seen.add(childId);
-          statementIds.push(childId);
-        }
-      }
-      continue;
-    }
-    statementIds.push(id);
-  }
-  const byId = new Map(resolved.map((row) => [row.parameterId, row]));
-  return statementIds.map((id) => {
-    const effective = byId.get(id);
-    const label = formatOdpLabel(id, catalogById);
-    if (!effective || effective.substitution.kind === "unresolved") {
-      return {
-        id,
-        label,
-        state: "unresolved" as const,
-        unresolvedReason: effective?.substitution.kind === "unresolved"
-          ? effective.substitution.reason
-          : "organization-defined",
-        displayText: null,
-        placeholder: unresolvedOdpPlaceholder(id, label),
-        provenanceLabel: null,
-      };
-    }
-    return {
-      id,
-      label,
-      state: resolutionState(effective),
-      unresolvedReason: null,
-      displayText: substitutionDisplayText(effective.substitution.values),
-      placeholder: null,
-      provenanceLabel: provenanceLabel(effective),
-    };
-  });
+  return synthesizeControlStatement(control, resolved).parameterResolutions;
 }
 
 function annotationTitle(kind: ParameterAnnotation["kind"]): string {
@@ -251,14 +283,17 @@ export function resolveControlForSsp(
 ): {
   resolved: EffectiveParameter[];
   resolvedStatement: string;
+  unresolvedParameters: SspUnresolvedParameter[];
   parameterResolutions: SspParameterResolution[];
   parameterAnnotations: SspParameterAnnotation[];
 } {
   const resolved = resolveControlParameters(control, records);
+  const synthesized = synthesizeControlStatement(control, resolved);
   return {
     resolved,
-    resolvedStatement: synthesizeResolvedStatement(control, resolved),
-    parameterResolutions: mapParameterResolutions(control, resolved),
+    resolvedStatement: synthesized.resolvedStatement,
+    unresolvedParameters: synthesized.unresolvedParameters,
+    parameterResolutions: synthesized.parameterResolutions,
     parameterAnnotations: mapParameterAnnotations(resolved),
   };
 }

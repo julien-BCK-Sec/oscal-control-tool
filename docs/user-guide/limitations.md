@@ -45,8 +45,10 @@ limitations mentioned throughout the guide in one place.
   Freak; every project is authored from scratch inside the product.
 - Control Freak generates a Control Freak-owned human-readable Word SSP
   from saved project data. That file is not an official FedRAMP, DoD, or
-  CMMC package and is not OSCAL. Organization-defined parameters remain
-  unresolved until later work. Named-version Word export is not offered.
+  CMMC package and is not OSCAL. Organization-defined parameters may be
+  resolved individually when a project record or mapped framework value is
+  allowed; the source statement keeps unresolved placeholders.
+  Named-version Word export is not offered.
   PDF SSP export is not implemented. See
   [Human-readable SSP](/help/human-readable-ssp).
 

@@ -6,9 +6,12 @@ import {
   nistModerateFrameworkProvider,
 } from "@/data/framework";
 import {
+  catalogChoiceVisibleText,
   parameterEditorMode,
+  parameterInsertContext,
   parameterPrompt,
   visibleAuthoringParameters,
+  withCatalogSelection,
 } from "./parameter-authoring";
 import { resolveParameter } from "./parameter-resolution";
 
@@ -80,5 +83,70 @@ describe("parameterEditorMode", () => {
       },
     });
     assert.equal(parameterEditorMode(effective), "framework-authoritative");
+  });
+});
+
+describe("nested catalog choice presentation", () => {
+  it("does not present nested inserts as user-facing [nested parameter] copy", () => {
+    const ac7 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-7");
+    assert.ok(ac7);
+    const parent = ac7.parameters?.organizationDefined?.find(
+      (param) => param.id === "ac-07_odp.03",
+    );
+    assert.ok(parent?.select);
+    const delay = parent.select.choices.find((choice) => choice.key === "2");
+    assert.ok(delay);
+    const visible = catalogChoiceVisibleText(delay);
+    assert.equal(visible.includes("[nested parameter]"), false);
+    assert.match(visible, /delay next logon prompt per:/i);
+  });
+
+  it("keeps nested project records when the parent choice is deselected", () => {
+    const ac7 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-7");
+    assert.ok(ac7);
+    const parent = ac7.parameters?.organizationDefined?.find(
+      (param) => param.id === "ac-07_odp.03",
+    );
+    assert.ok(parent);
+    const records = withCatalogSelection(
+      {
+        "ac-07_odp.05": {
+          controlId: "ac-7",
+          parameterId: "ac-07_odp.05",
+          intent: "organization-defined",
+          body: { form: "assignment", values: ["exponential backoff"] },
+        },
+      },
+      "ac-7",
+      parent,
+      ["2"],
+    );
+    const cleared = withCatalogSelection(records, "ac-7", parent, []);
+    assert.equal(cleared["ac-07_odp.03"], undefined);
+    assert.equal(
+      cleared["ac-07_odp.05"]?.body?.form === "assignment"
+        ? cleared["ac-07_odp.05"].body.values[0]
+        : undefined,
+      "exponential backoff",
+    );
+  });
+
+  it("shows surrounding requirement context for a narrow insert", () => {
+    const ac7 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-7");
+    assert.ok(ac7);
+    const number = ac7.parameters?.organizationDefined?.find(
+      (param) => param.id === "ac-07_odp.01",
+    );
+    assert.ok(number);
+    const context = parameterInsertContext(ac7, number);
+    assert.ok(context);
+    assert.match(context, /\[number\]/);
+    assert.match(context, /consecutive invalid logon attempts/i);
   });
 });

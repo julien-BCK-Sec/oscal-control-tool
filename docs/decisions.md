@@ -1190,6 +1190,10 @@ CMMC is not forced into NIST ODP semantics.
 
 Authoritative research: `docs/research/07C-parameter-resolution-architecture.md`.
 
+Manual acceptance (2026-09-18) corrected implementation defects in ODP
+draft handling and SSP unresolved-list derivation. The precedence rules
+in this ADR are unchanged.
+
 Reason:
 - 07B left inserts unresolved because control-level overlay text is not
   param-id authority.

@@ -1,21 +1,20 @@
 # Current Project State
 
-Date: 2026-09-17
+Date: 2026-09-18
 
 ## Product Position
 
 Control Freak is a collaborative compliance authoring application.
 Milestones 07A and 07B are released and production verified as **v0.7.0**
-(Control Freak — Human-Readable SSP). Milestone 07C implements parameter
-resolution and control fidelity on `main` and is **not released**. Production
-remains v0.7.0. Milestone 07A added canonical SSP system characteristics on
-`project_json` schema v2. Milestone 07B adds a Control Freak-owned
-human-readable System Security Plan as a Word download generated from saved
-project data. Live documents now use `project_json` schema v3 when saved
-(v2 loads in memory as v3 with empty parameter records). Milestone 06B remains
-the previous production release for DoD Cloud Impact Level 4 tailoring
-correctness.
-for DoD Cloud Impact Level 4 tailoring correctness. Milestone 06A added
+(Control Freak — Human-Readable SSP). Milestone 07C (parameter resolution
+and control fidelity) is implemented and **manually accepted** on `main`
+and is **not released**. Production remains v0.7.0. Milestone 07A added
+canonical SSP system characteristics on `project_json` schema v2.
+Milestone 07B adds a Control Freak-owned human-readable System Security
+Plan as a Word download generated from saved project data. Live documents
+now use `project_json` schema v3 when saved (v2 loads in memory as v3 with
+empty parameter records). Milestone 06B remains the previous production
+release for DoD Cloud Impact Level 4 tailoring correctness. Milestone 06A added
 DoD Cloud Impact Level 4 as a product-selectable framework on top of
 Milestone 05C (Render demo hosting), Milestone 05B
 (`DEPLOYMENT_MODE=normal|demo`), Milestone 05A (canonical demo dataset),
@@ -119,7 +118,18 @@ Milestone 07C adds per-ODP catalog identity, immutable framework parameter
 resolution, `project_json` schema v3 parameter records, a resolution engine,
 ODP authoring UI, and partial SSP requirement synthesis. IL4 per-ODP overlay
 mappings start empty and fail closed. Responsibility/origination and OSCAL
-`set-parameters` remain deferred. 07C is not released.
+`set-parameters` remain deferred. 07C is complete and accepted, not released.
+
+Manual NIST AC-7 and IL4 browser acceptance (2026-09-18) confirmed typed
+spaces persist, catalog selections and nested values persist, SSP
+substitution is source-faithful, and IL4 remains fail-closed. Two
+implementation defects were found and corrected without changing ADR-032:
+ODP assignment editors now keep a live draft so Space is not lost to
+trim-on-keystroke, and SSP `unresolvedParameters` is derived from the same
+per-insert walk as `resolvedStatement` rather than from the humanized
+source statement. Nested choice editors sit under the selected choice.
+Assignment fields show surrounding catalog insert context. No datatype
+inference or grammar rewriting.
 
 ## Verified production release
 
@@ -563,10 +573,10 @@ cutover only.
 
 ## Next approved milestone
 
-Milestone **07C — Parameter and Control Fidelity** is implemented on `main`
-and is **not released**. Production remains **v0.7.0**. Architecture is
-ADR-032. Do not begin another milestone in this phase. Do not tag or deploy
-07C.
+Do not begin another milestone. Milestone **07C — Parameter and Control
+Fidelity** is implemented, manually accepted, and **not released**.
+Production remains **v0.7.0**. Architecture remains ADR-032. Do not tag or
+deploy 07C.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into

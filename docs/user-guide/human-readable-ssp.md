@@ -59,8 +59,11 @@ framework-authoritative mapped values, and explicitly accepted permitted
 baselines.
 
 If only some inserts can be resolved, the resolved requirement mixes
-substituted values with `[Unresolved ODP: …]` placeholders. Control Freak
-does not mark a whole control resolved because some ODPs have values.
+substituted values with `[Unresolved ODP: …]` placeholders. The following
+**Unresolved organization-defined parameters** list is taken from those
+remaining inserts, not from every catalog parameter on the control.
+Control Freak does not mark a whole control resolved because some ODPs
+have values.
 
 These remain separate from the resolved insert:
 

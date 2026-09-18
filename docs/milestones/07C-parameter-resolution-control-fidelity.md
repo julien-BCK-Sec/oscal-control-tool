@@ -1,12 +1,13 @@
 # Milestone 07C — Parameter Resolution & Control Fidelity
 
-**Status:** Implemented on `main`; not released
+**Status:** Implemented and manually accepted; not released
 **Release baseline:** v0.7.0 (`56e71ff`) remains production
 **Depends on:** Milestones 06B, 07A, 07B  
 **Architecture:** [`docs/research/07C-parameter-resolution-architecture.md`](../research/07C-parameter-resolution-architecture.md) (approved as ADR-032)
 
-Architecture was approved. Runtime implementation is complete and is not a
-production release. Do not tag or deploy 07C in this phase.
+Architecture was approved as ADR-032. Runtime implementation is complete
+and manually accepted (2026-09-18). This is not a production release. Do
+not tag or deploy 07C in this phase.
 
 ---
 
@@ -972,11 +973,33 @@ Routine research, code inspection, source inspection, local analysis, and docume
 
 ## 25. Implementation status
 
-Implemented. ADR-032 records the approved architecture.
+Implemented and manually accepted 2026-09-18. ADR-032 records the approved
+architecture and was not changed by the acceptance corrections.
 
 IL4 per-ODP mapping pin set is empty and fail-closed. Responsibility/origination
 and NIST OSCAL SSP `set-parameters` remain deferred. CMMC/GRR have no invented
 ODP editors. Production remains v0.7.0; do not tag or deploy 07C.
+
+Acceptance corrections (not architecture changes):
+
+- ODP text fields dropped Space because controlled values were trimmed on
+  every keystroke. Editors now keep a live draft and persist normalized
+  values separately.
+- SSP `unresolvedParameters` had been inferred from the humanized source
+  statement. It is now collected by the same per-insert walk that produces
+  `resolvedStatement` (`synthesizeControlStatement` over
+  `src/domain/parameter-resolution.ts`).
+- Nested catalog-choice editors render under the selected choice. Nested
+  project records remain when the parent is deselected.
+- Assignment fields show surrounding catalog insert context. No datatype
+  inference or English-language rewriting.
+
+NIST AC-7 browser acceptance confirmed typed spaces, persisted selections
+and nested values, faithful SSP substitution of authored values and
+human-readable catalog choice text, and no stale unresolved list on a
+fully resolved control. IL4 review confirmed control-level overlay
+material stays separate, zero pinned mappings, and DSPAV/conflict remain
+fail-closed.
 
 ---
 

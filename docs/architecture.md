@@ -226,14 +226,16 @@ Milestone 07B capabilities:
 - Organization-defined parameters remain unresolved in the source statement;
   overlay assignments stay separate from authoritative source statements
 - 07C synthesizes a resolved requirement from the SSP document model using
-  the domain resolution engine (ADR-032)
+  the domain resolution engine (ADR-032). The unresolved-parameter list is
+  the remaining inserts from that same walk, not a second inference from
+  the source statement.
 - No new SQL migration
 - Diagrams remain deferred
 
-Milestone 07C (implemented, not released): per-ODP catalog identity,
-immutable framework parameter resolution, `project_json` schema v3
-parameter records, ODP authoring UI, and partial SSP substitution. IL4
-per-ODP mappings start empty. OSCAL `set-parameters` and
+Milestone 07C (implemented, manually accepted, not released): per-ODP
+catalog identity, immutable framework parameter resolution, `project_json`
+schema v3 parameter records, ODP authoring UI, and partial SSP
+substitution. IL4 per-ODP mappings start empty. OSCAL `set-parameters` and
 responsibility/origination are deferred. See ADR-032 and
 `docs/research/07C-parameter-resolution-architecture.md`.
 

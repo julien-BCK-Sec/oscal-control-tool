@@ -586,6 +586,50 @@ describe("buildSspDocument parameter resolution", () => {
     );
   });
 
+  it("derives the unresolved ODP list from per-insert synthesis, including nested inserts", () => {
+    const ac7 = itemById(
+      inputFor(NIST_MODERATE_FRAMEWORK_ID, {
+        parameterRecords: {
+          "ac-07_odp.01": {
+            controlId: "ac-7",
+            parameterId: "ac-07_odp.01",
+            intent: "organization-defined",
+            body: { form: "assignment", values: ["5"] },
+          },
+          "ac-07_odp.02": {
+            controlId: "ac-7",
+            parameterId: "ac-07_odp.02",
+            intent: "organization-defined",
+            body: { form: "assignment", values: ["15 minutes"] },
+          },
+          "ac-07_odp.03": {
+            controlId: "ac-7",
+            parameterId: "ac-07_odp.03",
+            intent: "organization-defined",
+            body: {
+              form: "selection",
+              howMany: "one-or-more",
+              selectedChoiceKeys: ["2"],
+            },
+          },
+        },
+      }),
+      "ac-7",
+    );
+    assert.ok(ac7);
+    assert.match(ac7.sourceStatement, /Unresolved ODP: ac-07_odp.01/);
+    assert.match(ac7.resolvedStatement, /limit of 5 consecutive invalid logon/);
+    assert.match(ac7.resolvedStatement, /15 minutes/);
+    assert.match(
+      ac7.resolvedStatement,
+      /\[Unresolved ODP: ac-07_odp.05 — delay algorithm\]/,
+    );
+    assert.deepEqual(
+      ac7.unresolvedParameters.map((row) => row.id),
+      ["ac-07_odp.05"],
+    );
+  });
+
   it("keeps documented deviations, DSPAV assertions, and conflict notes out of the resolved insert", () => {
     const nist = itemById(
       inputFor(NIST_MODERATE_FRAMEWORK_ID, {

@@ -1,12 +1,17 @@
 # 07C — Parameter Resolution Architecture
 
-**Status:** Approved (ADR-032). Implemented; not released.
+**Status:** Approved (ADR-032). Implemented and manually accepted 2026-09-18; not released.
 **Date:** 2026-09-17  
 **Release baseline:** v0.7.0 (`56e71ff`)  
 **Milestone:** `docs/milestones/07C-parameter-resolution-control-fidelity.md`
 
 This document is the Milestone 07C architecture/research deliverable. It
-does not change runtime behavior.
+does not change runtime behavior. Implementation later followed this
+document (ADR-032). Manual acceptance (2026-09-18) found two
+implementation defects — Space dropped by trim-on-keystroke in ODP
+editors, and SSP unresolved lists inferred from the humanized source
+statement — and corrected them without changing these architecture
+conclusions.
 
 Labels used below:
 

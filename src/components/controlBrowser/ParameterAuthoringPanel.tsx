@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, type KeyboardEvent } from "react";
 import type { FrameworkControl } from "@/data/framework";
 import type {
   AuthoredParameterBody,
@@ -9,17 +10,26 @@ import type {
 } from "@/data/parameter";
 import type { FrameworkOrganizationDefinedParameter } from "@/data/framework/types";
 import {
+  catalogChoiceVisibleText,
   frameworkStatusLabel,
+  nestedParametersForChoice,
   parameterEditorMode,
+  parameterInsertContext,
   parameterPrompt,
   resolutionStateLabel,
   visibleAuthoringParameters,
+  withCatalogSelection,
 } from "@/domain/parameter-authoring";
+import {
+  displayedAssignmentValue,
+  persistAssignmentValues,
+} from "@/domain/parameter-draft";
 import {
   resolveControlParameters,
   substitutionDisplayText,
   type EffectiveParameter,
 } from "@/domain/parameter-resolution";
+import { preserveNativeControlKeys } from "@/editor/keyboard-target";
 import { HelpLink } from "@/components/help/HelpLink";
 import { Button } from "@/components/design-system/button/Button";
 import { StatusBadge } from "@/components/design-system/badge/StatusBadge";
@@ -37,18 +47,11 @@ export type ParameterAuthoringPanelProps = {
   canEdit: boolean;
 };
 
-function assignmentText(body: AuthoredParameterBody | undefined): string {
+function assignmentValues(body: AuthoredParameterBody | undefined): string[] {
   if (body?.form === "assignment") {
-    return body.values.join("\n");
+    return [...body.values];
   }
-  return "";
-}
-
-function parseAssignmentValues(text: string): string[] {
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
+  return [];
 }
 
 function upsert(
@@ -72,29 +75,41 @@ function removeRecord(
   return next;
 }
 
-function nestedParamsFor(
-  param: FrameworkOrganizationDefinedParameter,
-  selectedKeys: readonly string[],
-  byId: Map<string, FrameworkOrganizationDefinedParameter>,
-): FrameworkOrganizationDefinedParameter[] {
-  const nested: FrameworkOrganizationDefinedParameter[] = [];
-  const seen = new Set<string>();
-  for (const choice of param.select?.choices ?? []) {
-    if (!selectedKeys.includes(choice.key)) {
-      continue;
-    }
-    for (const nestedId of choice.nestedParameterIds) {
-      if (seen.has(nestedId)) {
-        continue;
-      }
-      const nestedParam = byId.get(nestedId);
-      if (nestedParam) {
-        seen.add(nestedId);
-        nested.push(nestedParam);
-      }
-    }
-  }
-  return nested;
+function onNativeKeyDown(event: KeyboardEvent<HTMLElement>) {
+  preserveNativeControlKeys(event);
+}
+
+function DraftTextarea({
+  id,
+  persistedValues,
+  readOnly,
+  onCommit,
+  placeholder,
+  minHeightClass = "min-h-20",
+}: {
+  id: string;
+  persistedValues: readonly string[] | undefined;
+  readOnly: boolean;
+  onCommit: (text: string) => void;
+  placeholder?: string;
+  minHeightClass?: string;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  return (
+    <textarea
+      id={id}
+      className={`field mt-1.5 resize-y text-sm ${minHeightClass}`}
+      readOnly={readOnly}
+      value={displayedAssignmentValue(draft, persistedValues)}
+      onChange={(event) => {
+        setDraft(event.target.value);
+        onCommit(event.target.value);
+      }}
+      onBlur={() => setDraft(null)}
+      onKeyDown={onNativeKeyDown}
+      placeholder={placeholder}
+    />
+  );
 }
 
 function ParameterField({
@@ -105,6 +120,7 @@ function ParameterField({
   onChange,
   canEdit,
   byId,
+  resolvedById,
   nested,
 }: {
   control: FrameworkControl;
@@ -114,12 +130,14 @@ function ParameterField({
   onChange: (next: ProjectParameterRecords) => void;
   canEdit: boolean;
   byId: Map<string, FrameworkOrganizationDefinedParameter>;
+  resolvedById: Map<string, EffectiveParameter>;
   nested?: boolean;
 }) {
   const mode = parameterEditorMode(effective);
   const project = records[param.id];
   const fieldId = `parameter-${param.id}`;
   const prompt = parameterPrompt(param);
+  const insertContext = parameterInsertContext(control, param);
   const frameworkValues =
     effective.framework?.values?.length
       ? substitutionDisplayText(effective.framework.values)
@@ -134,7 +152,7 @@ function ParameterField({
     text: string,
     extra: Partial<ProjectParameterRecord> = {},
   ) {
-    const values = parseAssignmentValues(text);
+    const values = persistAssignmentValues(text);
     if (values.length === 0 && intent === "organization-defined" && !extra.notes) {
       onChange(removeRecord(records, param.id));
       return;
@@ -153,22 +171,7 @@ function ParameterField({
   }
 
   function writeSelection(keys: string[]) {
-    if (keys.length === 0) {
-      onChange(removeRecord(records, param.id));
-      return;
-    }
-    onChange(
-      upsert(records, {
-        controlId: control.id,
-        parameterId: param.id,
-        intent: "organization-defined",
-        body: {
-          form: "selection",
-          howMany: param.select?.howMany ?? "one",
-          selectedChoiceKeys: keys,
-        },
-      }),
-    );
+    onChange(withCatalogSelection(records, control.id, param, keys));
   }
 
   const selectedKeys =
@@ -176,16 +179,26 @@ function ParameterField({
 
   return (
     <article
-      className={`rounded-md border border-border bg-surface px-4 py-3 ${nested ? "ml-4" : ""}`}
+      className={
+        nested
+          ? "bg-transparent"
+          : "rounded-md border border-border bg-surface px-4 py-3"
+      }
       aria-labelledby={`${fieldId}-label`}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <h3
-          id={`${fieldId}-label`}
-          className="text-sm font-semibold tracking-tight text-foreground"
-        >
-          {prompt}
-        </h3>
+        {nested ? (
+          <span id={`${fieldId}-label`} className="sr-only">
+            {prompt}
+          </span>
+        ) : (
+          <h3
+            id={`${fieldId}-label`}
+            className="text-sm font-semibold tracking-tight text-foreground"
+          >
+            {prompt}
+          </h3>
+        )}
         <StatusBadge
           label={resolutionStateLabel(effective)}
           variant={
@@ -218,18 +231,15 @@ function ParameterField({
           <FormLabel htmlFor={`${fieldId}-deviation`}>
             Documented operational deviation
           </FormLabel>
-          <textarea
+          <DraftTextarea
             id={`${fieldId}-deviation`}
-            className="field mt-1.5 min-h-20 resize-y text-sm"
             readOnly={!canEdit}
-            value={
+            persistedValues={
               project?.intent === "documented-deviation"
-                ? assignmentText(project.body)
-                : ""
+                ? assignmentValues(project.body)
+                : undefined
             }
-            onChange={(event) =>
-              writeAssignment("documented-deviation", event.target.value)
-            }
+            onCommit={(text) => writeAssignment("documented-deviation", text)}
             placeholder="Optional. This does not replace the authoritative value."
           />
           <FormHint>
@@ -260,6 +270,7 @@ function ParameterField({
                     }),
                   )
                 }
+                onKeyDown={onNativeKeyDown}
               >
                 Use permitted baseline value
               </Button>
@@ -268,6 +279,7 @@ function ParameterField({
                   type="button"
                   size="sm"
                   onClick={() => onChange(removeRecord(records, param.id))}
+                  onKeyDown={onNativeKeyDown}
                 >
                   Clear acceptance
                 </Button>
@@ -276,20 +288,20 @@ function ParameterField({
           ) : null}
           <FormField>
             <FormLabel htmlFor={fieldId}>Organization-defined value</FormLabel>
-            <textarea
+            <DraftTextarea
               id={fieldId}
-              className="field mt-1.5 min-h-20 resize-y text-sm"
               readOnly={!canEdit}
-              value={
+              persistedValues={
                 project?.intent === "organization-defined"
-                  ? assignmentText(project.body)
-                  : ""
+                  ? assignmentValues(project.body)
+                  : undefined
               }
-              onChange={(event) =>
-                writeAssignment("organization-defined", event.target.value)
+              onCommit={(text) =>
+                writeAssignment("organization-defined", text)
               }
               placeholder="Or author an organization value instead of accepting the baseline."
             />
+            <InsertScopeHint prompt={prompt} context={insertContext} />
           </FormField>
         </div>
       ) : null}
@@ -302,17 +314,16 @@ function ParameterField({
           </p>
           <FormField className="mt-3">
             <FormLabel htmlFor={fieldId}>Project assertion</FormLabel>
-            <textarea
+            <DraftTextarea
               id={fieldId}
-              className="field mt-1.5 min-h-20 resize-y text-sm"
               readOnly={!canEdit}
-              value={
+              persistedValues={
                 project?.intent === "dspav-assertion"
-                  ? assignmentText(project.body)
-                  : ""
+                  ? assignmentValues(project.body)
+                  : undefined
               }
-              onChange={(event) =>
-                writeAssignment("dspav-assertion", event.target.value, {
+              onCommit={(text) =>
+                writeAssignment("dspav-assertion", text, {
                   dspavSourceNote: project?.dspavSourceNote ?? "",
                 })
               }
@@ -330,11 +341,12 @@ function ParameterField({
                 writeAssignment(
                   "dspav-assertion",
                   project?.intent === "dspav-assertion"
-                    ? assignmentText(project.body)
+                    ? assignmentValues(project.body).join("\n")
                     : "",
                   { dspavSourceNote: event.target.value },
                 )
               }
+              onKeyDown={onNativeKeyDown}
               placeholder="Restricted source identity or ticket, not a Control Freak verification."
             />
             <FormHint>
@@ -363,6 +375,7 @@ function ParameterField({
                 }),
               )
             }
+            onKeyDown={onNativeKeyDown}
             placeholder="This note does not choose a winner between authoritative sources."
           />
           <FormHint>
@@ -375,13 +388,12 @@ function ParameterField({
       {mode === "control-level-unmapped" ? (
         <FormField className="mt-3">
           <FormLabel htmlFor={fieldId}>Project documentation</FormLabel>
-          <textarea
+          <DraftTextarea
             id={fieldId}
-            className="field mt-1.5 min-h-20 resize-y text-sm"
             readOnly={!canEdit}
-            value={assignmentText(project?.body)}
-            onChange={(event) =>
-              writeAssignment("organization-defined", event.target.value)
+            persistedValues={assignmentValues(project?.body)}
+            onCommit={(text) =>
+              writeAssignment("organization-defined", text)
             }
             placeholder="Optional documentation. Not substituted into the SSP while this ODP is unmapped."
           />
@@ -399,31 +411,69 @@ function ParameterField({
               ? "Select one or more catalog choices"
               : "Select one catalog choice"}
           </legend>
-          <div className="mt-2 flex flex-col gap-2">
+          <div className="mt-2 flex flex-col gap-3">
             {param.select.choices.map((choice) => {
               const checked = selectedKeys.includes(choice.key);
               const inputId = `${fieldId}-choice-${choice.key}`;
+              const visibleText = catalogChoiceVisibleText(choice);
+              const nestedParams = checked
+                ? nestedParametersForChoice(choice, byId)
+                : [];
               return (
-                <label key={choice.key} className="flex items-start gap-2 text-sm">
-                  <input
-                    id={inputId}
-                    type={param.select?.howMany === "one" ? "radio" : "checkbox"}
-                    name={param.select?.howMany === "one" ? fieldId : `${fieldId}-${choice.key}`}
-                    className="mt-0.5"
-                    checked={checked}
-                    onChange={() => {
-                      if (param.select?.howMany === "one") {
-                        writeSelection([choice.key]);
-                        return;
-                      }
-                      const next = checked
-                        ? selectedKeys.filter((key) => key !== choice.key)
-                        : [...selectedKeys, choice.key];
-                      writeSelection(next);
-                    }}
-                  />
-                  <span>{choice.text.replace(/\{\{\s*insert:\s*param,\s*[^}]+\s*\}\}/gi, "[nested parameter]")}</span>
-                </label>
+                <div key={choice.key} className="flex flex-col gap-2">
+                  <label className="flex items-start gap-2 text-sm">
+                    <input
+                      id={inputId}
+                      type={param.select?.howMany === "one" ? "radio" : "checkbox"}
+                      name={param.select?.howMany === "one" ? fieldId : `${fieldId}-${choice.key}`}
+                      className="mt-0.5"
+                      checked={checked}
+                      onChange={() => {
+                        if (param.select?.howMany === "one") {
+                          writeSelection([choice.key]);
+                          return;
+                        }
+                        const next = checked
+                          ? selectedKeys.filter((key) => key !== choice.key)
+                          : [...selectedKeys, choice.key];
+                        writeSelection(next);
+                      }}
+                      onKeyDown={onNativeKeyDown}
+                    />
+                    <span>{visibleText}</span>
+                  </label>
+                  {nestedParams.map((nestedParam) => {
+                    const nestedEffective = resolvedById.get(nestedParam.id);
+                    if (!nestedEffective) {
+                      return null;
+                    }
+                    const nestedLabel = parameterPrompt(nestedParam);
+                    return (
+                      <div
+                        key={nestedParam.id}
+                        className="ml-6 border-l-2 border-border pl-3"
+                        role="group"
+                        aria-label={`${visibleText} ${nestedLabel}`}
+                      >
+                        <p className="mb-1 text-xs text-text-secondary">
+                          <span aria-hidden="true">└ </span>
+                          {nestedLabel}
+                        </p>
+                        <ParameterField
+                          control={control}
+                          param={nestedParam}
+                          effective={nestedEffective}
+                          records={records}
+                          onChange={onChange}
+                          canEdit={canEdit}
+                          byId={byId}
+                          resolvedById={resolvedById}
+                          nested
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               );
             })}
           </div>
@@ -433,16 +483,17 @@ function ParameterField({
       {mode === "assignment" ? (
         <FormField className="mt-3">
           <FormLabel htmlFor={fieldId}>Organization-defined value</FormLabel>
-          <textarea
+          <DraftTextarea
             id={fieldId}
-            className="field mt-1.5 min-h-24 resize-y text-sm"
             readOnly={!canEdit}
-            value={assignmentText(project?.body)}
-            onChange={(event) =>
-              writeAssignment("organization-defined", event.target.value)
+            persistedValues={assignmentValues(project?.body)}
+            onCommit={(text) =>
+              writeAssignment("organization-defined", text)
             }
             placeholder="Flexible text. Multiple lines become multiple values. Control Freak does not infer this from the narrative."
+            minHeightClass="min-h-24"
           />
+          <InsertScopeHint prompt={prompt} context={insertContext} />
         </FormField>
       ) : null}
 
@@ -452,43 +503,23 @@ function ParameterField({
           preserved and is not used in SSP substitution.
         </FormHint>
       ) : null}
-
-      {param.select
-        ? nestedParamsFor(param, selectedKeys, byId).map((nestedParam) => {
-            const nestedEffective: EffectiveParameter = {
-              controlId: control.id,
-              parameterId: nestedParam.id,
-              catalog: nestedParam,
-              framework:
-                (control.parameters?.parameterResolutions ?? []).find(
-                  (row) => row.parameterId === nestedParam.id,
-                ) ?? null,
-              project: records[nestedParam.id],
-              substitution: { kind: "unresolved", reason: "organization-defined" },
-              annotations: [],
-              isAggregate: false,
-            };
-            const resolvedNested =
-              resolveControlParameters(control, records).find(
-                (row) => row.parameterId === nestedParam.id,
-              ) ?? nestedEffective;
-            return (
-              <div key={nestedParam.id} className="mt-3">
-                <ParameterField
-                  control={control}
-                  param={nestedParam}
-                  effective={resolvedNested}
-                  records={records}
-                  onChange={onChange}
-                  canEdit={canEdit}
-                  byId={byId}
-                  nested
-                />
-              </div>
-            );
-          })
-        : null}
     </article>
+  );
+}
+
+function InsertScopeHint({
+  prompt,
+  context,
+}: {
+  prompt: string;
+  context: string | null;
+}) {
+  return (
+    <FormHint>
+      {context
+        ? `This value fills only [${prompt}] in the requirement: ${context}`
+        : `Enter only the value for [${prompt}], not the surrounding requirement.`}
+    </FormHint>
   );
 }
 
@@ -541,6 +572,7 @@ export function ParameterAuthoringPanel({
               onChange={onChange}
               canEdit={canEdit}
               byId={byId}
+              resolvedById={resolvedById}
             />
           );
         })}

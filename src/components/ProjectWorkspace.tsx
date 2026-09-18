@@ -57,6 +57,10 @@ import {
   type EditorWorkingCopy,
   workingCopiesEqual,
 } from "@/editor/history";
+import {
+  describeKeyboardEventTarget,
+  workspaceShortcutYieldsToTarget,
+} from "@/editor/keyboard-target";
 import { SnapshotHistoryPanel } from "@/components/projectHistory/SnapshotHistoryPanel";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import {
@@ -801,6 +805,17 @@ export function ProjectWorkspace({
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      if (
+        workspaceShortcutYieldsToTarget({
+          key: event.key,
+          metaKey: event.metaKey,
+          ctrlKey: event.ctrlKey,
+          altKey: event.altKey,
+          target: describeKeyboardEventTarget(event.target),
+        })
+      ) {
+        return;
+      }
       const mod = event.metaKey || event.ctrlKey;
       if (!mod || event.key.toLowerCase() !== "z") {
         return;

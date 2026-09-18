@@ -144,14 +144,19 @@ The ODP editor shows:
 
 - the catalog prompt (label or guideline), with the parameter ID as
   secondary metadata;
+- surrounding catalog statement context for assignment fields, so the
+  value is understood as one insert rather than the whole requirement;
 - the framework-derived value and source, when one exists;
 - the project's authored value;
 - the current resolution state.
 
 Flexible text is expected. A value may be `15 minutes` or a longer
 operational sentence. Catalog **select** parameters use the catalog's own
-choices (`one` or `one or more`). Control Freak does not invent dropdowns
-for ordinary assignment parameters.
+choices (`one` or `one or more`). When a selected choice includes a nested
+parameter, that editor appears under the choice. Nested values remain
+stored if you later deselect the parent choice; they are hidden until the
+choice applies again. Control Freak does not invent dropdowns for ordinary
+assignment parameters.
 
 Keep these layers distinct:
 

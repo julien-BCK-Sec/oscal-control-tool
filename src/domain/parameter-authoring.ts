@@ -1,9 +1,17 @@
 import type {
   FrameworkControl,
   FrameworkOrganizationDefinedParameter,
+  FrameworkParameterChoice,
 } from "@/data/framework/types";
+import type {
+  ProjectParameterRecord,
+  ProjectParameterRecords,
+} from "@/data/parameter";
 import { isAggregateCatalogParameter } from "@/framework/nist-sp-800-53-rev5/parameters";
 import type { EffectiveParameter } from "./parameter-resolution";
+
+const PARAM_INSERT_PATTERN =
+  /\{\{\s*insert:\s*param,\s*([^}]+?)\s*\}\}/gi;
 
 export type ParameterEditorMode =
   | "assignment"
@@ -28,7 +36,10 @@ function nestedOnlyParameterIds(
     }
   }
   const inserted = new Set<string>();
-  const pattern = /\{\{\s*insert:\s*param,\s*([^}]+?)\s*\}\}/gi;
+  const pattern = new RegExp(
+    PARAM_INSERT_PATTERN.source,
+    PARAM_INSERT_PATTERN.flags,
+  );
   for (const match of statement.matchAll(pattern)) {
     const id = match[1]?.trim();
     if (id) {
@@ -106,6 +117,118 @@ export function parameterEditorMode(
     return "selection";
   }
   return "assignment";
+}
+
+export function catalogChoiceVisibleText(
+  choice: FrameworkParameterChoice,
+): string {
+  const lead = choice.text
+    .replace(new RegExp(PARAM_INSERT_PATTERN.source, PARAM_INSERT_PATTERN.flags), "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (choice.nestedParameterIds.length > 0 && lead && !lead.endsWith(":")) {
+    return `${lead}:`;
+  }
+  return lead;
+}
+
+export function nestedParametersForChoice(
+  choice: FrameworkParameterChoice,
+  byId: Map<string, FrameworkOrganizationDefinedParameter>,
+): FrameworkOrganizationDefinedParameter[] {
+  const nested: FrameworkOrganizationDefinedParameter[] = [];
+  const seen = new Set<string>();
+  for (const nestedId of choice.nestedParameterIds) {
+    if (seen.has(nestedId)) {
+      continue;
+    }
+    const nestedParam = byId.get(nestedId);
+    if (nestedParam) {
+      seen.add(nestedId);
+      nested.push(nestedParam);
+    }
+  }
+  return nested;
+}
+
+/**
+ * Update the parent selection record only. Nested project records are left
+ * in place when a choice is deselected.
+ */
+export function withCatalogSelection(
+  records: ProjectParameterRecords,
+  controlId: string,
+  param: FrameworkOrganizationDefinedParameter,
+  selectedKeys: readonly string[],
+): ProjectParameterRecords {
+  const next = { ...records };
+  if (selectedKeys.length === 0) {
+    delete next[param.id];
+    return next;
+  }
+  const record: ProjectParameterRecord = {
+    controlId,
+    parameterId: param.id,
+    intent: "organization-defined",
+    body: {
+      form: "selection",
+      howMany: param.select?.howMany ?? "one",
+      selectedChoiceKeys: [...selectedKeys],
+    },
+  };
+  next[param.id] = record;
+  return next;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function snippetAroundInsert(
+  text: string,
+  parameterId: string,
+  prompt: string,
+): string | null {
+  const pattern = new RegExp(
+    `\\{\\{\\s*insert:\\s*param,\\s*${escapeRegExp(parameterId)}\\s*\\}\\}`,
+    "i",
+  );
+  if (!pattern.test(text)) {
+    return null;
+  }
+  const labeled = text.replace(
+    new RegExp(pattern.source, "gi"),
+    `[${prompt}]`,
+  );
+  const withoutOtherInserts = labeled.replace(
+    new RegExp(PARAM_INSERT_PATTERN.source, PARAM_INSERT_PATTERN.flags),
+    "…",
+  );
+  return withoutOtherInserts.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Surrounding catalog prose that this parameter fills, for authoring context.
+ * Does not infer or validate a datatype.
+ */
+export function parameterInsertContext(
+  control: FrameworkControl,
+  param: FrameworkOrganizationDefinedParameter,
+): string | null {
+  const prompt = parameterPrompt(param);
+  const fromStatement = snippetAroundInsert(control.statement, param.id, prompt);
+  if (fromStatement) {
+    return fromStatement;
+  }
+  for (const other of control.parameters?.organizationDefined ?? []) {
+    for (const choice of other.select?.choices ?? []) {
+      const fromChoice = snippetAroundInsert(choice.text, param.id, prompt);
+      if (fromChoice) {
+        return fromChoice;
+      }
+    }
+  }
+  return null;
 }
 
 export function parameterPrompt(
