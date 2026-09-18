@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import type { CompletionProgress } from "@/domain";
 import { formatCompletionCount } from "@/domain";
 import type { AutosaveStatus } from "@/editor/history";
@@ -29,6 +29,7 @@ export type WorkspaceHeaderProps = {
   activeTab: WorkspaceTabId;
   onTabChange: (tab: WorkspaceTabId) => void;
   completion?: CompletionProgress;
+  trailingActions?: ReactNode;
 };
 
 export function WorkspaceHeader({
@@ -49,6 +50,7 @@ export function WorkspaceHeader({
   activeTab,
   onTabChange,
   completion,
+  trailingActions,
 }: WorkspaceHeaderProps) {
   return (
     <header className="shrink-0 border-b border-border bg-surface">
@@ -126,6 +128,7 @@ export function WorkspaceHeader({
               Reload latest
             </Button>
           ) : null}
+          {trailingActions}
         </div>
       </div>
 

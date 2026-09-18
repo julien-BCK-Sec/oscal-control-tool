@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { HelpLink } from "@/components/help/HelpLink";
+import { Button } from "@/components/design-system/button/Button";
 
 export type ExportSspDocxButtonProps = {
   projectId: string;
+  compact?: boolean;
 };
 
 function filenameFromDisposition(header: string | null): string | null {
@@ -27,7 +29,10 @@ function filenameFromDisposition(header: string | null): string | null {
  * Download the Control Freak human-readable SSP from saved server state.
  * Does not bundle the DOCX library in the browser.
  */
-export function ExportSspDocxButton({ projectId }: ExportSspDocxButtonProps) {
+export function ExportSspDocxButton({
+  projectId,
+  compact = false,
+}: ExportSspDocxButtonProps) {
   const [exportError, setExportError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -64,16 +69,33 @@ export function ExportSspDocxButton({ projectId }: ExportSspDocxButtonProps) {
     }
   }
 
+  const button = (
+    <Button
+      type="button"
+      size={compact ? "sm" : "md"}
+      disabled={busy}
+      onClick={() => void handleExport()}
+    >
+      {busy ? "Exporting…" : compact ? "Export Word SSP" : "Export human-readable SSP (Word)"}
+    </Button>
+  );
+
+  if (compact) {
+    return (
+      <div className="flex flex-col items-stretch gap-1 sm:items-end">
+        {button}
+        {exportError ? (
+          <p role="alert" className="max-w-xs text-left text-xs leading-relaxed text-danger sm:text-right">
+            {exportError}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div className="flex max-w-md flex-col items-stretch gap-2 sm:items-end">
-      <button
-        type="button"
-        className="btn"
-        disabled={busy}
-        onClick={() => void handleExport()}
-      >
-        {busy ? "Exporting…" : "Export human-readable SSP (Word)"}
-      </button>
+      {button}
       <p className="text-left text-xs leading-relaxed text-text-secondary sm:text-right">
         Downloads the last saved project on the server. Missing information
         appears as placeholders. This is a Control Freak SSP, not OSCAL and

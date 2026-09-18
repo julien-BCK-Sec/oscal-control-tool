@@ -468,14 +468,14 @@ export function ProjectOverview({
                 id="details-summary-heading"
                 className="text-sm font-semibold text-foreground"
               >
-                Project details
+                System
               </h3>
               <button
                 type="button"
                 className="text-xs text-accent underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
                 onClick={() => onNavigate("details")}
               >
-                Edit details
+                Edit system characteristics
               </button>
             </div>
             <dl className="mt-2 space-y-2 border border-border bg-surface p-3 text-sm">

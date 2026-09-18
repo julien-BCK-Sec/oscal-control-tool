@@ -13,6 +13,8 @@ import { ControlBrowser } from "@/components/ControlBrowser";
 import { EvidenceBrowser } from "@/components/evidence/EvidenceBrowser";
 import { ProjectMetadataSection } from "@/components/ProjectMetadataSection";
 import { ProjectOverview } from "@/components/ProjectOverview";
+import { ExportOscalButton } from "@/components/ExportOscalButton";
+import { ExportSspDocxButton } from "@/components/ExportSspDocxButton";
 import { AuthenticatedHeaderActions } from "@/components/auth/AuthenticatedHeaderActions";
 import { ProductHeader } from "@/components/design-system/layout/AppShell";
 import {
@@ -867,6 +869,17 @@ export function ProjectWorkspace({
         activeTab={activeTab}
         onTabChange={selectTab}
         completion={completion}
+        trailingActions={
+          <>
+            <ExportSspDocxButton projectId={projectId} compact />
+            <ExportOscalButton
+              framework={framework}
+              metadata={metadata}
+              implementations={implementations}
+              compact
+            />
+          </>
+        }
       />
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -993,9 +1006,7 @@ export function ProjectWorkspace({
               framework={framework}
               metadata={metadata}
               onMetadataChange={handleMetadataChange}
-              implementations={implementations}
               projectName={name}
-              projectId={projectId}
             />
           </div>
         </div>

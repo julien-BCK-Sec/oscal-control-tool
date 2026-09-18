@@ -1,7 +1,5 @@
 "use client";
 
-import { ExportOscalButton } from "@/components/ExportOscalButton";
-import { ExportSspDocxButton } from "@/components/ExportSspDocxButton";
 import {
   AUTHORIZATION_BOUNDARY_HINT,
   CATEGORIZATION_HINT,
@@ -21,19 +19,27 @@ import {
   SYSTEM_ROLES_HINT,
 } from "@/components/projectDetails/copy";
 import {
+  boundaryEnvironmentCompleteness,
+  informationTypesAndCategorizationCompleteness,
+  interconnectionsCompleteness,
+  operationalStatusCompleteness,
+  sspOrganizationCompleteness,
+  systemIdentityCompleteness,
+  systemRolesCompleteness,
+} from "@/components/projectDetails/completeness";
+import {
   createEmptyInformationType,
   createEmptyInterconnection,
   createEmptySystemRole,
 } from "@/components/projectDetails/rows";
+import { AuthoringDisclosure } from "@/components/authoring/AuthoringDisclosure";
 import { HelpLink } from "@/components/help/HelpLink";
 import {
   FormField,
   FormHint,
   FormLabel,
 } from "@/components/design-system/form/FormField";
-import { SectionHeader } from "@/components/design-system/layout/primitives";
 import type { Framework } from "@/data/framework";
-import type { ControlImplementation } from "@/data/implementation";
 import {
   DOD_CLOUD_IMPACT_LEVELS,
   FIPS_IMPACT_LEVELS,
@@ -57,9 +63,7 @@ export type ProjectMetadataSectionProps = {
   framework: Framework;
   metadata: ProjectMetadata;
   onMetadataChange: (next: ProjectMetadata) => void;
-  implementations: Record<string, ControlImplementation>;
   projectName?: string;
-  projectId?: string;
 };
 
 function newRowId(): string {
@@ -106,12 +110,17 @@ export function ProjectMetadataSection({
   framework,
   metadata,
   onMetadataChange,
-  implementations,
   projectName,
-  projectId,
 }: ProjectMetadataSectionProps) {
   const oscalAvailable = frameworkHasOscalSspExport(framework.id);
   const frameworkLabel = framework.title;
+  const identity = systemIdentityCompleteness(metadata);
+  const organization = sspOrganizationCompleteness(metadata);
+  const boundary = boundaryEnvironmentCompleteness(metadata);
+  const roles = systemRolesCompleteness(metadata);
+  const categorization = informationTypesAndCategorizationCompleteness(metadata);
+  const interconnections = interconnectionsCompleteness(metadata);
+  const operational = operationalStatusCompleteness(metadata);
 
   function updateMetadata(patch: Partial<ProjectMetadata>) {
     onMetadataChange({
@@ -158,43 +167,43 @@ export function ProjectMetadataSection({
   }
 
   return (
-    <section aria-labelledby="project-metadata-heading" className="space-y-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2
-            id="project-metadata-heading"
-            className="text-sm font-semibold tracking-tight text-foreground"
-          >
-            Project details
-          </h2>
-          <p className="mt-0.5 text-xs text-text-muted">
-            {projectName ? `Editing “${projectName}”. ` : null}
-            {PROJECT_DETAILS_INTRO}{" "}
-            <HelpLink slug="projects" hash="system-characteristics">
-              Learn more
-            </HelpLink>
-          </p>
-        </div>
-        <div className="flex max-w-md flex-col items-stretch gap-4 sm:items-end">
-          {projectId ? <ExportSspDocxButton projectId={projectId} /> : null}
-          <ExportOscalButton
-            framework={framework}
-            metadata={metadata}
-            implementations={implementations}
-          />
-        </div>
+    <section aria-labelledby="project-metadata-heading" className="space-y-5">
+      <div>
+        <h2
+          id="project-metadata-heading"
+          className="text-sm font-semibold tracking-tight text-foreground"
+        >
+          System characteristics
+        </h2>
+        <p className="mt-0.5 text-xs text-text-muted">
+          {projectName ? `Editing “${projectName}”. ` : null}
+          {PROJECT_DETAILS_INTRO}{" "}
+          <HelpLink slug="projects" hash="system-characteristics">
+            Learn more
+          </HelpLink>
+        </p>
+        <p className="mt-2 text-xs text-text-muted">
+          Word SSP and OSCAL SSP exports are in the workspace toolbar. They
+          are not system characteristics.{" "}
+          <HelpLink slug="human-readable-ssp">Word SSP</HelpLink>
+          {" · "}
+          <HelpLink slug="oscal-export">OSCAL export</HelpLink>
+        </p>
       </div>
 
-      <section aria-labelledby="system-identity-heading" className="space-y-4">
-        <SectionHeader
-          titleId="system-identity-heading"
-          title="System identity"
-          description={
-            oscalAvailable
-              ? "Name and overview used in documentation and NIST OSCAL export."
-              : "Name and overview used in this documentation project."
-          }
-        />
+      <AuthoringDisclosure
+        title="System identity"
+        titleId="system-identity-heading"
+        summary={identity.caption}
+        description={
+          oscalAvailable
+            ? "Name and overview used in documentation and NIST OSCAL export."
+            : "Name and overview used in this documentation project."
+        }
+        defaultOpen
+        expandHint="Show section"
+        collapseHint="Hide section"
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField>
             <FormLabel htmlFor="project-system-name">System name</FormLabel>
@@ -255,14 +264,16 @@ export function ProjectMetadataSection({
             <FormHint>{SYSTEM_OVERVIEW_HINT}</FormHint>
           </FormField>
         </div>
-      </section>
+      </AuthoringDisclosure>
 
-      <section aria-labelledby="ssp-organization-heading" className="space-y-4">
-        <SectionHeader
-          titleId="ssp-organization-heading"
-          title="SSP organization"
-          description={SSP_ORGANIZATION_HINT}
-        />
+      <AuthoringDisclosure
+        title="SSP organization"
+        titleId="ssp-organization-heading"
+        summary={organization.caption}
+        description={SSP_ORGANIZATION_HINT}
+        expandHint="Show section"
+        collapseHint="Hide section"
+      >
         <FormField>
           <FormLabel htmlFor="project-organization-name">
             Organization name
@@ -278,16 +289,15 @@ export function ProjectMetadataSection({
             autoComplete="organization"
           />
         </FormField>
-      </section>
+      </AuthoringDisclosure>
 
-      <section
-        aria-labelledby="boundary-environment-heading"
-        className="space-y-4"
+      <AuthoringDisclosure
+        title="Boundary and environment"
+        titleId="boundary-environment-heading"
+        summary={boundary.caption}
+        expandHint="Show section"
+        collapseHint="Hide section"
       >
-        <SectionHeader
-          titleId="boundary-environment-heading"
-          title="Boundary and environment"
-        />
         <FormField>
           <FormLabel htmlFor="project-authorization-boundary">
             Authorization boundary
@@ -318,14 +328,16 @@ export function ProjectMetadataSection({
           />
           <FormHint>{ENVIRONMENT_HINT}</FormHint>
         </FormField>
-      </section>
+      </AuthoringDisclosure>
 
-      <section aria-labelledby="system-roles-heading" className="space-y-4">
-        <SectionHeader
-          titleId="system-roles-heading"
-          title="System roles"
-          description={SYSTEM_ROLES_HINT}
-        />
+      <AuthoringDisclosure
+        title="System roles"
+        titleId="system-roles-heading"
+        summary={roles.caption}
+        description={SYSTEM_ROLES_HINT}
+        expandHint="Show section"
+        collapseHint="Hide section"
+      >
         {metadata.systemRoles.length === 0 ? (
           <p className="text-xs text-text-muted">No SSP roles documented.</p>
         ) : (
@@ -491,14 +503,16 @@ export function ProjectMetadataSection({
         >
           Add role
         </button>
-      </section>
+      </AuthoringDisclosure>
 
-      <section aria-labelledby="categorization-heading" className="space-y-4">
-        <SectionHeader
-          titleId="categorization-heading"
-          title="Information types and categorization"
-          description={documentedAgainstCopy(frameworkLabel)}
-        />
+      <AuthoringDisclosure
+        title="Information types and security categorization"
+        titleId="categorization-heading"
+        summary={categorization.caption}
+        description={documentedAgainstCopy(frameworkLabel)}
+        expandHint="Show section"
+        collapseHint="Hide section"
+      >
         <FormHint>{CATEGORIZATION_HINT}</FormHint>
         <div className="grid gap-3 sm:grid-cols-3">
           <FipsSelect
@@ -711,14 +725,16 @@ export function ProjectMetadataSection({
         >
           Add information type
         </button>
-      </section>
+      </AuthoringDisclosure>
 
-      <section aria-labelledby="interconnections-heading" className="space-y-4">
-        <SectionHeader
-          titleId="interconnections-heading"
-          title="Interconnections"
-          description={INTERCONNECTIONS_HINT}
-        />
+      <AuthoringDisclosure
+        title="Interconnections"
+        titleId="interconnections-heading"
+        summary={interconnections.caption}
+        description={INTERCONNECTIONS_HINT}
+        expandHint="Show section"
+        collapseHint="Hide section"
+      >
         {metadata.interconnections.length === 0 ? (
           <p className="text-xs text-text-muted">
             No interconnections documented.
@@ -876,14 +892,16 @@ export function ProjectMetadataSection({
         >
           Add interconnection
         </button>
-      </section>
+      </AuthoringDisclosure>
 
-      <section aria-labelledby="operational-status-heading" className="space-y-4">
-        <SectionHeader
-          titleId="operational-status-heading"
-          title="Operational status"
-          description={OPERATIONAL_STATUS_HINT}
-        />
+      <AuthoringDisclosure
+        title="Operational status"
+        titleId="operational-status-heading"
+        summary={operational.caption}
+        description={OPERATIONAL_STATUS_HINT}
+        expandHint="Show section"
+        collapseHint="Hide section"
+      >
         <FormField>
           <FormLabel htmlFor="project-operational-status">Status</FormLabel>
           <select
@@ -924,7 +942,7 @@ export function ProjectMetadataSection({
             className="field mt-1.5 resize-y leading-relaxed"
           />
         </FormField>
-      </section>
+      </AuthoringDisclosure>
     </section>
   );
 }

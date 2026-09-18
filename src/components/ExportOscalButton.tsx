@@ -15,18 +15,21 @@ import {
   validateOscalSspDocument,
 } from "@/oscal";
 import { HelpLink } from "@/components/help/HelpLink";
+import { Button } from "@/components/design-system/button/Button";
 import { oscalExportUnavailableCopy } from "@/components/framework/presentation";
 
 export type ExportOscalButtonProps = {
   framework: Framework;
   metadata: ProjectMetadata;
   implementations: Record<string, ControlImplementation>;
+  compact?: boolean;
 };
 
 export function ExportOscalButton({
   framework,
   metadata,
   implementations,
+  compact = false,
 }: ExportOscalButtonProps) {
   const [exportError, setExportError] = useState<string | null>(null);
   const oscalAvailable = frameworkHasOscalSspExport(framework.id);
@@ -54,6 +57,9 @@ export function ExportOscalButton({
   }
 
   if (!oscalAvailable) {
+    if (compact) {
+      return null;
+    }
     const cmmcHelp = framework.id === CMMC_LEVEL_2_FRAMEWORK_ID;
     const il4Help = framework.id === DOD_CLOUD_IL4_FRAMEWORK_ID;
     const unavailableHash = cmmcHelp
@@ -71,11 +77,31 @@ export function ExportOscalButton({
     );
   }
 
+  const button = (
+    <Button type="button" size={compact ? "sm" : "md"} onClick={handleExport}>
+      {compact ? "Export OSCAL" : "Export OSCAL SSP (JSON)"}
+    </Button>
+  );
+
+  if (compact) {
+    return (
+      <div className="flex flex-col items-stretch gap-1 sm:items-end">
+        {button}
+        {exportError ? (
+          <p
+            role="alert"
+            className="max-w-xs whitespace-pre-wrap text-left text-xs leading-relaxed text-danger sm:text-right"
+          >
+            {exportError}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div className="flex max-w-md flex-col items-stretch gap-2 sm:items-end">
-      <button type="button" onClick={handleExport} className="btn">
-        Export OSCAL SSP (JSON)
-      </button>
+      {button}
       <p className="text-left text-xs sm:text-right">
         <HelpLink slug="oscal-export" hash="what-valid-means-here">
           What OSCAL export includes and what validation means
