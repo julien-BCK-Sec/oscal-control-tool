@@ -183,6 +183,18 @@ opened a Word SSP from the UI; V1 layout is functional, not final
 presentation. See
 `docs/milestones/07B-human-readable-ssp-docx-v1.md` and ADR-031.
 
+**Milestone 08A – Authoring Workspace UX and Information Hierarchy** (implemented, manually accepted, not released)
+
+Progressive disclosure and compact state summaries in control authoring,
+ODP presentation, framework/overlay reference material, the operations
+inspector, and System characteristics. Manual browser acceptance
+(2026-09-19) confirmed the information hierarchy, ODP and nested-parameter
+UX, IL4 fail-closed presentation, framework-context disclosure, and System
+tab. Summaries consume the 07C resolution engine; they do not create a
+second semantic path. No schema, authorization, compliance score, or
+framework-population change. Production remains v0.7.0. See
+`docs/milestones/08A-authoring-workspace-ux-information-hierarchy.md`.
+
 ## Future directions
 
 The following items are candidate product and engineering directions. They are
@@ -206,7 +218,7 @@ templates, and generated prose are not the product domain.
   substitution. ADR-032. Research: `docs/research/07C-parameter-resolution-architecture.md`.
   Production remains v0.7.0. This is not a prerequisite that was required for 07A or the first honest 07B SSP.
 
-- **08A — Authoring Workspace UX and Information Hierarchy** (implemented on `feat/08A-authoring-workspace-ux`, not merged, not released) — progressive disclosure and compact state summaries in control authoring, ODP presentation, framework/overlay reference material, the operations inspector, and System characteristics. Preserves 07C semantics. No compliance score.
+- **08A — Authoring Workspace UX and Information Hierarchy** (implemented, manually accepted, not released) — progressive disclosure and compact state summaries in control authoring, ODP presentation, framework/overlay reference material, the operations inspector, and System characteristics. Preserves 07C semantics. No compliance score. Production remains v0.7.0.
 
 ### Assessment, findings, and remediation
 

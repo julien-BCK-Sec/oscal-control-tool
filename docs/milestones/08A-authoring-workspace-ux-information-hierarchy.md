@@ -1,15 +1,47 @@
 Milestone 08A — Authoring Workspace UX & Information Hierarchy
 
-Status: Implemented on `feat/08A-authoring-workspace-ux` (not merged, not released, not accepted)
+**Status:** Implemented and **manually accepted**; not released
+**Acceptance date:** 2026-09-19
+**Depends on:** Milestone 07C accepted on main
+**Production baseline:** v0.7.0 (`56e71ff`) remains production
+**Primary goal:** Reduce cognitive load and vertical sprawl in the authoring experience without removing information, weakening framework semantics, or turning Control Freak into a low-density generic SaaS UI.
 
-Manual acceptance (2026-09-18) identified remaining ODP visual complexity after the first implementation. A correction pass is on this branch: unresolved ODPs no longer force the section open; shared overlay conditions appear once at section scope; author-facing status is Resolved/Unresolved; catalog/resolution diagnostics default collapsed behind Details; parameter rows are a single dense surface rather than a card per ODP.
+08A is a UX/information-hierarchy milestone. It is **accepted** after manual browser review. It is **not tagged, not released, and not deployed**. Production remains v0.7.0. Do not start 08B in this closeout.
 
-A later manual-acceptance finding is also on this branch: IL4 framework/overlay reference cards (assignment-required notices, FedRAMP/DoD layers, Help) were too visually dominant in the primary authoring column. Framework-specific source and overlay detail now uses progressive disclosure. Important author-facing conditions remain visible in the primary control surface; detailed inheritance, assignment, provenance, and source information remains available on demand. Ordinary NIST/CMMC items do not gain a generic framework section.
+### Closeout record
 
-Author-facing surfaces prioritize what the author needs to understand or do; supporting catalog/resolution/reference detail remains available through progressive disclosure. 08A is not accepted until this correction is manually reviewed.
-Depends on: Milestone 07C accepted on main
-Production baseline at planning time: v0.7.0
-Primary goal: Reduce cognitive load and vertical sprawl in the authoring experience without removing information, weakening framework semantics, or turning Control Freak into a low-density generic SaaS UI.
+1. **Implementation completed** on `feat/08A-authoring-workspace-ux`: progressive disclosure for requirement, ODP, implementation, and evidence authoring; collapsible operations inspector; System-tab labeling; documentation-completeness captions; toolbar Word/OSCAL export placement.
+2. **Manual-acceptance corrections:** unresolved ODPs no longer force the section open; shared overlay conditions appear once at section scope; author-facing status is Resolved/Unresolved; catalog/resolution diagnostics default collapsed behind Details; parameter rows are a single dense surface rather than a card per ODP (`af4053f`).
+3. **Final framework-context correction** (`3891d9e`): IL4 overlay/reference cards use progressive disclosure. Important author-facing conditions remain visible in the compact summary; detailed inheritance, assignment, provenance, and source information remain available on demand. Ordinary NIST/CMMC items do not gain a generic framework section.
+4. **Manual browser acceptance completed** (2026-09-19), covering workspace hierarchy, operations inspector, ODP disclosure, NIST AC-1/AC-7, nested parameters, resolved ODP rows, IL4 fail-closed ODPs, framework context, source-statement separation, System characteristics, Implementation/Evidence hierarchy, export actions, and visual direction.
+5. **Milestone accepted.** Not a production release.
+
+### Design rules established by 08A
+
+1. Complexity does not force itself open.
+2. Author-facing surfaces prioritize what the author needs to understand or do.
+3. Catalog, resolver, provenance, and source diagnostics remain available through progressive disclosure.
+4. Important author-actionable warnings remain visible even when supporting details are collapsed.
+5. Shared conditions should be explained once at the appropriate section/control scope rather than repeated on every child item.
+6. Resolved information should be compact and scannable.
+7. Framework-specific source and overlay material uses progressive disclosure when it would otherwise dominate the authoring workflow.
+8. Missing documentation is not equivalent to a negative assertion. For example, an empty interconnection list means interconnections are not documented, not that none exist.
+9. Presentation summaries must derive from canonical domain/resolution state rather than creating a second semantic interpretation.
+
+### Semantic architecture (unchanged)
+
+08A did not change the semantic architecture established by earlier milestones.
+
+- `src/domain/parameter-resolution.ts` remains the only parameter precedence path.
+- No guessed IL4 per-ODP mappings were introduced; IL4 mapping count remains 0.
+- DSPAV assertions do not become authoritative values.
+- Source-conflict proceedings do not become winners.
+- Documented deviations do not replace authoritative framework values.
+- `may-use-baseline` still requires explicit acceptance.
+- No narrative inference or system-characteristic inference.
+- No AC-1/AC-7 production special cases.
+- No OSCAL `set-parameters`, responsibility/origination, SSP DOCX template redesign, grammar rewriting, compliance scoring, SQL migration, or new dependency.
+- Framework populations are unchanged.
 
 1. Problem statement
 
@@ -587,10 +619,14 @@ durable docs and Help are updated for material interaction changes;
 
 final implementation is manually reviewed before release.
 
+Manual browser acceptance completed 2026-09-19. Milestone 08A is accepted.
+Tagging and production deployment remain a separate release decision.
+Production remains v0.7.0.
+
 20. Release boundary
 
 08A should be releasable independently as a usability milestone.
 
 Do not combine unrelated feature work into the milestone merely because UI components are being touched.
 
-Tagging and production deployment are separate release decisions after implementation and manual acceptance.
+Manual acceptance is complete. Tagging and production deployment are separate release decisions. Production remains v0.7.0. Do not start 08B as part of this closeout.

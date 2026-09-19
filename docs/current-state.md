@@ -1,6 +1,6 @@
 # Current Project State
 
-Date: 2026-09-18
+Date: 2026-09-19
 
 ## Product Position
 
@@ -8,7 +8,9 @@ Control Freak is a collaborative compliance authoring application.
 Milestones 07A and 07B are released and production verified as **v0.7.0**
 (Control Freak — Human-Readable SSP). Milestone 07C (parameter resolution
 and control fidelity) is implemented and **manually accepted** on `main`
-and is **not released**. Production remains v0.7.0. Milestone 07A added
+and is **not released**. Production remains v0.7.0. Milestone 08A
+(authoring workspace UX and information hierarchy) is implemented and
+**manually accepted** and is **not released**. Milestone 07A added
 canonical SSP system characteristics on `project_json` schema v2.
 Milestone 07B adds a Control Freak-owned human-readable System Security
 Plan as a Word download generated from saved project data. Live documents
@@ -132,22 +134,22 @@ Assignment fields show surrounding catalog insert context. No datatype
 inference or grammar rewriting.
 
 Milestone 08A (authoring workspace UX and information hierarchy) is
-implemented on `feat/08A-authoring-workspace-ux` and is **not merged**.
-The first implementation added progressive disclosure around requirement,
-ODP, implementation, and evidence authoring, a collapsible operations
-inspector, System-tab labeling, and documentation-completeness captions.
-Manual acceptance then found the ODP surface still too heavy: unresolved
-parameters no longer force the section open; shared overlay conditions
-are explained once at section scope; author-facing status is
-Resolved/Unresolved; catalog/resolution diagnostics stay behind Details.
-A later correction collapsed IL4 framework/overlay reference cards behind
-the same disclosure pattern: important conditions such as DoD assignment
-required stay visible in the compact summary; FedRAMP/DoD assignment,
-guidance, and provenance remain available on demand. Ordinary NIST
-controls do not gain a generic framework section. Author-facing surfaces
-prioritize what the author needs to understand or do. 08A is not
-accepted. It does not add a compliance score, change ADR-032, or alter
-SSP/OSCAL semantics.
+implemented and **manually accepted**. It is **not released**. Production
+remains v0.7.0. Progressive disclosure organizes requirement, source
+statement, framework context when applicable, ODPs, implementation, and
+evidence. The operations inspector can stay collapsed on desktop. Unresolved
+ODPs do not force the section open. Shared overlay conditions appear once
+at section scope. Catalog/resolution diagnostics stay behind Details.
+Framework-specific overlay cards use the same pattern: important conditions
+such as DoD assignment required stay visible in the compact summary;
+FedRAMP/DoD assignment, guidance, and provenance remain available on
+demand. Ordinary NIST controls do not gain a generic framework section.
+System characteristics use documentation-completeness captions that
+describe authored state only. 08A does not add a compliance score, change
+ADR-032, or alter SSP/OSCAL semantics. Manual browser acceptance
+(2026-09-19) confirmed the workspace hierarchy, ODP and nested-parameter
+UX, IL4 fail-closed presentation, framework-context disclosure, System
+tab, and visual direction.
 
 ## Verified production release
 
@@ -593,12 +595,10 @@ cutover only.
 ## Next approved milestone
 
 Do not begin Milestone 08B. Milestone **08A — Authoring Workspace UX and
-Information Hierarchy** is implemented on `feat/08A-authoring-workspace-ux`
-and is **not merged, tagged, or released**. Manual acceptance identified
-an ODP visual-complexity correction still on that branch. 08A is **not
-accepted**. Milestone **07C** remains implemented and manually accepted
-on `main`, **not released**. Production remains **v0.7.0**. Architecture
-remains ADR-032. Do not tag or deploy 07C or 08A.
+Information Hierarchy** is implemented and **manually accepted**, **not
+released**. Milestone **07C** remains implemented and manually accepted,
+**not released**. Production remains **v0.7.0**. Architecture remains
+ADR-032. Do not tag or deploy 07C or 08A.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into
