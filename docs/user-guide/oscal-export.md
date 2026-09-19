@@ -8,8 +8,8 @@ related: frameworks, dod-cloud-il4, human-readable-ssp, limitations
 
 ## Exporting an SSP
 
-On a NIST SP 800-53 project's **Project details** tab, select
-**Export OSCAL SSP (JSON)** to download a single OSCAL 1.2.2 System Security Plan
+On a NIST SP 800-53 project, select **Export OSCAL** in the workspace
+toolbar to download a single OSCAL 1.2.2 System Security Plan
 as a JSON file. It's built from the project's authored system
 characteristics (when present), its imported baseline profile, and one
 implemented-requirement entry per control with your narrative and, where

@@ -1,6 +1,6 @@
 # Current Project State
 
-Date: 2026-09-18
+Date: 2026-09-19
 
 ## Product Position
 
@@ -8,7 +8,9 @@ Control Freak is a collaborative compliance authoring application.
 Milestones 07A and 07B are released and production verified as **v0.7.0**
 (Control Freak — Human-Readable SSP). Milestone 07C (parameter resolution
 and control fidelity) is implemented and **manually accepted** on `main`
-and is **not released**. Production remains v0.7.0. Milestone 07A added
+and is **not released**. Production remains v0.7.0. Milestone 08A
+(authoring workspace UX and information hierarchy) is implemented and
+**manually accepted** and is **not released**. Milestone 07A added
 canonical SSP system characteristics on `project_json` schema v2.
 Milestone 07B adds a Control Freak-owned human-readable System Security
 Plan as a Word download generated from saved project data. Live documents
@@ -51,7 +53,7 @@ The application currently provides:
 - Operational metadata and activity history (including collaboration and
   evidence link/unlink events)
 - Version history
-- Canonical SSP system characteristics authored on Project details
+- Canonical SSP system characteristics authored on the System tab
   (`project_json` schema v2): system identity, SSP organization, authorization
   boundary, environment of operation, typed SSP roles, information types,
   optional FIPS 199 CIA categorization, optional DoD cloud impact-level
@@ -131,6 +133,24 @@ source statement. Nested choice editors sit under the selected choice.
 Assignment fields show surrounding catalog insert context. No datatype
 inference or grammar rewriting.
 
+Milestone 08A (authoring workspace UX and information hierarchy) is
+implemented and **manually accepted**. It is **not released**. Production
+remains v0.7.0. Progressive disclosure organizes requirement, source
+statement, framework context when applicable, ODPs, implementation, and
+evidence. The operations inspector can stay collapsed on desktop. Unresolved
+ODPs do not force the section open. Shared overlay conditions appear once
+at section scope. Catalog/resolution diagnostics stay behind Details.
+Framework-specific overlay cards use the same pattern: important conditions
+such as DoD assignment required stay visible in the compact summary;
+FedRAMP/DoD assignment, guidance, and provenance remain available on
+demand. Ordinary NIST controls do not gain a generic framework section.
+System characteristics use documentation-completeness captions that
+describe authored state only. 08A does not add a compliance score, change
+ADR-032, or alter SSP/OSCAL semantics. Manual browser acceptance
+(2026-09-19) confirmed the workspace hierarchy, ODP and nested-parameter
+UX, IL4 fail-closed presentation, framework-context disclosure, System
+tab, and visual direction.
+
 ## Verified production release
 
 **v0.7.0** (`56e71ff51e59038b708c6b422f983877dc4c3938`) is the live
@@ -152,7 +172,7 @@ demo authentication succeeded.
 
 Production smoke confirmed NIST Low/Moderate/High, CMMC Level 2, and DoD
 Cloud IL4 remain selectable and representative demo projects load.
-Structured SSP system-characteristics UI loads on Project details.
+Structured SSP system-characteristics UI loads on the System tab.
 Snow Goose IL4 does not acquire a FIPS categorization or DoD IL assertion
 from framework selection. **Export human-readable SSP (Word)** succeeds
 for NIST Moderate, CMMC, and IL4: Word MIME type, safe `.docx` filename,
@@ -183,7 +203,8 @@ Current stack:
 - SQLite tooling retained only for offline cutover from legacy deployments
 - Browser localStorage retained only for non-authoritative UI preferences
   (theme preference `system` | `light` | `dark`, ADR-022; control-navigation
-  pane width `cf-control-nav-width`; authoritative data is PostgreSQL)
+  pane width `cf-control-nav-width`; operations inspector expanded flag
+  `control-freak:operations-inspector-expanded`; authoritative data is PostgreSQL)
 
 ## Architecture
 
@@ -573,10 +594,11 @@ cutover only.
 
 ## Next approved milestone
 
-Do not begin another milestone. Milestone **07C — Parameter and Control
-Fidelity** is implemented, manually accepted, and **not released**.
-Production remains **v0.7.0**. Architecture remains ADR-032. Do not tag or
-deploy 07C.
+Do not begin Milestone 08B. Milestone **08A — Authoring Workspace UX and
+Information Hierarchy** is implemented and **manually accepted**, **not
+released**. Milestone **07C** remains implemented and manually accepted,
+**not released**. Production remains **v0.7.0**. Architecture remains
+ADR-032. Do not tag or deploy 07C or 08A.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into

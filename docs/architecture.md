@@ -16,7 +16,7 @@ Responsibilities:
 - FrameworkProvider
 - FrameworkControl (optional overlay parameter, provenance, supplement, and applicability metadata; ADR-029)
 - Framework metadata (catalog, revision, profile, optional item terms, optional OSCAL export fields, optional `productSelectable`)
-- Control Browser overlay presentation (effective requirement when known assignments can be inlined; classification caption separate from artifact source; untouched source statement; supplements; DSPAV and source-conflict notices)
+- Control Browser overlay presentation (effective requirement when known assignments can be inlined; classification caption separate from artifact source; untouched source statement; compact framework/overlay summary with DSPAV, source-conflict, and conditional notices remaining visible; detailed assignment/guidance/provenance disclosed on demand)
 - Generic Evidence/workflow/collaboration against registered framework item IDs, including IL4 GRRs (WP5); overlay metadata is not operational state
 - Framework derivation (pinned NIST SP 800-53 Rev. 5 Low / Moderate / High OSCAL; pinned NIST SP 800-171 Rev. 2 CSV for CMMC Level 2; DoD IL4 Moderate / MMx overlay artifact from FedRAMP Moderate + Addendum extract + Table D-1 delta, ADR-029)
 
@@ -238,6 +238,17 @@ schema v3 parameter records, ODP authoring UI, and partial SSP
 substitution. IL4 per-ODP mappings start empty. OSCAL `set-parameters` and
 responsibility/origination are deferred. See ADR-032 and
 `docs/research/07C-parameter-resolution-architecture.md`.
+
+Milestone 08A (implemented, manually accepted, not released): progressive
+disclosure in the control authoring workspace, compact ODP presentation
+derived from the 07C resolution engine, compact framework/overlay context
+where overlay reference material already exists, a collapsible operations
+inspector, System-tab system-characteristics sections with
+documentation-completeness captions, and toolbar placement for Word/OSCAL
+export. Presentation flags may use localStorage. Summaries consume
+canonical resolution results; they do not create a second semantic path.
+No schema, authorization, or resolution-path change. Production remains
+v0.7.0.
 
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.

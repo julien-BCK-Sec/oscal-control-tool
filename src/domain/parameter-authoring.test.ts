@@ -6,13 +6,22 @@ import {
   nistModerateFrameworkProvider,
 } from "@/data/framework";
 import {
+  authorFacingStatusHint,
+  authorFacingStatusLabel,
   catalogChoiceVisibleText,
+  parameterAuthoringSummary,
+  parameterDetailsDefaultOpen,
   parameterEditorMode,
   parameterInsertContext,
+  parameterOdpSectionDefaultOpen,
   parameterPrompt,
+  parameterUsesCompactResolvedPresentation,
+  sharedAuthorableEditorMode,
+  sharedParameterSectionNotice,
   visibleAuthoringParameters,
   withCatalogSelection,
 } from "./parameter-authoring";
+import { resolveControlParameters } from "./parameter-resolution";
 import { resolveParameter } from "./parameter-resolution";
 
 describe("visibleAuthoringParameters", () => {
@@ -148,5 +157,276 @@ describe("nested catalog choice presentation", () => {
     assert.ok(context);
     assert.match(context, /\[number\]/);
     assert.match(context, /consecutive invalid logon attempts/i);
+  });
+});
+
+describe("parameterAuthoringSummary", () => {
+  it("counts a simple unresolved control without inventing parameters", () => {
+    const ac2 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-2.1");
+    assert.ok(ac2);
+    const resolved = resolveControlParameters(ac2, {});
+    const summary = parameterAuthoringSummary(ac2, resolved, {});
+    assert.ok(summary.total >= 1);
+    assert.equal(summary.resolvedCount, 0);
+    assert.equal(summary.unresolvedCount, summary.total);
+    assert.equal(
+      summary.caption,
+      `${summary.resolvedCount} of ${summary.total} resolved · ${summary.unresolvedCount} need attention`,
+    );
+  });
+
+  it("counts AC-7 nested parameters only after the parent choice is selected", () => {
+    const ac7 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-7");
+    assert.ok(ac7);
+    const unresolved = parameterAuthoringSummary(
+      ac7,
+      resolveControlParameters(ac7, {}),
+      {},
+    );
+    assert.equal(unresolved.total, 3);
+    assert.equal(unresolved.resolvedCount, 0);
+
+    const records = withCatalogSelection(
+      {
+        "ac-07_odp.01": {
+          controlId: "ac-7",
+          parameterId: "ac-07_odp.01",
+          intent: "organization-defined",
+          body: { form: "assignment", values: ["5"] },
+        },
+        "ac-07_odp.02": {
+          controlId: "ac-7",
+          parameterId: "ac-07_odp.02",
+          intent: "organization-defined",
+          body: { form: "assignment", values: ["15 minutes"] },
+        },
+      },
+      "ac-7",
+      ac7.parameters?.organizationDefined?.find((param) => param.id === "ac-07_odp.03") ??
+        ac7.parameters!.organizationDefined![2],
+      ["2"],
+    );
+    const partial = parameterAuthoringSummary(
+      ac7,
+      resolveControlParameters(ac7, records),
+      records,
+    );
+    assert.equal(partial.total, 4);
+    assert.equal(partial.resolvedCount, 3);
+    assert.equal(partial.unresolvedCount, 1);
+
+    const fully = withCatalogSelection(
+      {
+        ...records,
+        "ac-07_odp.05": {
+          controlId: "ac-7",
+          parameterId: "ac-07_odp.05",
+          intent: "organization-defined",
+          body: { form: "assignment", values: ["exponential backoff"] },
+        },
+      },
+      "ac-7",
+      ac7.parameters?.organizationDefined?.find((param) => param.id === "ac-07_odp.03") ??
+        ac7.parameters!.organizationDefined![2],
+      ["2"],
+    );
+    const done = parameterAuthoringSummary(
+      ac7,
+      resolveControlParameters(ac7, fully),
+      fully,
+    );
+    assert.equal(done.resolvedCount, 4);
+    assert.equal(done.unresolvedCount, 0);
+    assert.equal(done.caption, "4 of 4 resolved");
+  });
+
+  it("summarizes AC-1 as ODP-heavy without treating empty records as resolved", () => {
+    const ac1 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-1");
+    assert.ok(ac1);
+    const summary = parameterAuthoringSummary(
+      ac1,
+      resolveControlParameters(ac1, {}),
+      {},
+    );
+    assert.ok(summary.total >= 8);
+    assert.equal(summary.resolvedCount, 0);
+    assert.equal(summary.unresolvedCount, summary.total);
+  });
+
+  it("reports no authorable parameters for a catalog item without ODPs", () => {
+    const control = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((item) => visibleAuthoringParameters(item).length === 0);
+    assert.ok(control);
+    const summary = parameterAuthoringSummary(
+      control,
+      resolveControlParameters(control, {}),
+      {},
+    );
+    assert.equal(summary.total, 0);
+    assert.equal(summary.caption, "None on this item");
+  });
+
+  it("does not treat IL4 DSPAV assertions as resolved", () => {
+    const ma51 = dodCloudIl4FrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ma-5.1");
+    assert.ok(ma51);
+    const records = {
+      "ma-05.01_odp": {
+        controlId: "ma-5.1",
+        parameterId: "ma-05.01_odp",
+        intent: "dspav-assertion" as const,
+        body: { form: "assignment" as const, values: ["escort-only"] },
+        dspavSourceNote: "Restricted DSPAV",
+      },
+    };
+    const summary = parameterAuthoringSummary(
+      ma51,
+      resolveControlParameters(ma51, records),
+      records,
+    );
+    assert.ok(summary.total >= 1);
+    assert.equal(summary.resolvedCount, 0);
+  });
+});
+
+describe("parameterUsesCompactResolvedPresentation", () => {
+  it("compacts resolved assignment rows but never selection or fail-closed rows", () => {
+    assert.equal(
+      parameterUsesCompactResolvedPresentation({
+        substitutionKind: "value",
+        nested: false,
+        failClosed: false,
+        mode: "assignment",
+      }),
+      true,
+    );
+    assert.equal(
+      parameterUsesCompactResolvedPresentation({
+        substitutionKind: "value",
+        nested: false,
+        failClosed: false,
+        mode: "selection",
+      }),
+      false,
+    );
+    assert.equal(
+      parameterUsesCompactResolvedPresentation({
+        substitutionKind: "value",
+        nested: true,
+        failClosed: false,
+        mode: "assignment",
+      }),
+      false,
+    );
+    assert.equal(
+      parameterUsesCompactResolvedPresentation({
+        substitutionKind: "value",
+        nested: false,
+        failClosed: true,
+        mode: "authoritative-value-required",
+      }),
+      false,
+    );
+    assert.equal(
+      parameterUsesCompactResolvedPresentation({
+        substitutionKind: "unresolved",
+        nested: false,
+        failClosed: false,
+        mode: "assignment",
+      }),
+      false,
+    );
+  });
+});
+
+describe("ODP section presentation rules", () => {
+  it("does not open the ODP section because parameters are unresolved", () => {
+    const ac1 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-1");
+    assert.ok(ac1);
+    const summary = parameterAuthoringSummary(
+      ac1,
+      resolveControlParameters(ac1, {}),
+      {},
+    );
+    assert.ok(summary.unresolvedCount >= 8);
+    assert.equal(parameterOdpSectionDefaultOpen(summary), false);
+    assert.equal(parameterDetailsDefaultOpen(), false);
+  });
+
+  it("groups IL4 AC-1 unmapped overlay context at section scope", () => {
+    const ac1 = dodCloudIl4FrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-1");
+    assert.ok(ac1);
+    const resolved = resolveControlParameters(ac1, {});
+    const shared = sharedAuthorableEditorMode(ac1, resolved, {});
+    assert.equal(shared, "control-level-unmapped");
+    const notice = sharedParameterSectionNotice(shared);
+    assert.ok(notice);
+    assert.match(notice.title, /parameter-specific overlay assignments unavailable/i);
+    assert.match(notice.body, /does not map/i);
+    assert.equal(
+      authorFacingStatusHint("control-level-unmapped", shared),
+      null,
+    );
+  });
+
+  it("does not attach IL4 overlay context to NIST Moderate AC-1", () => {
+    const ac1 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-1");
+    assert.ok(ac1);
+    const resolved = resolveControlParameters(ac1, {});
+    const shared = sharedAuthorableEditorMode(ac1, resolved, {});
+    assert.notEqual(shared, "control-level-unmapped");
+    assert.equal(sharedParameterSectionNotice(shared), null);
+  });
+
+  it("does not group mixed AC-7 assignment and selection states", () => {
+    const ac7 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-7");
+    assert.ok(ac7);
+    const resolved = resolveControlParameters(ac7, {});
+    assert.equal(sharedAuthorableEditorMode(ac7, resolved, {}), null);
+    assert.equal(sharedParameterSectionNotice(null), null);
+  });
+
+  it("keeps DSPAV author-facing status unresolved and distinct from unmapped overlay", () => {
+    const ma51 = dodCloudIl4FrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ma-5.1");
+    assert.ok(ma51);
+    const records = {
+      "ma-05.01_odp": {
+        controlId: "ma-5.1",
+        parameterId: "ma-05.01_odp",
+        intent: "dspav-assertion" as const,
+        body: { form: "assignment" as const, values: ["escort-only"] },
+        dspavSourceNote: "Restricted DSPAV",
+      },
+    };
+    const resolved = resolveControlParameters(ma51, records);
+    const target = resolved.find((row) => row.parameterId === "ma-05.01_odp");
+    assert.ok(target);
+    assert.equal(target.substitution.kind, "unresolved");
+    assert.equal(authorFacingStatusLabel(target), "Unresolved");
+    assert.equal(parameterEditorMode(target), "authoritative-value-required");
+    const shared = sharedAuthorableEditorMode(ma51, resolved, records);
+    if (shared === "authoritative-value-required") {
+      const notice = sharedParameterSectionNotice(shared);
+      assert.ok(notice);
+      assert.notEqual(notice.mode, "control-level-unmapped");
+    }
   });
 });

@@ -17,6 +17,7 @@ import { ReviewStatusBadge } from "@/components/design-system/badge/statusMaps";
 import { Button } from "@/components/design-system/button/Button";
 import { formatControlIdDisplay } from "@/components/controlBrowser/presentation";
 import { HelpLink } from "@/components/help/HelpLink";
+import { preserveNativeControlKeys } from "@/editor/keyboard-target";
 
 export type ControlEditorHeaderProps = {
   controlId: string;
@@ -32,6 +33,9 @@ export type ControlEditorHeaderProps = {
   pending: boolean;
   pendingAction: ControlReviewAction | null;
   onPrimaryAction: (action: ControlReviewAction) => void;
+  operationsOpen?: boolean;
+  onToggleOperations?: () => void;
+  operationsSummary?: string;
 };
 
 /**
@@ -51,6 +55,9 @@ export function ControlEditorHeader({
   pending,
   pendingAction,
   onPrimaryAction,
+  operationsOpen,
+  onToggleOperations,
+  operationsSummary,
 }: ControlEditorHeaderProps) {
   const unassigned = isControlOwnerUnassigned(fields.owner);
   const isPrimaryPending =
@@ -134,21 +141,42 @@ export function ControlEditorHeader({
           </p>
         </div>
 
-        {primaryAction ? (
-          <div className="hidden shrink-0 self-start lg:block">
-            <Button
-              variant="primary"
-              disabled={pending}
-              aria-busy={isPrimaryPending}
-              onClick={() => onPrimaryAction(primaryAction)}
-            >
-              {isPrimaryPending
-                ? "Working…"
-                : controlReviewActionLabel(primaryAction)}
-            </Button>
+        {primaryAction || onToggleOperations ? (
+          <div className="flex shrink-0 flex-wrap items-start gap-2 self-start">
+            {onToggleOperations ? (
+              <Button
+                type="button"
+                aria-expanded={operationsOpen}
+                aria-controls="control-operations-panel"
+                onClick={onToggleOperations}
+                onKeyDown={preserveNativeControlKeys}
+                className="hidden lg:inline-flex"
+              >
+                {operationsOpen ? "Hide operations" : "Show operations"}
+              </Button>
+            ) : null}
+            {primaryAction ? (
+              <div className="hidden lg:block">
+                <Button
+                  variant="primary"
+                  disabled={pending}
+                  aria-busy={isPrimaryPending}
+                  onClick={() => onPrimaryAction(primaryAction)}
+                >
+                  {isPrimaryPending
+                    ? "Working…"
+                    : controlReviewActionLabel(primaryAction)}
+                </Button>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
+      {onToggleOperations && operationsSummary && !operationsOpen ? (
+        <p className="mt-2 hidden text-xs text-text-muted lg:block">
+          Operations: {operationsSummary}
+        </p>
+      ) : null}
     </header>
   );
 }

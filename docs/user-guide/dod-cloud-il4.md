@@ -114,15 +114,20 @@ saved, does not rewrite the NIST catalog statement, and is not an OSCAL
 - **Source statement** — the untouched NIST catalog statement,
   available on demand and collapsed by default. Control Freak does not
   treat this as obsolete.
-- **FedRAMP Moderate / DoD IL4** — additional guidance, supplemental
-  requirements, unresolved assignments, source conflicts, and
-  applicability notes that cannot safely be composed into the effective
-  requirement.
+- **Framework context** — shown only when overlay notices or leftover
+  source-layer material remain after inlining. The compact summary keeps
+  author-facing conditions visible (for example **DoD assignment
+  required**, **Source interpretation requires review**, or CDS
+  conditionality) together with the FedRAMP Moderate / DoD IL4
+  relationship. **Show framework details** reveals the existing
+  assignment values, additional guidance, supplemental requirements,
+  applicability notes, provenance, and Help. Those details start
+  collapsed. They are not merged into Organization-defined parameters.
 
 Empty layers are omitted. Assignment values already shown inline are not
 repeated as a separate card. Overlay material is never merged into the
 stored NIST statement and is never saved onto the item's operational
-fields.
+fields. Ordinary NIST SP 800-53 projects do not show this section.
 
 For example, **AC-2** shows the quarterly privileged / annual
 non-privileged review assignment in the effective requirement, while the
@@ -167,23 +172,25 @@ cannot read.
 When that happens, Control Freak shows **DoD assignment required**. It
 knows an authoritative assignment is required. It does **not** guess
 the current value from the public sources, from RMF Knowledge Service,
-or from similar controls.
+or from similar controls. The notice remains visible in the compact
+framework summary even while assignment cards stay collapsed.
 
-**AC-7** is a representative example: the DoD overlay assignment that
-is present in the public Addendum is shown, and the unresolved DSPAV
-is called out separately. Do not treat a blank or “required” notice as
-a value.
+**AC-7** is a representative example: the unresolved DSPAV is called
+out in the summary, and the public Addendum assignment remains
+available under **Show framework details**. Do not treat a blank or
+“required” notice as a value.
 
 ## Source interpretation requires review
 
 When FedRAMP and DoD layers disagree about the same parameter,
-Control Freak shows **Source interpretation requires review**. Both
-authoritative source layers remain visible for human review. Control
-Freak does not choose a winner, compute an effective assignment, or
-mark the item noncompliant.
+Control Freak shows **Source interpretation requires review**. The
+conflict remains visible in the compact framework summary. Both
+authoritative source layers remain available under **Show framework
+details** for human review. Control Freak does not choose a winner,
+compute an effective assignment, or mark the item noncompliant.
 
 **IA-5 (1)** is the representative example. The FedRAMP Moderate layer
-and the DoD IL4 layer are both displayed. Documentation in Help does
+and the DoD IL4 layer are both preserved. Documentation in Help does
 not resolve that conflict.
 
 ## Conditional applicability
@@ -192,9 +199,11 @@ Some IL4 items include applicability metadata. **SC-46** remains in the
 345-item population and is identified as conditionally applicable when
 a **Cross Domain Solution (CDS)** is used.
 
-Control Freak does **not** automatically mark SC-46 not applicable. If
-the item is out of scope for your system, that is an authoring decision
-you record — not an automatic population change.
+Control Freak does **not** automatically mark SC-46 not applicable. The
+CDS condition remains visible in the compact framework summary and is
+not flattened into ordinary overlay inheritance. If the item is out of
+scope for your system, that is an authoring decision you record — not
+an automatic population change.
 
 ## Evidence coverage
 

@@ -38,7 +38,7 @@ export const WORKSPACE_TABS: readonly WorkspaceTabDefinition[] = [
   },
   {
     id: "details",
-    label: "Project details",
+    label: "System",
     panelId: "workspace-panel-details",
     tabId: "workspace-tab-details",
   },

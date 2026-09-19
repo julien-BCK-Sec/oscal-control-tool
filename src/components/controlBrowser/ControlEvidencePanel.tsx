@@ -40,6 +40,7 @@ export type ControlEvidencePanelProps = {
   coverage?: ControlEvidenceCoverage | null;
   onActivity?: () => void;
   itemSingular?: string;
+  embedded?: boolean;
 };
 
 export function ControlEvidencePanel({
@@ -50,6 +51,7 @@ export function ControlEvidencePanel({
   coverage = null,
   onActivity,
   itemSingular = "control",
+  embedded = false,
 }: ControlEvidencePanelProps) {
   const [items, setItems] = useState<EvidenceWithControlIds[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -145,17 +147,21 @@ export function ControlEvidencePanel({
     });
   }
 
+  const Wrapper = embedded ? "div" : "section";
+
   return (
-    <section
-      aria-labelledby="control-evidence-heading"
+    <Wrapper
+      aria-labelledby={embedded ? undefined : "control-evidence-heading"}
       className="max-w-[var(--layout-content-max)] py-1"
     >
-      <h3
-        id="control-evidence-heading"
-        className="text-xs font-medium text-text-muted"
-      >
-        Evidence
-      </h3>
+      {embedded ? null : (
+        <h3
+          id="control-evidence-heading"
+          className="text-xs font-medium text-text-muted"
+        >
+          Evidence
+        </h3>
+      )}
       <p className="mt-1 text-xs text-text-muted">
         Logical evidence records linked to this {itemSingular}. Open a linked
         record from its title to inspect metadata, versions, and files on
@@ -336,6 +342,6 @@ export function ControlEvidencePanel({
           </FormHint>
         </div>
       ) : null}
-    </section>
+    </Wrapper>
   );
 }

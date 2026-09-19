@@ -29,7 +29,10 @@ original NIST SP 800-171 number for CMMC requirements) and summarizes its
 current **Implementation**, **Review**, and **Narrative** status with
 badges, plus its assigned **Owner**. The primary review action available
 from the current review status (see [Review workflow](/help/review-workflow))
-appears here too on wider screens.
+appears here too on wider screens. On wide screens, **Show operations**
+opens the ownership, review, assignment, discussion, and history inspector;
+it starts collapsed so authoring keeps the width. The same inspector stays
+visible when the layout stacks on small screens.
 
 Below the header:
 
@@ -42,19 +45,27 @@ Below the header:
   wording. On DoD Cloud Impact Level 4 projects, a derived **Effective
   requirement** may appear first when authoritative assignments are
   known. See [DoD Cloud Impact Level 4](/help/dod-cloud-il4).
+- **Framework context** — on overlay items that still have notices or
+  leftover FedRAMP/DoD source-layer material, a compact summary of the
+  important condition and framework relationship. Assignment values,
+  additional guidance, supplements, provenance, and Help stay behind
+  **Show framework details**. Ordinary NIST and CMMC items do not show
+  this section.
 - **Organization-defined parameters** — explicit project values for
-  catalog ODPs, kept separate from the narrative. See
+  catalog ODPs, kept separate from the narrative. The section heading
+  shows how many currently authorable parameters are resolved. Expand it
+  to edit. See
   [Organization-defined parameters](/help/authoring-controls#organization-defined-parameters).
-- **Narrative** — your implementation text, plus a **Narrative status**
+- **Implementation** — your implementation text, plus a **Narrative status**
   field (see below).
-- **Evidence** — Evidence records linked to this control. See
-  [Evidence](/help/evidence).
+- **Evidence** — Evidence records linked to this control, with the existing
+  coverage caption. Linked records are documentation references, not an
+  assessment. See [Evidence](/help/evidence).
 
-A sidebar alongside the narrative holds operational metadata, in this
-order: **Ownership**, **Implementation** (metadata), **Review**,
-**Assignments**, **Discussions**, and **History**. Assignments,
-Discussions, and History are covered in
-[Collaboration](/help/collaboration).
+When **Show operations** is selected, the inspector still contains
+**Ownership**, **Implementation** metadata, **Review**, **Assignments**,
+**Discussions**, and **History**. Assignments, Discussions, and History
+are covered in [Collaboration](/help/collaboration).
 
 ## Ownership fields
 
@@ -140,15 +151,28 @@ NIST SP 800-53 controls can include organization-defined parameters (ODPs).
 Author those values on the control workspace. Control Freak does **not**
 infer them from the implementation narrative.
 
-The ODP editor shows:
+The ODP editor shows a compact **n of m resolved** summary derived from the
+same resolution engine used for SSP substitution. Unresolved parameters
+do **not** force the section open — a control with many unresolved ODPs is
+exactly where a collapsed summary is most useful. Open **Review
+parameters** to author values. Resolved assignment rows stay compact;
+use **Edit** to change a value. Catalog IDs, mapping basis, provenance,
+and insert context stay behind **Details**, which starts collapsed.
 
-- the catalog prompt (label or guideline), with the parameter ID as
-  secondary metadata;
-- surrounding catalog statement context for assignment fields, so the
-  value is understood as one insert rather than the whole requirement;
-- the framework-derived value and source, when one exists;
-- the project's authored value;
-- the current resolution state.
+When every currently authorable parameter shares the same overlay
+condition (for example, a control-level assignment with no per-ODP
+mapping), that explanation appears once at the section, not on every
+row. Distinct parameter states are not grouped together.
+
+Author-facing status is **Resolved** or **Unresolved**. Technical
+resolver wording remains in Details.
+
+Each expanded editor still shows:
+
+- the catalog prompt (label or guideline);
+- a concise description;
+- the editable project value, catalog choices, or required action;
+- the current resolved/unresolved state.
 
 Flexible text is expected. A value may be `15 minutes` or a longer
 operational sentence. Catalog **select** parameters use the catalog's own

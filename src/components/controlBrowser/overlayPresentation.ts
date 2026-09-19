@@ -230,6 +230,55 @@ export function hasOverlayPresentation(control: FrameworkControl): boolean {
   return buildOverlayPresentation(control) !== null;
 }
 
+export function overlayHasReferenceMaterial(
+  presentation: OverlayPresentation | null | undefined,
+): boolean {
+  return Boolean(
+    presentation &&
+      (presentation.notices.length > 0 || presentation.layers.length > 0),
+  );
+}
+
+export type OverlayFrameworkSummary = {
+  title: string;
+  statusLine: string | null;
+  relationshipLine: string | null;
+};
+
+/**
+ * Compact author-facing overlay header. Null when there is no overlay
+ * reference material to disclose (ordinary NIST/CMMC catalog items).
+ */
+export function overlayFrameworkSummary(
+  presentation: OverlayPresentation,
+): OverlayFrameworkSummary | null {
+  if (!overlayHasReferenceMaterial(presentation)) {
+    return null;
+  }
+  const statusLine =
+    presentation.notices.map((notice) => notice.title).join(" · ") || null;
+  const seenHeadings = new Set<string>();
+  const headings: string[] = [];
+  for (const layer of presentation.layers) {
+    const heading = layer.heading.trim();
+    if (!heading || seenHeadings.has(heading)) {
+      continue;
+    }
+    seenHeadings.add(heading);
+    headings.push(heading);
+  }
+  const relationshipLine = headings.length > 0 ? headings.join(" · ") : null;
+  return {
+    title: "Framework context",
+    statusLine,
+    relationshipLine,
+  };
+}
+
+export function overlayFrameworkDetailsDefaultOpen(): boolean {
+  return false;
+}
+
 /**
  * Build overlay sections for a framework item. Returns null when there is
  * nothing to show (NIST/CMMC catalog items and empty overlay records).

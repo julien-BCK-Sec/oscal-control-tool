@@ -2,13 +2,19 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { dodCloudIl4FrameworkProvider } from "@/data/framework";
+import {
+  dodCloudIl4FrameworkProvider,
+  nistModerateFrameworkProvider,
+} from "@/data/framework";
 import type { FrameworkControl } from "@/data/framework/types";
 import {
   buildOverlayPresentation,
   frameworkItemKindLabel,
   frameworkItemSingular,
   isGeneralReadinessItem,
+  overlayFrameworkDetailsDefaultOpen,
+  overlayFrameworkSummary,
+  overlayHasReferenceMaterial,
   statementReferenceChrome,
 } from "./overlayPresentation";
 import { reviewHelperText } from "./useControlReviewTransition";
@@ -313,6 +319,118 @@ describe("overlay presentation", () => {
     );
     assert.match(source, /slug="dod-cloud-il4"/);
     assert.match(source, /how-nist-fedramp-and-dod-layers-appear/);
+    assert.match(source, /AuthoringDisclosure/);
+    assert.match(source, /overlayFrameworkDetailsDefaultOpen/);
+    assert.match(source, /Show framework details/);
+  });
+
+  it("does not add framework disclosure to ordinary NIST Moderate controls", () => {
+    const nistAc7 = nistModerateFrameworkProvider
+      .getFramework()
+      .controls.find((control) => control.id === "ac-7");
+    assert.ok(nistAc7);
+    const presentation = buildOverlayPresentation(nistAc7);
+    assert.equal(presentation, null);
+    assert.equal(overlayHasReferenceMaterial(presentation), false);
+  });
+
+  it("summarizes IL4 overlay reference material without flattening distinct states", () => {
+    assert.equal(overlayFrameworkDetailsDefaultOpen(), false);
+
+    const ac7 = items.get("ac-7");
+    assert.ok(ac7);
+    const ac7Presentation = buildOverlayPresentation(ac7);
+    assert.ok(ac7Presentation);
+    const ac7Summary = overlayFrameworkSummary(ac7Presentation);
+    assert.ok(ac7Summary);
+    assert.equal(ac7Summary.title, "Framework context");
+    assert.equal(ac7Summary.statusLine, "DoD assignment required");
+    assert.equal(
+      ac7Summary.relationshipLine,
+      "FedRAMP Moderate · DoD IL4",
+    );
+
+    const ac1 = items.get("ac-1");
+    assert.ok(ac1);
+    const ac1Presentation = buildOverlayPresentation(ac1);
+    assert.ok(ac1Presentation);
+    assert.equal(
+      ac1Presentation.effectiveRequirement?.classificationLabel,
+      "FedRAMP base, inherited for IL4",
+    );
+    const ac1Summary = overlayFrameworkSummary(ac1Presentation);
+    if (overlayHasReferenceMaterial(ac1Presentation)) {
+      assert.ok(ac1Summary);
+      assert.notEqual(ac1Summary.statusLine, "DoD assignment required");
+      assert.notEqual(
+        ac1Summary.statusLine,
+        "Source interpretation requires review",
+      );
+    } else {
+      assert.equal(ac1Summary, null);
+    }
+
+    const au51 = items.get("au-5.1");
+    assert.ok(au51);
+    const au51Presentation = buildOverlayPresentation(au51);
+    assert.ok(au51Presentation);
+    assert.equal(
+      au51Presentation.effectiveRequirement?.classificationLabel,
+      "DoD permits FedRAMP value",
+    );
+    const au51Summary = overlayFrameworkSummary(au51Presentation);
+    if (overlayHasReferenceMaterial(au51Presentation)) {
+      assert.ok(au51Summary);
+      assert.notEqual(
+        au51Summary.statusLine,
+        "FedRAMP base, inherited for IL4",
+      );
+    } else {
+      assert.equal(au51Summary, null);
+    }
+
+    const sa95 = items.get("sa-9.5");
+    assert.ok(sa95);
+    const sa95Presentation = buildOverlayPresentation(sa95);
+    assert.ok(sa95Presentation);
+    assert.equal(
+      sa95Presentation.effectiveRequirement?.classificationLabel,
+      "DoD IL4 adjustment",
+    );
+
+    const ia51 = items.get("ia-5.1");
+    assert.ok(ia51);
+    const ia51Summary = overlayFrameworkSummary(
+      buildOverlayPresentation(ia51)!,
+    );
+    assert.ok(ia51Summary);
+    assert.equal(
+      ia51Summary.statusLine,
+      "Source interpretation requires review",
+    );
+    assert.equal(
+      ia51Summary.relationshipLine,
+      "FedRAMP Moderate · DoD IL4",
+    );
+
+    const sc46 = items.get("sc-46");
+    assert.ok(sc46);
+    const sc46Summary = overlayFrameworkSummary(
+      buildOverlayPresentation(sc46)!,
+    );
+    assert.ok(sc46Summary);
+    assert.match(
+      sc46Summary.statusLine ?? "",
+      /Conditional: Cross Domain Solution \(CDS\)/,
+    );
+
+    const grr1 = items.get("grr-1");
+    assert.ok(grr1);
+    const grrPresentation = buildOverlayPresentation(grr1);
+    assert.equal(overlayHasReferenceMaterial(grrPresentation), false);
+    if (grrPresentation) {
+      assert.equal(overlayFrameworkSummary(grrPresentation), null);
+    }
   });
 
   it("keeps the source statement collapsed independently of requirement expand preference", () => {
@@ -324,6 +442,8 @@ describe("overlay presentation", () => {
       "utf8",
     );
     assert.match(source, /control-freak:source-statement-expanded/);
+    assert.match(source, /overlayHasReferenceMaterial/);
+    assert.match(source, /<OverlayMetadataPanel presentation=\{overlay\} \/>/);
   });
 
   it("does not treat CMMC requirements as overlay or GRR items", () => {

@@ -16,6 +16,31 @@ Date: 2026-07-22
 5. **Never color alone** — status badges always include a text label.
 6. **Brand has one owner** — use `<Brand />` for all logo rendering.
 
+## Authoring information hierarchy
+
+Milestone 08A established these presentation rules for authoring surfaces.
+They do not change domain, resolution, or compliance semantics.
+
+1. Complexity does not force itself open.
+2. Author-facing surfaces prioritize what the author needs to understand
+   or do.
+3. Catalog, resolver, provenance, and source diagnostics remain available
+   through progressive disclosure.
+4. Important author-actionable warnings remain visible even when
+   supporting details are collapsed.
+5. Shared conditions are explained once at the appropriate section or
+   control scope, not repeated on every child item.
+6. Resolved information should be compact and scannable.
+7. Framework-specific source and overlay material uses progressive
+   disclosure when it would otherwise dominate the authoring workflow.
+8. Missing documentation is not a negative assertion (an empty
+   interconnection list means interconnections are not documented, not
+   that none exist).
+9. Presentation summaries must derive from canonical domain/resolution
+   state rather than creating a second semantic interpretation.
+10. Disclosure state is local UI (and, where already used, localStorage
+    presentation preference). It is not project data.
+
 ## Brand assets
 
 Located under `public/brand/`:
@@ -172,10 +197,16 @@ percentage bar.
 - **ProductHeader** — brand lockup (sm+) / mark (mobile); optional context;
   trailing actions via `AuthenticatedHeaderActions` (notifications + account
   menu). Account menu includes Theme preference (System / Light / Dark).
-- **Workspace** — ProductHeader + WorkspaceHeader (project name, tabs, undo) +
-  tab panels.
-- **Control editor** — sticky control header; `SplitLayout` main (~70%) +
-  operational sidebar (~30%); stacks on small screens.
+- **Workspace** — ProductHeader + WorkspaceHeader (project name, tabs, undo,
+  Word/OSCAL export actions) + tab panels.
+- **Control editor** — sticky control header with glanceable owner /
+  implementation / review state; main column sections for requirement,
+  source statement, framework context when applicable, organization-defined
+  parameters, implementation, and evidence; operations inspector (~30%)
+  collapsible on `lg+` (localStorage presentation preference only) and
+  always stacked on small screens. Unresolved ODPs and overlay reference
+  cards do not force themselves open.
+
 - **Review actions** — desktop: primary action in control header only; Review
   card shows secondary actions + status context (primary still available on
   mobile in the card). Behavior uses the centralized review transition module.
@@ -187,10 +218,14 @@ percentage bar.
 - Control header primary action: `lg+` only; Review card carries actions on
   narrow viewports.
 - Sidebar sticky under `lg` only; stacks below the narrative on mobile.
+  The operations inspector may be collapsed on `lg+`; it remains visible
+  in the stacked mobile layout.
 
 ## Accessibility expectations
 
 - Visible `:focus-visible` rings on interactive controls.
+- Disclosure toggles use native buttons so Space/Enter follow ordinary
+  activation; workspace shortcuts still yield to focused text fields.
 - Labels associated with inputs (`FormLabel` + `htmlFor`).
 - Buttons for actions (not clickable divs).
 - Status badges include text; unassigned owner announced via `role="status"`.
