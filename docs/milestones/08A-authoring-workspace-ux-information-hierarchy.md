@@ -1,12 +1,12 @@
 Milestone 08A — Authoring Workspace UX & Information Hierarchy
 
-**Status:** Implemented and **manually accepted**; not released
+**Status:** Implemented and **manually accepted**; included in v0.8.0 (preparing for tag and production deploy)
 **Acceptance date:** 2026-09-19
 **Depends on:** Milestone 07C accepted on main
-**Production baseline:** v0.7.0 (`56e71ff`) remains production
+**Production baseline until v0.8.0 verification:** v0.7.0 (`56e71ff`)
 **Primary goal:** Reduce cognitive load and vertical sprawl in the authoring experience without removing information, weakening framework semantics, or turning Control Freak into a low-density generic SaaS UI.
 
-08A is a UX/information-hierarchy milestone. It is **accepted** after manual browser review. It is **not tagged, not released, and not deployed**. Production remains v0.7.0. Do not start 08B in this closeout.
+08A is a UX/information-hierarchy milestone. It is **accepted** after manual browser review and is included in the v0.8.0 parameter-aware SSP authoring release being prepared. It is **not yet tagged or deployed**. Production remains v0.7.0. Do not start 08B in this closeout.
 
 ### Closeout record
 
@@ -14,7 +14,7 @@ Milestone 08A — Authoring Workspace UX & Information Hierarchy
 2. **Manual-acceptance corrections:** unresolved ODPs no longer force the section open; shared overlay conditions appear once at section scope; author-facing status is Resolved/Unresolved; catalog/resolution diagnostics default collapsed behind Details; parameter rows are a single dense surface rather than a card per ODP (`af4053f`).
 3. **Final framework-context correction** (`3891d9e`): IL4 overlay/reference cards use progressive disclosure. Important author-facing conditions remain visible in the compact summary; detailed inheritance, assignment, provenance, and source information remain available on demand. Ordinary NIST/CMMC items do not gain a generic framework section.
 4. **Manual browser acceptance completed** (2026-09-19), covering workspace hierarchy, operations inspector, ODP disclosure, NIST AC-1/AC-7, nested parameters, resolved ODP rows, IL4 fail-closed ODPs, framework context, source-statement separation, System characteristics, Implementation/Evidence hierarchy, export actions, and visual direction.
-5. **Milestone accepted.** Not a production release.
+5. **Milestone accepted** and included in v0.8.0. Not a standalone production tag. Production remains v0.7.0 until v0.8.0 is tagged and verified.
 
 ### Design rules established by 08A
 
@@ -629,4 +629,7 @@ Production remains v0.7.0.
 
 Do not combine unrelated feature work into the milestone merely because UI components are being touched.
 
-Manual acceptance is complete. Tagging and production deployment are separate release decisions. Production remains v0.7.0. Do not start 08B as part of this closeout.
+Manual acceptance is complete. 08A is included in v0.8.0. Tagging and
+production deployment of that release are a separate operation. Production
+remains v0.7.0 until v0.8.0 is verified. Do not start 08B as part of this
+closeout.

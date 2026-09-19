@@ -6,11 +6,11 @@ Date: 2026-09-19
 
 Control Freak is a collaborative compliance authoring application.
 Milestones 07A and 07B are released and production verified as **v0.7.0**
-(Control Freak — Human-Readable SSP). Milestone 07C (parameter resolution
-and control fidelity) is implemented and **manually accepted** on `main`
-and is **not released**. Production remains v0.7.0. Milestone 08A
-(authoring workspace UX and information hierarchy) is implemented and
-**manually accepted** and is **not released**. Milestone 07A added
+(Control Freak — Human-Readable SSP). Milestones 07C and 08A form release
+**v0.8.0** (Control Freak — Parameter-aware SSP authoring). They are
+implemented on `main` and being prepared for tag and production deploy.
+**v0.7.0** remains the live production revision until that release is
+tagged and verified. Milestone 07A added
 canonical SSP system characteristics on `project_json` schema v2.
 Milestone 07B adds a Control Freak-owned human-readable System Security
 Plan as a Word download generated from saved project data. Live documents
@@ -60,6 +60,9 @@ The application currently provides:
   assertion, operational status, and interconnections. Missing values stay
   missing and are never inferred from framework selection, tenant
   organization, collaboration assignments, narratives, or Evidence.
+- Organization-defined parameter authoring with canonical per-insert
+  resolution (`project_json` schema v3; ADR-032). IL4 per-ODP mappings
+  remain empty and fail closed. OSCAL `set-parameters` are not emitted.
 - Control Freak System Security Plan Word export for all currently supported
   frameworks (`cf-ssp-docx` 1.0). The file is generated on demand from saved
   server state. Missing information appears as placeholders. It is not OSCAL,
@@ -84,6 +87,39 @@ The application currently provides:
 
 OSCAL is an export/interchange format, not the internal editing model.
 Collaboration metadata is never exported as OSCAL.
+
+## Preparing release v0.8.0
+
+**v0.8.0** is Control Freak — Parameter-aware SSP authoring. It has not
+been tagged or deployed yet. **v0.7.0** remains the live production
+revision.
+
+v0.8.0 adds parameter-aware SSP authoring and resolution, including
+organization-defined parameter editing, nested and selection parameters,
+conservative framework-specific resolution, improved SSP synthesis, and a
+streamlined authoring workspace using progressive disclosure.
+
+Milestone **07C** is accepted and included: per-ODP catalog identity,
+immutable framework parameter resolution, `project_json` schema v3
+parameter records, a single domain resolution path, ODP authoring UI,
+source-defined catalog selections, nested parameter authoring, explicit
+may-use-baseline acceptance, documented-deviation preservation without
+overriding authoritative values, fail-closed DSPAV and source-conflict
+handling, conservative DoD IL4 behavior with zero guessed per-ODP
+mappings, and per-insert SSP synthesis. Responsibility/origination and
+OSCAL `set-parameters` remain deferred.
+
+Milestone **08A** is accepted and included: progressive disclosure for
+requirement, source statement, framework context when applicable, ODPs,
+implementation, and evidence; compact resolved parameter presentation;
+collapsible operations inspector; sectional System-characteristics
+authoring; and workspace-level Word SSP / OSCAL export actions.
+
+This is not an official FedRAMP SSP/package, DoD authorization package,
+CMMC assessment artifact, or a certification/ATO/PA claim. v0.8.0 does
+not add compliance scoring, assessment semantics, SSP DOCX template
+redesign, grammar rewriting, automatic framework inference, or
+authorization/categorization assertions.
 
 ## Release v0.7.0
 
@@ -120,7 +156,9 @@ Milestone 07C adds per-ODP catalog identity, immutable framework parameter
 resolution, `project_json` schema v3 parameter records, a resolution engine,
 ODP authoring UI, and partial SSP requirement synthesis. IL4 per-ODP overlay
 mappings start empty and fail closed. Responsibility/origination and OSCAL
-`set-parameters` remain deferred. 07C is complete and accepted, not released.
+`set-parameters` remain deferred. 07C is accepted and included in the
+v0.8.0 release being prepared. Production remains v0.7.0 until that
+release is tagged and verified.
 
 Manual NIST AC-7 and IL4 browser acceptance (2026-09-18) confirmed typed
 spaces persist, catalog selections and nested values persist, SSP
@@ -134,8 +172,9 @@ Assignment fields show surrounding catalog insert context. No datatype
 inference or grammar rewriting.
 
 Milestone 08A (authoring workspace UX and information hierarchy) is
-implemented and **manually accepted**. It is **not released**. Production
-remains v0.7.0. Progressive disclosure organizes requirement, source
+implemented, **manually accepted**, and included in the v0.8.0 release
+being prepared. It is **not yet tagged or deployed**. Production remains
+v0.7.0. Progressive disclosure organizes requirement, source
 statement, framework context when applicable, ODPs, implementation, and
 evidence. The operations inspector can stay collapsed on desktop. Unresolved
 ODPs do not force the section open. Shared overlay conditions appear once
@@ -594,11 +633,10 @@ cutover only.
 
 ## Next approved milestone
 
-Do not begin Milestone 08B. Milestone **08A — Authoring Workspace UX and
-Information Hierarchy** is implemented and **manually accepted**, **not
-released**. Milestone **07C** remains implemented and manually accepted,
-**not released**. Production remains **v0.7.0**. Architecture remains
-ADR-032. Do not tag or deploy 07C or 08A.
+Do not begin Milestone 08B. Milestones **07C** and **08A** are accepted
+and included in **v0.8.0**, which is being prepared for tag and production
+deploy. **v0.7.0** remains the live production revision until that release
+is verified. Architecture remains ADR-032.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into

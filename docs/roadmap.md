@@ -183,7 +183,16 @@ opened a Word SSP from the UI; V1 layout is functional, not final
 presentation. See
 `docs/milestones/07B-human-readable-ssp-docx-v1.md` and ADR-031.
 
-**Milestone 08A – Authoring Workspace UX and Information Hierarchy** (implemented, manually accepted, not released)
+**Milestone 07C – Parameter and Control Fidelity** (implemented, manually accepted, included in v0.8.0 being prepared)
+
+Per-ODP catalog identity, immutable framework parameter resolution,
+`project_json` schema v3 parameter records, ODP authoring, and per-insert
+SSP synthesis. IL4 per-ODP mappings remain empty and fail closed. OSCAL
+`set-parameters` and responsibility/origination remain deferred. ADR-032.
+Production remains v0.7.0 until v0.8.0 is tagged and verified. See
+`docs/milestones/07C-parameter-resolution-control-fidelity.md`.
+
+**Milestone 08A – Authoring Workspace UX and Information Hierarchy** (implemented, manually accepted, included in v0.8.0 being prepared)
 
 Progressive disclosure and compact state summaries in control authoring,
 ODP presentation, framework/overlay reference material, the operations
@@ -192,7 +201,8 @@ inspector, and System characteristics. Manual browser acceptance
 UX, IL4 fail-closed presentation, framework-context disclosure, and System
 tab. Summaries consume the 07C resolution engine; they do not create a
 second semantic path. No schema, authorization, compliance score, or
-framework-population change. Production remains v0.7.0. See
+framework-population change. Production remains v0.7.0 until v0.8.0 is
+tagged and verified. See
 `docs/milestones/08A-authoring-workspace-ux-information-hierarchy.md`.
 
 ## Future directions
@@ -213,12 +223,12 @@ templates, and generated prose are not the product domain.
   placeholders. No false compliance/authorization claims. Diagrams remain
   deferred. Official FedRAMP/DoD package templates remain later work.
 
-- **07C — Parameter and Control Fidelity** (implemented, manually accepted, not released) — per-ODP framework resolution,
+- **07C — Parameter and Control Fidelity** (implemented, manually accepted, included in v0.8.0 being prepared) — per-ODP framework resolution,
   project-authored ODP values, per-ODP provenance, and safer requirement
   substitution. ADR-032. Research: `docs/research/07C-parameter-resolution-architecture.md`.
-  Production remains v0.7.0. This is not a prerequisite that was required for 07A or the first honest 07B SSP.
+  Production remains v0.7.0 until v0.8.0 is verified. This is not a prerequisite that was required for 07A or the first honest 07B SSP.
 
-- **08A — Authoring Workspace UX and Information Hierarchy** (implemented, manually accepted, not released) — progressive disclosure and compact state summaries in control authoring, ODP presentation, framework/overlay reference material, the operations inspector, and System characteristics. Preserves 07C semantics. No compliance score. Production remains v0.7.0.
+- **08A — Authoring Workspace UX and Information Hierarchy** (implemented, manually accepted, included in v0.8.0 being prepared) — progressive disclosure and compact state summaries in control authoring, ODP presentation, framework/overlay reference material, the operations inspector, and System characteristics. Preserves 07C semantics. No compliance score. Production remains v0.7.0 until v0.8.0 is verified.
 
 ### Assessment, findings, and remediation
 

@@ -232,23 +232,24 @@ Milestone 07B capabilities:
 - No new SQL migration
 - Diagrams remain deferred
 
-Milestone 07C (implemented, manually accepted, not released): per-ODP
-catalog identity, immutable framework parameter resolution, `project_json`
-schema v3 parameter records, ODP authoring UI, and partial SSP
-substitution. IL4 per-ODP mappings start empty. OSCAL `set-parameters` and
-responsibility/origination are deferred. See ADR-032 and
-`docs/research/07C-parameter-resolution-architecture.md`.
+Milestone 07C (implemented, manually accepted, included in v0.8.0 being
+prepared): per-ODP catalog identity, immutable framework parameter
+resolution, `project_json` schema v3 parameter records, ODP authoring UI,
+and partial SSP substitution. IL4 per-ODP mappings start empty. OSCAL
+`set-parameters` and responsibility/origination are deferred. See ADR-032
+and `docs/research/07C-parameter-resolution-architecture.md`. Production
+remains v0.7.0 until v0.8.0 is tagged and verified.
 
-Milestone 08A (implemented, manually accepted, not released): progressive
-disclosure in the control authoring workspace, compact ODP presentation
-derived from the 07C resolution engine, compact framework/overlay context
-where overlay reference material already exists, a collapsible operations
-inspector, System-tab system-characteristics sections with
-documentation-completeness captions, and toolbar placement for Word/OSCAL
-export. Presentation flags may use localStorage. Summaries consume
-canonical resolution results; they do not create a second semantic path.
-No schema, authorization, or resolution-path change. Production remains
-v0.7.0.
+Milestone 08A (implemented, manually accepted, included in v0.8.0 being
+prepared): progressive disclosure in the control authoring workspace,
+compact ODP presentation derived from the 07C resolution engine, compact
+framework/overlay context where overlay reference material already exists,
+a collapsible operations inspector, System-tab system-characteristics
+sections with documentation-completeness captions, and toolbar placement
+for Word/OSCAL export. Presentation flags may use localStorage. Summaries
+consume canonical resolution results; they do not create a second semantic
+path. No schema, authorization, or resolution-path change. Production
+remains v0.7.0 until v0.8.0 is tagged and verified.
 
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.

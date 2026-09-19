@@ -1,13 +1,14 @@
 # Milestone 07C — Parameter Resolution & Control Fidelity
 
-**Status:** Implemented and manually accepted; not released
-**Release baseline:** v0.7.0 (`56e71ff`) remains production
+**Status:** Implemented and manually accepted; included in v0.8.0 (preparing for tag and production deploy)
+**Release:** v0.8.0 (not yet tagged). Production remains v0.7.0 (`56e71ff`) until that release is verified
 **Depends on:** Milestones 06B, 07A, 07B  
 **Architecture:** [`docs/research/07C-parameter-resolution-architecture.md`](../research/07C-parameter-resolution-architecture.md) (approved as ADR-032)
 
 Architecture was approved as ADR-032. Runtime implementation is complete
-and manually accepted (2026-09-18). This is not a production release. Do
-not tag or deploy 07C in this phase.
+and manually accepted (2026-09-18). 07C is included in the v0.8.0
+parameter-aware SSP authoring release being prepared. It is not a
+standalone production tag.
 
 ---
 
@@ -978,7 +979,8 @@ architecture and was not changed by the acceptance corrections.
 
 IL4 per-ODP mapping pin set is empty and fail-closed. Responsibility/origination
 and NIST OSCAL SSP `set-parameters` remain deferred. CMMC/GRR have no invented
-ODP editors. Production remains v0.7.0; do not tag or deploy 07C.
+ODP editors. 07C is included in v0.8.0; production remains v0.7.0 until that
+release is tagged and verified.
 
 Acceptance corrections (not architecture changes):
 
