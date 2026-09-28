@@ -631,12 +631,25 @@ cutover only.
   345-item population or enabling OSCAL export.
   See ADR-029 and `vendor/dod/cloud-il4-rev5/SOURCES.md`.
 
+Milestone **09A** is **complete** (2026-09-28). It pinned the historical
+IL4 Word SSP Addendum, mapped it, and recorded the accepted architecture
+disposition in ADR-033. Application behavior, the project schema,
+parameter resolution, the IL4 population, and the generic SSP renderer are
+unchanged. The pinned DOCX is not a Rev. 5 requirements source and will not
+be populated with the current control set. It is a structural/design
+reference for a future Control Freak-owned DoD IL4 SSP Addendum whose
+content comes from the pinned Rev. 5 sources. Control Freak is not waiting
+for a replacement official Word template. 09B and template rendering are
+not approved. See
+`docs/research/09A-dod-il4-ssp-addendum-template-mapping.md`.
+
 ## Next approved milestone
 
-Do not begin Milestone 08B. Milestones **07C** and **08A** are accepted
-and included in **v0.8.0**, which is being prepared for tag and production
-deploy. **v0.7.0** remains the live production revision until that release
-is verified. Architecture remains ADR-032.
+Do not begin Milestone 08B. Do not begin Milestone 09B. Milestones **07C**
+and **08A** are accepted and included in **v0.8.0**, which is being
+prepared for tag and production deploy. **v0.7.0** remains the live
+production revision until that release is verified. Architecture remains
+ADR-032, amended by ADR-033 for the IL4 addendum export disposition.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into

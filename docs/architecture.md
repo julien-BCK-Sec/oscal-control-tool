@@ -251,6 +251,16 @@ consume canonical resolution results; they do not create a second semantic
 path. No schema, authorization, or resolution-path change. Production
 remains v0.7.0 until v0.8.0 is tagged and verified.
 
+Milestone 09A (research complete, ADR-033): the historical IL4 Word SSP
+Addendum is pinned as an immutable structural/design reference. It is not
+a Rev. 5 requirements source and will not be populated with the current
+control population. A future Control Freak-owned DoD IL4 SSP Addendum may
+be informed by that document's organization and presentation while drawing
+requirements only from the pinned Rev. 5 sources and the canonical
+framework/parameter-resolution model. No application, schema, population,
+or renderer change in 09A. Responsibility/origination and related SSP gaps
+remain later work.
+
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.
 

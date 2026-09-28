@@ -22,6 +22,7 @@ IL4 Moderate sheet**, not Appendix D of the Cloud Computing SRG.
 | `extracts/addendum-il4-moderate.json` | DISA (derived extract) | Deterministic cell extract of Addendum **IL4 Moderate** | Yes (extract only) |
 | `extracts/appendix-d-il4-parameter-notes.json` | DISA (derived extract) | Table D-1 IL4 parameter notes for provenance / DSPAV pointers | Yes (extract only) |
 | `local/rev5_ssp_addendum_controls.xlsx` | DISA | Optional local copy of the Addendum workbook | **No** (gitignored) |
+| `templates/IL4-Mod-SSP-Addendum-v1.8.docx` | Supplied research artifact; document cites DISA CC SRG V1R4 | Historical IL4 Word SSP Addendum. **Not** a derivation input, **not** the Rev. 5 population, and **not** a file to populate. Accepted (ADR-033) as a structural/design reference for a future Control Freak-owned IL4 addendum | Yes (immutable pin) |
 
 NIST SP 800-53 Rev. 5 catalog and Moderate profile remain under
 `vendor/oscal/v1.2.2/` (see that `SOURCES.md`). They supply **normative control
@@ -88,6 +89,23 @@ The derive step **fails closed** if the file’s SHA-256 does not match.
 - **Path:** `vendor/oscal/v1.2.2/catalogs/NIST_SP-800-53_rev5_catalog.json`
 - **SHA-256:** `01f37cf90ea99d92242c936cbfbdebcc338eef1f71454e2acac36cc56e9bc062`
 - **Role:** Normative statements and organization-defined parameter identifiers
+
+### IL4 Word SSP Addendum (structural reference pin, not a derivation source)
+
+Recorded by Milestone 09A. Complete: ADR-033.
+Analysis: `docs/research/09A-dod-il4-ssp-addendum-template-mapping.md`.
+
+- **Original filename:** `IL4 Mod SSP Addendum v1.8.docx`
+- **Repository path:** `vendor/dod/cloud-il4-rev5/templates/IL4-Mod-SSP-Addendum-v1.8.docx`
+- **SHA-256:** `4c511a6b4b8e7e69922e980f8064e6059d30944dcf8506f6070eacfcdc7530ea`
+- **Size:** 527292 bytes
+- **Date added:** 2026-09-28
+- **Internal title:** Department of Defense (DoD) Addendum to the FedRAMP+ System Security Plan, Information Impact Level 4, Template (Version 2)
+- **Known source / provenance:** User-supplied file. The package has no core properties and the filename `v1.8` does not appear in the document. The body cites the DoD Cloud Computing Security Requirements Guide, version 1, release 4, dated January 15, 2022, and links to `https://cyber.mil/dccs/dccs-documents/`. No stable public file URL for this DOCX was found. The DCCS document library (`https://public.cyber.mil/dccs/dccs-documents/`, fetched 2026-09-28) is a Salesforce page and did not return a file listing to an unauthenticated fetch.
+- **Authority / currentness:** Historical template for SRG V1R4. It is not the current Cloud Computing SRG (pinned CSP SRG V1R7, 30 June 2026, package Y26M06) and it is not the PA-facing Rev. 5 population (DoD Rev 5 SSP Addendum Controls v1.2). Control identifiers in the Word file include Rev. 4-only items such as AC-23 and SA-12. Do not use it to change the 345-item population, GRR text, or IL4 per-ODP mappings. Do not populate it with the Rev. 5 control set.
+- **Accepted use (ADR-033):** Immutable structural and design reference for a future Control Freak-owned DoD IL4 SSP Addendum. Organization, control-summary and GRR presentation, and general visual/document approach may inform that layout. Requirements and generated content remain the pinned Rev. 5 sources and the canonical Control Freak model. Control Freak is not waiting for a replacement official Word template.
+- **Relationship to other pins:** Same vendor tree as the Rev. 5 derivation inputs. The derive script does not read this DOCX. GRR question wording in the Word file is close to the pinned Addendum extract, including shared typos, and that extract's GRR discussion still cites CC SRG V1R4 section numbers. That similarity is not authority to treat the Word control sections as Rev. 5 requirements.
+- **Redistribution:** Pinned as the immutable research and design-reference artifact supplied for Milestone 09A. The file was not edited. No newer template was substituted.
 
 ### Intentionally not pinned
 
