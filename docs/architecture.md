@@ -258,8 +258,19 @@ control population. A future Control Freak-owned DoD IL4 SSP Addendum may
 be informed by that document's organization and presentation while drawing
 requirements only from the pinned Rev. 5 sources and the canonical
 framework/parameter-resolution model. No application, schema, population,
-or renderer change in 09A. Responsibility/origination and related SSP gaps
-remain later work.
+or renderer change in 09A.
+
+Milestone 09B (complete, ADR-034 accepted): the addendum is a delta view
+over the existing 345-item framework.
+32 detailed items + 1 membership note + 312 not reprinted = 345.
+The 32 detailed items are 10 GRRs + 22 NIST controls/enhancements.
+SC-18 is a membership note. The remaining FedRAMP Moderate controls stay
+in the generic SSP. The first export adds no canonical fields and does not
+change parameter resolution or SSP synthesis. The accepted renderer is
+programmatic generation with the existing `docx` dependency and layout
+`cf-il4-addendum-docx` 1.0. That renderer is not implemented. 09C is not
+required. 09D is the next implementation milestone and is not started. See
+`docs/research/09B-dod-il4-ssp-addendum-information-model-and-document-specification.md`.
 
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.

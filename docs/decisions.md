@@ -1267,3 +1267,94 @@ Reason:
 Date:
 2026-09-28
 
+## ADR-034
+
+Status:
+**Accepted.** Architecture review 2026-09-28. This decision is the
+information-model and document-specification contract for a future
+Control Freak DoD IL4 SSP Addendum. It does not implement the view model,
+renderer, schema, or UI. Milestone 09C is not required for the first
+export. Milestone 09D is the next implementation milestone and is not
+started by this acceptance.
+
+Decision:
+The future DoD IL4 SSP Addendum is a Control Freak-owned document, layout
+identity `cf-il4-addendum-docx` version 1.0, generated from canonical
+project data, the `dod-cloud-il4-rev5` read model, and the existing
+parameter-resolution and SSP-synthesis paths. It is a delta document
+accompanying the system's broader SSP documentation. It does not duplicate
+the complete 345-item authoring framework. It is not a FedRAMP Moderate
+SSP, not an official DoD, DISA, or FedRAMP template, and not an
+authorization.
+
+The first export prints an IL4 delta view. Accounting:
+
+```text
+32 detailed items + 1 membership note + 312 not reprinted = 345
+```
+
+The 32 detailed items are 10 GRRs + 22 NIST controls/enhancements:
+
+- all ten General Readiness Requirements, printed in detail;
+- the twelve NIST controls in the IL4 population that are not in the pinned
+  FedRAMP Moderate baseline, printed in detail;
+- the ten FedRAMP Moderate controls whose current Table D-1 row is a
+  parameter adjustment (`explicit-value`, `dspav-must-be-used`, or
+  `may-use-fedramp`), printed in detail;
+- one membership note for SC-18 (Table D-1 inclusion-only, already in
+  FedRAMP Moderate).
+
+The other 312 FedRAMP Moderate controls remain in the 345-item authoring
+population and in the generic Control Freak SSP. They are not reprinted.
+`leveragedFromFedrampModerate` is not the population rule. The historical
+DOCX is not the content source and is not the output shell.
+
+The first export uses the current canonical model only. It does not add
+responsibility, origination, sponsors, service or deployment model,
+leveraged-authorization records, inventories, ports/protocols/services,
+diagrams, CNSSI 1253 identifiers, Mission Owner/SLA responses, or authored
+document-version support.
+Concepts that are not modeled are named once in a scope statement. They are
+not printed as empty official tables, and they are not inferred.
+
+These ideas stay distinct: SSP role, control implementation responsibility,
+workflow ownership, control origination, leveraged authorization, and
+framework or parameter inheritance. Implementation documentation status
+remains `ControlImplementation.status`. Evidence remains a reference, not
+an assessment. Missing and unresolved values stay visible. IL4 per-ODP
+mappings stay empty. There is one parameter-resolution path and one
+control-statement synthesis path.
+
+If later milestones add data, the recommended ownership is:
+
+- cloud service model and cloud deployment model: framework-independent
+  canonical project data;
+- control implementation responsibility: framework-independent references
+  to existing SSP roles;
+- control origination: framework-independent, vocabulary not frozen to the
+  legacy seven FedRAMP checkboxes by this proposal;
+- leveraged authorizations and external artifacts (baseline SSP, diagrams,
+  inventories, agreements): user-authored references, not validated
+  authorizations and not inferred;
+- DoD sponsor and NIPRNet sponsor: framework-specific project data, not
+  disguised `other` roles.
+
+The renderer, when a later milestone implements it, is programmatic
+generation with the existing `docx` dependency. It does not fill the
+historical pin and does not modify `cf-ssp-docx` 1.0.
+
+Authoritative research:
+`docs/research/09B-dod-il4-ssp-addendum-information-model-and-document-specification.md`.
+
+Reason:
+- The 345-item workbook is the framework population. An addendum that
+  reprints every leveraged FedRAMP control would duplicate the generic SSP.
+- Table D-1 is the FedRAMP+ delta, but inclusion-only rows that are absent
+  from FedRAMP Moderate are still selected requirements and must appear.
+- New canonical fields are not required to say this honestly.
+- FedRAMP's 2026 materials are moving off the legacy SSP checkbox model and
+  are not the IL4 base, so origination labels are not frozen here.
+
+Date:
+2026-09-28
+

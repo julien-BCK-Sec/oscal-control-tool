@@ -417,7 +417,15 @@ that an entire control is satisfied.
 - **DoD / Impact Level SSP generation** — support applicable DoD authorization
   package templates and profiles, including environments targeting defined
   Impact Levels such as IL4, where authoritative templates and requirements
-  are available.
+  are available. Milestone 09A (ADR-033) accepted the historical IL4 Word
+  addendum as a structural reference only. Milestone 09B is complete
+  (ADR-034 accepted). The Control Freak-owned IL4 addendum is a delta
+  document: 32 detailed items (10 GRRs + 22 NIST controls/enhancements)
+  + 1 SC-18 membership note + 312 FedRAMP Moderate items not reprinted
+  = 345. It is generated from the pinned Rev. 5 sources with layout
+  `cf-il4-addendum-docx` 1.0. It is not a filled copy of the historical
+  file. 09C is not required for that export. 09D is the next
+  implementation milestone and is not started.
 
 - **Template-driven authorization packages** — maintain versioned output
   templates separately from project data so government/program template
