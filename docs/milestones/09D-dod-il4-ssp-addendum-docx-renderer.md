@@ -1,11 +1,52 @@
 # Milestone 09D — DoD IL4 SSP Addendum DOCX Renderer
 
-**Status:** Implemented — pending acceptance  
-**Type:** Implementation  
-**Depends on:** Milestone 09B, ADR-034  
-**Implementation authorized:** Yes  
-**Production deployment authorized:** No  
-**Acceptance STOP:** Yes
+**Status:** Implemented and **manually accepted** (2026-11-03)
+**Acceptance date:** 2026-11-03
+**Type:** Implementation
+**Depends on:** Milestone 09B, ADR-034
+**Implementation authorized:** Yes
+**Production deployment authorized:** No
+**Acceptance STOP:** Completed — accepted; do not tag, release, or deploy in this closeout
+
+### Closeout record
+
+1. **Implementation completed** on `main`: IL4 addendum view model
+   (`src/il4-addendum/`), programmatic DOCX layout `cf-il4-addendum-docx` 1.0,
+   authenticated export
+   `GET /api/projects/[projectId]/exports/il4-addendum.docx`, and workspace
+   **IL4 Addendum (Word)** for `dod-cloud-il4-rev5` only.
+2. **Population** remains the ADR-034 delta accounting:
+   32 detailed items + 1 SC-18 membership note + 312 not reprinted = 345
+   (10 GRRs + 22 NIST controls/enhancements). Derived from the canonical
+   framework and pinned Table D-1 adjustment kinds. No second population
+   list. 09B architecture, framework data, parameter-resolution semantics,
+   project schema, and generic SSP / NIST OSCAL export behavior are
+   unchanged. IL4 OSCAL remains unavailable. IL4 per-ODP mappings remain
+   empty.
+3. **Presentation acceptance** required a design revision away from a
+   generic Control Freak engineering-report look toward the historical IL4
+   SSP Addendum document language (formal cover, Control Summary
+   Information tables, requirement → summary → solution rhythm, family
+   Additional controls / Enhanced parameters grouping), followed by a
+   presentation QA pass for pagination, unresolved-parameter clarity,
+   formatting cleanup, and adaptive response height.
+4. **Manual acceptance completed** (2026-11-03) after review of the
+   regenerated Snow Goose representative DOCX.
+5. **Milestone accepted.** Not tagged, released, or deployed. Production
+   remains **v0.7.0** until a later authorized release includes this work.
+
+### Known non-blocking limitations
+
+- Word still refreshes the table of contents and page numbers on open.
+  Substantive content does not depend on that refresh.
+- Occasional pagination splits can still appear in long control entries
+  even with keep-with-next headings and combined summary/response tables.
+- Authoritative source wording is preserved, including extract anomalies
+  such as the large run of spaces in the IA-5(1) DoD guidance text and
+  known GRR extract typos. Those are source-text issues, not renderer
+  edits.
+- The export is not an official DoD/DISA/FedRAMP template and does not
+  establish authorization. V1 omissions listed in ADR-034 remain omitted.
 
 ---
 
@@ -1166,18 +1207,17 @@ Fix ordinary defects before reporting.
 
 ## 37. Acceptance STOP
 
-When implementation, automated validation, self-review, and representative DOCX
-generation are complete:
+**Completed.** Manual acceptance recorded 2026-11-03. See the closeout
+record at the top of this document.
 
-**STOP.**
+The pre-acceptance STOP required implementation, automated validation,
+self-review, and representative DOCX generation before acceptance. After
+acceptance, do not:
 
-Do not:
-
-- declare 09D accepted;
-- release/tag;
-- deploy to production;
+- release/tag in this closeout;
+- deploy to production in this closeout;
 - push unless separately authorized;
-- start another milestone.
+- start another milestone in this closeout.
 
 Report:
 

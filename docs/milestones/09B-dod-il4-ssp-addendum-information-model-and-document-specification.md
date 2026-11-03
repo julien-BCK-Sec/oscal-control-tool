@@ -6,7 +6,7 @@
 **Depends on:** Milestone 09A, ADR-033
 **Architecture decision:** ADR-034 (accepted)
 **Research record:** `docs/research/09B-dod-il4-ssp-addendum-information-model-and-document-specification.md`
-**Next implementation milestone:** 09D (not started)
+**Next implementation milestone:** 09D (implemented and manually accepted 2026-11-03)
 
 ---
 

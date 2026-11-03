@@ -2,6 +2,11 @@
  * Control Freak IL4 addendum DOCX renderer (cf-il4-addendum-docx 1.0).
  * Consumes the addendum view model only. Presentation does not resolve
  * parameters or decide which items are printed.
+ *
+ * Layout follows the historical IL4 SSP Addendum document language:
+ * formal cover, Control Summary Information tables, and a solution/response
+ * table as the primary authored answer. Rev. 5 content and Control Freak
+ * provenance replace obsolete requirements, seals, and classification marks.
  */
 
 import "server-only";
@@ -29,7 +34,7 @@ import {
   type FileChild,
   type ITableCellBorders,
 } from "docx";
-import type { Il4AddendumDocument, Il4DetailedEntry } from "@/il4-addendum";
+import type { Il4AddendumDocument, Il4DetailedEntry, Il4DeltaGroup } from "@/il4-addendum";
 import {
   completenessText,
   EMPTY_COLLECTION_COPY,
@@ -38,27 +43,33 @@ import {
   type SspParameterResolution,
 } from "@/ssp";
 import {
+  CONTROL_SUMMARY_BANNER,
   LABEL_FILL,
   MUTED,
   NAVY,
   STEEL,
   PLACEHOLDER_COLOR,
-  RESPONSE_FILL,
+  RESPONSE_BODY_FILL,
   RULE,
   SECTION_TITLES,
   WARNING_FILL,
+  familyHeading,
   headerSystemLabel,
   itemHeadingText,
   membershipHeading,
+  solutionBanner,
+  subgroupHeading,
   tocHeadings,
 } from "./layout";
 
 const PAGE_WIDTH_DXA = 12240;
 const PAGE_HEIGHT_DXA = 15840;
-const MARGIN_DXA = 1440;
+const MARGIN_DXA = 1080;
 const CONTENT_WIDTH_DXA = PAGE_WIDTH_DXA - MARGIN_DXA * 2;
-const LABEL_WIDTH_DXA = 2880;
+const LABEL_WIDTH_DXA = 2700;
 const VALUE_WIDTH_DXA = CONTENT_WIDTH_DXA - LABEL_WIDTH_DXA;
+/** Minimum body height only when an implementation narrative is documented. */
+const DOCUMENTED_RESPONSE_MIN_HEIGHT_DXA = 1080;
 
 const CELL_BORDERS: ITableCellBorders = {
   top: { style: BorderStyle.SINGLE, size: 4, color: RULE },
@@ -68,8 +79,8 @@ const CELL_BORDERS: ITableCellBorders = {
 };
 
 const LABEL_SHADING = { type: ShadingType.CLEAR, fill: LABEL_FILL };
-const RESPONSE_SHADING = { type: ShadingType.CLEAR, fill: RESPONSE_FILL };
 const WARNING_SHADING = { type: ShadingType.CLEAR, fill: WARNING_FILL };
+const RESPONSE_BODY_SHADING = { type: ShadingType.CLEAR, fill: RESPONSE_BODY_FILL };
 
 const UNRESOLVED_MARK =
   /(\[(?:Unresolved[^\]]*|Not yet documented:[^\]]*)\])/g;
@@ -126,13 +137,23 @@ function paragraph(
   });
 }
 
-function proseParagraphs(text: string): Paragraph[] {
+function proseParagraphs(
+  text: string,
+  options?: { after?: number; keepNext?: boolean },
+): Paragraph[] {
   const lines = presentProse(text)
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
   const parts = lines.length > 0 ? lines : [presentProse(text)];
-  return parts.map((line) => paragraph(line, { after: 80 }));
+  return parts.map(
+    (line) =>
+      new Paragraph({
+        keepNext: options?.keepNext,
+        spacing: { before: 0, after: options?.after ?? 80 },
+        children: runs(line),
+      }),
+  );
 }
 
 function heading1(text: string): Paragraph {
@@ -140,6 +161,9 @@ function heading1(text: string): Paragraph {
     heading: HeadingLevel.HEADING_1,
     keepNext: true,
     spacing: { before: 360, after: 140 },
+    border: {
+      bottom: { style: BorderStyle.SINGLE, size: 12, color: NAVY, space: 4 },
+    },
     children: [new TextRun({ text, bold: true, font: "Calibri", size: 32, color: NAVY })],
   });
 }
@@ -148,7 +172,7 @@ function heading2(text: string): Paragraph {
   return new Paragraph({
     heading: HeadingLevel.HEADING_2,
     keepNext: true,
-    spacing: { before: 280, after: 100 },
+    spacing: { before: 320, after: 100 },
     children: [new TextRun({ text, bold: true, font: "Calibri", size: 26, color: STEEL })],
   });
 }
@@ -167,7 +191,7 @@ function cellParagraphs(
   options?: { bold?: boolean; color?: string },
 ): Paragraph[] {
   const parts = presentProse(text)
-    .split(/\n+/)
+    .split(/\r?\n+/)
     .map((part) => part.trim())
     .filter((part) => part.length > 0);
   const lines = parts.length > 0 ? parts : [""];
@@ -258,31 +282,87 @@ function gridTable(headers: readonly string[], rows: readonly (readonly string[]
   });
 }
 
-function bannerTable(
+function summaryHeaderRow(id: string, banner: string): TableRow {
+  return new TableRow({
+    cantSplit: true,
+    tableHeader: true,
+    children: [
+      textCell(id, { header: true, width: LABEL_WIDTH_DXA, shading: LABEL_SHADING }),
+      textCell(banner, { header: true, width: VALUE_WIDTH_DXA, shading: LABEL_SHADING }),
+    ],
+  });
+}
+
+function controlSummaryTable(
   id: string,
-  banner: string,
-  body: readonly Paragraph[],
-  options?: { response?: boolean },
+  rows: ReadonlyArray<readonly [string, string]>,
 ): Table {
-  const headerFill = options?.response ? RESPONSE_SHADING : LABEL_SHADING;
   return new Table({
     width: { size: CONTENT_WIDTH_DXA, type: WidthType.DXA },
     columnWidths: [LABEL_WIDTH_DXA, VALUE_WIDTH_DXA],
     rows: [
+      summaryHeaderRow(id, CONTROL_SUMMARY_BANNER),
+      ...rows.map(
+        ([label, value]) =>
+          new TableRow({
+            cantSplit: true,
+            children: [
+              textCell(label, { header: true, width: LABEL_WIDTH_DXA }),
+              textCell(value, { width: VALUE_WIDTH_DXA }),
+            ],
+          }),
+      ),
+    ],
+  });
+}
+
+/**
+ * One table for Control Summary Information plus the solution/response so Word
+ * does not separate the answer from its summary across a page break.
+ */
+function controlEntryTable(
+  id: string,
+  rows: ReadonlyArray<readonly [string, string]>,
+  body: readonly Paragraph[],
+  options?: { documented?: boolean },
+): Table {
+  const documented = options?.documented === true;
+  return new Table({
+    width: { size: CONTENT_WIDTH_DXA, type: WidthType.DXA },
+    columnWidths: [LABEL_WIDTH_DXA, VALUE_WIDTH_DXA],
+    rows: [
+      summaryHeaderRow(id, CONTROL_SUMMARY_BANNER),
+      ...rows.map(
+        ([label, value]) =>
+          new TableRow({
+            cantSplit: true,
+            children: [
+              textCell(label, { header: true, width: LABEL_WIDTH_DXA }),
+              textCell(value, { width: VALUE_WIDTH_DXA }),
+            ],
+          }),
+      ),
       new TableRow({
         cantSplit: true,
-        tableHeader: true,
         children: [
-          textCell(id, { header: true, width: LABEL_WIDTH_DXA, shading: headerFill }),
-          textCell(banner, { header: true, width: VALUE_WIDTH_DXA, shading: headerFill }),
+          textCell(solutionBanner(id), {
+            header: true,
+            width: CONTENT_WIDTH_DXA,
+            span: 2,
+            shading: LABEL_SHADING,
+          }),
         ],
       }),
       new TableRow({
-        height: options?.response ? { value: 1400, rule: HeightRule.ATLEAST } : undefined,
+        cantSplit: true,
+        height: documented
+          ? { value: DOCUMENTED_RESPONSE_MIN_HEIGHT_DXA, rule: HeightRule.ATLEAST }
+          : undefined,
         children: [
           tableCell(body, {
             width: CONTENT_WIDTH_DXA,
             span: 2,
+            shading: RESPONSE_BODY_SHADING,
           }),
         ],
       }),
@@ -304,18 +384,26 @@ function warningTable(title: string, explanation: string): Table {
                 spacing: { after: 40 },
                 children: runs(title, { bold: true, color: NAVY }),
               }),
-              ...proseParagraphs(explanation),
             ],
             { width: CONTENT_WIDTH_DXA, shading: WARNING_SHADING },
           ),
+        ],
+      }),
+      new TableRow({
+        cantSplit: true,
+        children: [
+          tableCell(proseParagraphs(explanation, { after: 40 }), {
+            width: CONTENT_WIDTH_DXA,
+            shading: WARNING_SHADING,
+          }),
         ],
       }),
     ],
   });
 }
 
-function gap(): Paragraph {
-  return new Paragraph({ spacing: { after: 120 }, children: [new TextRun("")] });
+function gap(after = 140): Paragraph {
+  return new Paragraph({ spacing: { after }, children: [new TextRun("")] });
 }
 
 function pageBreak(): Paragraph {
@@ -342,7 +430,7 @@ function resolutionStateLabel(resolution: SspParameterResolution): string {
     case "may-use-baseline":
       return "Unresolved — permitted value not accepted";
     case "control-level-unmapped":
-      return "Unresolved — not applied to this part of the requirement";
+      return "Unresolved at this insert. Any permitted or authoritative control-level value below is not mapped to this individual parameter.";
     default:
       return "Unresolved";
   }
@@ -350,10 +438,20 @@ function resolutionStateLabel(resolution: SspParameterResolution): string {
 
 function parameterName(resolution: SspParameterResolution): string {
   const label = resolution.label.trim();
-  if (label && !/_odp\b/i.test(label) && !/^[a-z]{1,4}-\d/i.test(label)) {
-    return label;
+  if (!label) {
+    return "Organization-defined value";
   }
-  return "Organization-defined value";
+  if (/_odp\b/i.test(label) || /^[a-z]{1,4}-\d/i.test(label)) {
+    return "Organization-defined value";
+  }
+  if (label.length > 72) {
+    return label.startsWith("one or more of:")
+      ? "Selection"
+      : label.startsWith("one of:")
+        ? "Selection"
+        : "Organization-defined value";
+  }
+  return label;
 }
 
 function parameterValue(resolution: SspParameterResolution): string {
@@ -373,27 +471,64 @@ function parameterValue(resolution: SspParameterResolution): string {
   return `${state}. ${detail}`;
 }
 
-function assignmentLabel(assignment: SspFrameworkAssignment): string {
-  if (assignment.kind === "additional-guidance") {
-    return `Additional guidance — ${assignment.sourceLabel}`;
-  }
-  return assignment.classificationLabel ?? assignment.sourceLabel;
+function isPermissionRestatement(text: string): boolean {
+  return /^CSP\/CSO may use FedRAMP value\.?$/i.test(text.trim());
 }
 
-function assignmentSource(entry: Il4DetailedEntry): string | null {
-  if (entry.effectiveAssignmentSource === "dod-ssp-addendum-v1.2") {
-    return "DoD Rev. 5 SSP Addendum";
+function assignmentLabel(assignment: SspFrameworkAssignment): string {
+  if (assignment.classificationLabel === "DoD permits FedRAMP value") {
+    if (assignment.sourceLabel.toLowerCase().includes("fedramp")) {
+      return "Permitted FedRAMP value (control-level)";
+    }
+    return "DoD permission to use FedRAMP value (control-level)";
   }
-  if (entry.effectiveAssignmentSource === "fedramp-moderate-baseline") {
-    return "FedRAMP Moderate baseline. DoD permission to use that value does not mean DoD authored it.";
+  if (assignment.classificationLabel) {
+    return assignment.classificationLabel;
   }
-  return null;
+  if (assignment.sourceLabel === "DoD IL4") {
+    return "DoD guidance";
+  }
+  if (assignment.kind === "additional-guidance") {
+    return `${assignment.sourceLabel} guidance`;
+  }
+  return assignment.sourceLabel;
+}
+
+function shouldShowAssignment(
+  entry: Il4DetailedEntry,
+  assignment: SspFrameworkAssignment,
+): boolean {
+  // Permission restatement duplicates Table D-1 / assignment-source rows.
+  if (isPermissionRestatement(assignment.text)) {
+    return false;
+  }
+  if (assignment.sourceLabel === "DoD IL4") {
+    return true;
+  }
+  if (assignment.classificationLabel) {
+    return true;
+  }
+  // Keep conflicting FedRAMP prose when a source conflict is open.
+  if (
+    entry.item.notices.some((notice) => notice.kind === "source-conflict") &&
+    assignment.sourceLabel.toLowerCase().includes("fedramp")
+  ) {
+    return true;
+  }
+  // Skip short FedRAMP alignment notes that only restate the requirement.
+  if (assignment.kind === "additional-guidance") {
+    return false;
+  }
+  return true;
 }
 
 function annotationRow(
   item: SspFrameworkItem,
   annotation: SspFrameworkItem["parameterAnnotations"][number],
-): readonly [string, string] {
+): readonly [string, string] | null {
+  if (annotation.kind === "orphan") {
+    return null;
+  }
   const resolution = item.parameterResolutions.find((row) => row.id === annotation.parameterId);
   const name = resolution ? parameterName(resolution) : "Organization-defined value";
   const prefix = `Parameter ${annotation.parameterId}: `;
@@ -406,7 +541,12 @@ function annotationRow(
     .replaceAll(
       "This project documentation is not used to resolve the insert while overlay mapping remains control-level.",
       "This project note is not used as the requirement value.",
-    );
+    )
+    .replace(
+      /the organization recorded how it proceeded\./i,
+      "The organization recorded how it proceeded.",
+    )
+    .trim();
   const title =
     annotation.kind === "project-documentation"
       ? "Project note (not the requirement value)"
@@ -418,10 +558,8 @@ function annotationRow(
             ? "Operational note (does not replace the requirement value)"
             : annotation.kind === "permitted-baseline-available"
               ? "Permitted value (not accepted)"
-              : annotation.kind === "orphan"
-                ? "Project record outside the current framework"
-                : annotation.title;
-  return [title, `${name}. ${body}`];
+              : annotation.title;
+  return [title, `Applies to ${name}: ${body}`];
 }
 
 function evidenceSummary(item: SspFrameworkItem): string {
@@ -443,7 +581,17 @@ function baselineCell(entry: Il4DetailedEntry): string {
   if (!entry.inFedrampModerate) {
     return "Not present in the FedRAMP Moderate baseline";
   }
-  return "Present in the FedRAMP Moderate baseline. Table D-1 records a parameter adjustment.";
+  return "Present in FedRAMP Moderate; Table D-1 parameter adjustment";
+}
+
+function assignmentSource(entry: Il4DetailedEntry): string | null {
+  if (entry.effectiveAssignmentSource === "dod-ssp-addendum-v1.2") {
+    return "DoD Rev. 5 SSP Addendum";
+  }
+  if (entry.effectiveAssignmentSource === "fedramp-moderate-baseline") {
+    return "FedRAMP Moderate baseline (DoD permission does not mean DoD authored it)";
+  }
+  return null;
 }
 
 function summaryRows(entry: Il4DetailedEntry): Array<readonly [string, string]> {
@@ -460,80 +608,56 @@ function summaryRows(entry: Il4DetailedEntry): Array<readonly [string, string]> 
     rows.push(["Assignment source", source]);
   }
   for (const resolution of item.parameterResolutions) {
-    rows.push([parameterName(resolution), parameterValue(resolution)]);
+    rows.push([`Parameter: ${parameterName(resolution)}`, parameterValue(resolution)]);
   }
   for (const assignment of item.frameworkAssignments) {
+    if (!shouldShowAssignment(entry, assignment)) {
+      continue;
+    }
     rows.push([assignmentLabel(assignment), assignment.text]);
   }
   for (const supplement of item.supplements) {
     rows.push([supplement.sourceLabel, supplement.text]);
   }
   for (const annotation of item.parameterAnnotations) {
-    rows.push(annotationRow(item, annotation));
+    const row = annotationRow(item, annotation);
+    if (row) {
+      rows.push(row);
+    }
   }
   rows.push(["Linked evidence", evidenceSummary(item)]);
   return rows;
 }
 
-function entryChildren(entry: Il4DetailedEntry): FileChild[] {
-  const item = entry.item;
-  const summaryBanner = entry.group === "grr" ? "Requirement summary" : "Control summary";
-  const children: FileChild[] = [
-    heading3(itemHeadingText(entry)),
-    bannerTable(item.displayId, "Requirement", proseParagraphs(item.sourceStatement)),
-    gap(),
-  ];
-  for (const notice of item.notices) {
-    children.push(
-      warningTable(
-        notice.title,
-        notice.explanation.replace(" or computed an effective assignment", ""),
-      ),
-      gap(),
-    );
-  }
-  children.push(summaryTable(item.displayId, summaryBanner, summaryRows(entry)), gap());
-  children.push(
-    bannerTable(
-      item.displayId,
-      "Implementation response",
-      proseParagraphs(completenessText(item.implementationNarrative)),
-      { response: true },
-    ),
-    gap(),
-  );
-  return children;
+function noticeExplanation(text: string): string {
+  return text
+    .replace(" or computed an effective assignment", "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function summaryTable(
-  id: string,
-  banner: string,
-  rows: ReadonlyArray<readonly [string, string]>,
-): Table {
-  return new Table({
-    width: { size: CONTENT_WIDTH_DXA, type: WidthType.DXA },
-    columnWidths: [LABEL_WIDTH_DXA, VALUE_WIDTH_DXA],
-    rows: [
-      new TableRow({
-        cantSplit: true,
-        tableHeader: true,
-        children: [
-          textCell(id, { header: true, width: LABEL_WIDTH_DXA }),
-          textCell(banner, { header: true, width: VALUE_WIDTH_DXA }),
-        ],
-      }),
-      ...rows.map(
-        ([label, value]) =>
-          new TableRow({
-            cantSplit: true,
-            children: [
-              textCell(label, { header: true, width: LABEL_WIDTH_DXA }),
-              textCell(value, { width: VALUE_WIDTH_DXA }),
-            ],
-          }),
-      ),
-    ],
-  });
+function entryChildren(entry: Il4DetailedEntry): FileChild[] {
+  const item = entry.item;
+  const documented = item.implementationNarrative.kind === "documented";
+  const children: FileChild[] = [
+    heading3(itemHeadingText(entry)),
+    // keepNext chains the requirement into the following notice/entry table
+    // so Word does not orphan the control heading on a prior page.
+    ...proseParagraphs(item.sourceStatement, { after: 80, keepNext: true }),
+  ];
+  for (const notice of item.notices) {
+    children.push(warningTable(notice.title, noticeExplanation(notice.explanation)));
+  }
+  children.push(
+    controlEntryTable(
+      item.displayId,
+      summaryRows(entry),
+      proseParagraphs(completenessText(item.implementationNarrative), { after: 60 }),
+      { documented },
+    ),
+    gap(160),
+  );
+  return children;
 }
 
 function documentHeader(document: Il4AddendumDocument): Header {
@@ -541,28 +665,36 @@ function documentHeader(document: Il4AddendumDocument): Header {
     children: [
       new Paragraph({
         border: {
-          bottom: { style: BorderStyle.SINGLE, size: 8, color: NAVY, space: 1 },
+          bottom: { style: BorderStyle.SINGLE, size: 12, color: NAVY, space: 1 },
         },
-        spacing: { after: 60 },
+        spacing: { after: 40 },
         children: [
           new TextRun({
-            text: `${headerSystemLabel(document)} SSP Addendum`,
+            text: "System Security Plan Addendum",
             font: "Calibri",
             size: 18,
+            bold: true,
             color: NAVY,
           }),
+          new TextRun({
+            text: `\t${headerSystemLabel(document)}`,
+            font: "Calibri",
+            size: 18,
+            color: MUTED,
+          }),
         ],
+        tabStops: [{ type: "right", position: CONTENT_WIDTH_DXA }],
       }),
     ],
   });
 }
 
-function documentFooter(): Footer {
+function documentFooter(document: Il4AddendumDocument): Footer {
   return new Footer({
     children: [
       new Paragraph({
         border: {
-          top: { style: BorderStyle.SINGLE, size: 8, color: NAVY, space: 6 },
+          top: { style: BorderStyle.SINGLE, size: 12, color: NAVY, space: 6 },
         },
         children: [
           new TextRun({
@@ -572,7 +704,7 @@ function documentFooter(): Footer {
             color: MUTED,
           }),
           new TextRun({
-            text: "  ·  Generated by Control Freak  ·  Page ",
+            text: `  ·  Generated by ${document.identity.generator}  ·  Page `,
             font: "Calibri",
             size: 16,
             color: MUTED,
@@ -593,14 +725,14 @@ function coverChildren(document: Il4AddendumDocument): FileChild[] {
   const identity = document.identity;
   return [
     new Paragraph({
-      spacing: { before: 560, after: 80 },
+      spacing: { before: 720, after: 120 },
       alignment: AlignmentType.CENTER,
       children: [
         new TextRun({
-          text: "System Security Plan Addendum",
+          text: "DoD Addendum to the FedRAMP Moderate System Security Plan",
           bold: true,
           font: "Calibri",
-          size: 40,
+          size: 36,
           color: NAVY,
         }),
       ],
@@ -610,11 +742,12 @@ function coverChildren(document: Il4AddendumDocument): FileChild[] {
       bold: true,
       size: 28,
       color: STEEL,
-      after: 80,
+      after: 60,
     }),
-    paragraph(identity.documentTitle, {
+    paragraph("System Security Plan Addendum", {
       center: true,
-      size: 22,
+      bold: true,
+      size: 26,
       color: NAVY,
       after: 280,
     }),
@@ -624,9 +757,11 @@ function coverChildren(document: Il4AddendumDocument): FileChild[] {
       ["System identifier", completenessText(identity.systemIdentifier)],
       ["SSP organization", completenessText(identity.sspOrganization)],
       ["Framework", identity.frameworkTitle],
+      ["Generated", identity.generatedAt],
+      ["Prepared with", identity.generator],
     ]),
-    gap(),
-    paragraph(document.coverDisclaimer, { after: 80 }),
+    gap(200),
+    paragraph(document.coverDisclaimer, { after: 80, size: 18, color: MUTED }),
     pageBreak(),
   ];
 }
@@ -635,7 +770,12 @@ function statusChildren(document: Il4AddendumDocument): FileChild[] {
   const identity = document.identity;
   return [
     heading1(SECTION_TITLES.documentStatus),
-    ...document.completenessParagraphs.map((line) => paragraph(line)),
+    paragraph(
+      "This document reflects information recorded in Control Freak at generation time. Missing information uses placeholders. Empty collections mean the topic has not been documented, not that nothing exists.",
+    ),
+    paragraph(
+      "Framework selection identifies the documentation baseline. It is not evidence of certification, assessment, authorization, an Authority to Operate, or a DoD Provisional Authorization.",
+    ),
     pairTable([
       ["Document", identity.documentTitle],
       ["Generator", identity.generator],
@@ -676,17 +816,13 @@ function sourceChildren(document: Il4AddendumDocument): FileChild[] {
   return [
     heading1(SECTION_TITLES.sources),
     paragraph(
-      "Requirements in this addendum are taken from the pinned sources below, through the Control Freak IL4 framework built from them.",
+      "Requirements in this addendum come from the pinned sources below through the Control Freak IL4 framework. Source hashes are recorded in the generation record.",
     ),
-    ...document.sources.flatMap((source) => [
-      pairTable([
-        ["Title", source.title],
-        ["Publisher", source.publisher],
-        ["Version", source.version],
-        ["SHA-256", source.sha256],
-      ]),
-      gap(),
-    ]),
+    gridTable(
+      ["Title", "Publisher", "Version"],
+      document.sources.map((source) => [source.title, source.publisher, source.version]),
+    ),
+    gap(),
   ];
 }
 
@@ -846,7 +982,7 @@ function grrChildren(document: Il4AddendumDocument): FileChild[] {
     pageBreak(),
     heading1(SECTION_TITLES.grrs),
     paragraph(
-      "Each entry is a DoD General Readiness Requirement. The requirement states the question. The implementation response is the project's documentation of how it is met. Implementation status is the project's documentation status. It is not an assessment result or an authorization decision.",
+      "Each entry is a DoD General Readiness Requirement. The requirement states the question. Control Summary Information records documentation status and evidence. The solution table is the project's implementation response. Status is documentation status, not an assessment result.",
     ),
   ];
   for (const entry of document.grrs) {
@@ -855,35 +991,86 @@ function grrChildren(document: Il4AddendumDocument): FileChild[] {
   return children;
 }
 
+function partitionFamilyEntries(entries: readonly Il4DetailedEntry[]): {
+  additional: Il4DetailedEntry[];
+  enhanced: Il4DetailedEntry[];
+} {
+  const additional: Il4DetailedEntry[] = [];
+  const enhanced: Il4DetailedEntry[] = [];
+  for (const entry of entries) {
+    if (entry.group === "nist-not-in-fedramp-moderate") {
+      additional.push(entry);
+    } else {
+      enhanced.push(entry);
+    }
+  }
+  return { additional, enhanced };
+}
+
+function emitFamilySubgroup(
+  children: FileChild[],
+  familyLabel: string,
+  group: Extract<
+    Il4DeltaGroup,
+    "nist-not-in-fedramp-moderate" | "fedramp-moderate-table-d1-adjustment"
+  >,
+  entries: readonly Il4DetailedEntry[],
+  showSubheading: boolean,
+): void {
+  if (entries.length === 0) {
+    return;
+  }
+  if (showSubheading) {
+    children.push(heading3(subgroupHeading(familyLabel, group)));
+  }
+  for (const entry of entries) {
+    children.push(...entryChildren(entry));
+  }
+}
+
 function nistChildren(document: Il4AddendumDocument): FileChild[] {
   const children: FileChild[] = [
     pageBreak(),
     heading1(SECTION_TITLES.nistDelta),
     paragraph(
-      "This section records NIST controls and enhancements that are not in the FedRAMP Moderate baseline, and FedRAMP Moderate controls with a Table D-1 parameter adjustment. The requirement is the authoritative control statement. The implementation response is the project's documentation. Implementation status is not an assessment result.",
-    ),
-    paragraph(
-      "Where an Addendum column marks an item as leveraged from FedRAMP Moderate, that mark is provenance only. It is not the population rule and it is not a leveraged authorization.",
+      "This section records NIST controls and enhancements that are not in the FedRAMP Moderate baseline, and FedRAMP Moderate controls with a Table D-1 parameter adjustment. Families follow the historical Additional controls / Enhanced parameters grouping. The solution table is the project's implementation response.",
     ),
   ];
   for (const family of document.nistFamilies) {
-    children.push(heading2(family.family));
-    for (const entry of family.entries) {
-      children.push(...entryChildren(entry));
-    }
+    const label = familyHeading(family.family, family.entries);
+    const { additional, enhanced } = partitionFamilyEntries(family.entries);
+    children.push(heading2(label));
+    const showSubheading = additional.length > 0 && enhanced.length > 0;
+    emitFamilySubgroup(
+      children,
+      label,
+      "nist-not-in-fedramp-moderate",
+      additional,
+      showSubheading || additional.length > 0,
+    );
+    emitFamilySubgroup(
+      children,
+      label,
+      "fedramp-moderate-table-d1-adjustment",
+      enhanced,
+      showSubheading || enhanced.length > 0,
+    );
   }
   for (const note of document.membershipNotes) {
     children.push(
       heading2(membershipHeading(note.displayId)),
-      paragraph(note.explanation),
-      pairTable([
-        ["Identifier", note.displayId],
+      new Paragraph({
+        keepNext: true,
+        spacing: { after: 100 },
+        children: runs(note.explanation),
+      }),
+      controlSummaryTable(note.displayId, [
         ["Title", note.title],
         ["Family", note.family],
         ["FedRAMP Moderate", "Already present"],
         ["Table D-1", "Inclusion only"],
       ]),
-      gap(),
+      gap(160),
     );
   }
   return children;
@@ -891,9 +1078,10 @@ function nistChildren(document: Il4AddendumDocument): FileChild[] {
 
 function parameterChildren(document: Il4AddendumDocument): FileChild[] {
   return [
+    pageBreak(),
     heading1(SECTION_TITLES.parameters),
     paragraph(
-      "The notes in this section apply to every control and requirement above. They are not repeated on each entry.",
+      "These notes apply to every control and requirement above. They are not repeated on each entry.",
     ),
     ...document.parameterReadingNotes.map((note) => paragraph(note)),
   ];
@@ -903,6 +1091,21 @@ function generationChildren(document: Il4AddendumDocument): FileChild[] {
   return [
     heading1(SECTION_TITLES.generation),
     ...document.generationNotes.map((note) => paragraph(note)),
+    paragraph(
+      "Linked Evidence records are documentation references. They have not been independently assessed or validated merely because they are linked.",
+    ),
+    gap(),
+    gridTable(
+      ["Source", "SHA-256"],
+      document.sources.map((source) => [source.title, source.sha256]),
+    ),
+    gap(),
+    pairTable([
+      ["Layout", `${document.identity.layoutId} ${document.identity.layoutVersion}`],
+      ["Project id", document.identity.projectId],
+      ["Project revision", String(document.identity.projectRevision)],
+      ["Schema version", String(document.identity.projectSchemaVersion)],
+    ]),
   ];
 }
 
@@ -931,7 +1134,12 @@ export async function renderIl4AddendumDocx(
           basedOn: "Normal",
           next: "Normal",
           quickFormat: true,
-          paragraph: { spacing: { before: 360, after: 140 } },
+          paragraph: {
+            spacing: { before: 360, after: 140 },
+            border: {
+              bottom: { style: BorderStyle.SINGLE, size: 12, color: NAVY, space: 4 },
+            },
+          },
           run: { font: "Calibri", size: 32, bold: true, color: NAVY },
         },
         {
@@ -940,7 +1148,7 @@ export async function renderIl4AddendumDocx(
           basedOn: "Normal",
           next: "Normal",
           quickFormat: true,
-          paragraph: { spacing: { before: 280, after: 100 } },
+          paragraph: { spacing: { before: 320, after: 100 } },
           run: { font: "Calibri", size: 26, bold: true, color: STEEL },
         },
         {
@@ -971,7 +1179,7 @@ export async function renderIl4AddendumDocx(
           },
         },
         headers: { default: documentHeader(document) },
-        footers: { default: documentFooter() },
+        footers: { default: documentFooter(document) },
         children: [
           ...coverChildren(document),
           ...statusChildren(document),

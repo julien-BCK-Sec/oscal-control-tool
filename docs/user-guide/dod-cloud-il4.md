@@ -243,7 +243,10 @@ authoritative-value-required items stay unresolved.
 
 It is not an official DoD, DISA, or FedRAMP template, and generating it does
 not establish an authorization. Word refreshes the table of contents when
-the file is opened. See [Human-readable SSP](/help/human-readable-ssp).
+the file is opened. Long control entries can still show occasional page
+breaks between related blocks. Authoritative requirement and overlay text
+is printed as stored, including source spacing or spelling anomalies.
+See [Human-readable SSP](/help/human-readable-ssp).
 
 ## OSCAL export
 

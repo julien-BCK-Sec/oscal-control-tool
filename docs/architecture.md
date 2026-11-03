@@ -269,8 +269,8 @@ in the generic SSP. The first export adds no canonical fields and does not
 change parameter resolution or SSP synthesis. See
 `docs/research/09B-dod-il4-ssp-addendum-information-model-and-document-specification.md`.
 
-Milestone 09D (implemented, pending acceptance): programmatic DOCX
-generation with the existing `docx` dependency and layout
+Milestone 09D (implemented and manually accepted 2026-11-03): programmatic
+DOCX generation with the existing `docx` dependency and layout
 `cf-il4-addendum-docx` 1.0. The view model in `src/il4-addendum/` filters
 the canonical IL4 framework. General Readiness Requirements and FedRAMP
 membership come from the framework read model. Table D-1 adjustment kind
@@ -282,7 +282,9 @@ decide membership or resolution. Export is
 authentication and tenant rules as the generic SSP, and only for
 `dod-cloud-il4-rev5`. IL4 OSCAL export stays disabled. The file is not
 stored and is not a production release. Word refreshes table-of-contents
-page numbers on open. 09C is not required.
+page numbers on open. Occasional pagination splits in long entries and
+preserved authoritative source-text anomalies are known non-blocking
+limitations. 09C is not required.
 
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.

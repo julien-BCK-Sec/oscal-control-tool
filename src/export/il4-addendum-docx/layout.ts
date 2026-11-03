@@ -3,12 +3,12 @@
  * Presentation only. Population and parameter decisions stay in the view model.
  *
  * Visual language follows the historical IL4 SSP Addendum as a document type:
- * centered cover, shaded label tables, and a repeated requirement / summary /
- * response rhythm. It does not copy official seals, classification markings,
- * or obsolete control content.
+ * formal cover stack, shaded Control Summary Information tables, and a
+ * requirement → summary → solution/response rhythm. It does not copy official
+ * seals, classification markings, or obsolete control content.
  */
 
-import type { Il4AddendumDocument, Il4DetailedEntry } from "@/il4-addendum";
+import type { Il4AddendumDocument, Il4DetailedEntry, Il4DeltaGroup } from "@/il4-addendum";
 
 export const IL4_ADDENDUM_DOCX_CONTENT_TYPE =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -19,30 +19,36 @@ export const NAVY = "17365D";
 export const STEEL = "4F81BD";
 /** Historical table-header fill. */
 export const LABEL_FILL = "DBE5F1";
-/** Slightly stronger band so the implementation response reads as the answer area. */
-export const RESPONSE_FILL = "C5D4E8";
+/** White / clear body for response answer cells. */
+export const RESPONSE_BODY_FILL = "FFFFFF";
 /** Warm band for source-conflict and authoritative-value warnings. */
 export const WARNING_FILL = "FBF3D5";
-export const RULE = "8FA4BF";
+export const RULE = "8DB3E2";
 export const PLACEHOLDER_COLOR = "666666";
 export const MUTED = "5C6770";
 
 export const SECTION_TITLES = {
-  documentStatus: "Document status and generation metadata",
-  tableOfContents: "Table of contents",
-  purpose: "1. Purpose and scope",
-  sources: "2. Source provenance",
-  identification: "3. System identification",
-  boundary: "4. Authorization boundary and environment",
-  categorization: "5. Security categorization and information types",
-  roles: "6. Roles",
-  interconnections: "7. System interconnections",
-  population: "8. Addendum population",
+  documentStatus: "Document Status and Generation Metadata",
+  tableOfContents: "Contents",
+  purpose: "1. Purpose and Scope",
+  sources: "2. Source Provenance",
+  identification: "3. System Identification",
+  boundary: "4. Information System Component and Boundaries",
+  categorization: "5. Cloud Service Offering Categorization",
+  roles: "6. Assignment of Security Responsibility",
+  interconnections: "7. System Interconnections",
+  population: "8. IL4 Addendum Population",
   grrs: "9. DoD General Readiness Requirements",
-  nistDelta: "10. NIST controls and enhancements",
-  parameters: "11. How to read parameters and assignments",
-  generation: "12. Generation record",
+  nistDelta: "10. Information Impact Level 4 DoD NIST SP 800-53 Controls",
+  parameters: "11. Parameter Interpretation Notes",
+  generation: "12. Generation Record",
 } as const;
+
+export const CONTROL_SUMMARY_BANNER = "Control Summary Information";
+
+export function solutionBanner(displayId: string): string {
+  return `${displayId} What is the solution and how is it implemented?`;
+}
 
 export function itemHeadingText(entry: Il4DetailedEntry): string {
   const title = entry.item.title.trim() || entry.item.displayId;
@@ -50,7 +56,29 @@ export function itemHeadingText(entry: Il4DetailedEntry): string {
 }
 
 export function membershipHeading(displayId: string): string {
-  return `${displayId} membership`;
+  return `${displayId} Membership Note`;
+}
+
+export function familyHeading(
+  family: string,
+  entries: readonly Il4DetailedEntry[],
+): string {
+  const displayId = entries[0]?.item.displayId ?? "";
+  const match = /^([A-Z]{1,4})(?:-|\s)/.exec(displayId);
+  return match ? `${family} (${match[1]})` : family;
+}
+
+export function subgroupHeading(
+  familyLabel: string,
+  group: Extract<
+    Il4DeltaGroup,
+    "nist-not-in-fedramp-moderate" | "fedramp-moderate-table-d1-adjustment"
+  >,
+): string {
+  if (group === "nist-not-in-fedramp-moderate") {
+    return `${familyLabel} — Additional controls`;
+  }
+  return `${familyLabel} — Enhanced parameters`;
 }
 
 export type TocHeading = {
@@ -74,7 +102,7 @@ export function tocHeadings(document: Il4AddendumDocument): TocHeading[] {
     { title: SECTION_TITLES.nistDelta, level: 1 },
   ];
   for (const family of document.nistFamilies) {
-    headings.push({ title: family.family, level: 2 });
+    headings.push({ title: familyHeading(family.family, family.entries), level: 2 });
   }
   for (const note of document.membershipNotes) {
     headings.push({ title: membershipHeading(note.displayId), level: 2 });

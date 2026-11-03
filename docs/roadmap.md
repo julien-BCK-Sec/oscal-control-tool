@@ -425,7 +425,7 @@ that an entire control is satisfied.
   = 345. It is generated from the pinned Rev. 5 sources with layout
   `cf-il4-addendum-docx` 1.0. It is not a filled copy of the historical
   file. 09C is not required for that export. 09D is implemented and
-  pending acceptance. It is not released or deployed.
+  manually accepted (2026-11-03). It is not tagged, released, or deployed.
 
 - **Template-driven authorization packages** — maintain versioned output
   templates separately from project data so government/program template

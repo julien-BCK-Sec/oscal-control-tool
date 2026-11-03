@@ -110,7 +110,7 @@ describe("renderIl4AddendumDocx", () => {
         );
       }
     }
-    assert.match(text, /SC-18 membership/);
+    assert.match(text, /SC-18 Membership Note/);
     assert.match(text, /inclusion-only/);
     assert.doesNotMatch(text, /AC-1 Policy and Procedures/);
     assert.doesNotMatch(text, /AC-2 Account Management/);
@@ -129,11 +129,19 @@ describe("renderIl4AddendumDocx", () => {
     assert.match(text, /\[Not yet documented: Authorization boundary\]/);
     assert.match(text, /not a claim that none exist/);
     assert.match(text, /Word refreshes this table of contents/);
-    assert.match(text, /Implementation response/);
+    assert.match(text, /Control Summary Information/);
+    assert.match(text, /What is the solution and how is it implemented\?/);
+    assert.match(text, /Additional controls|Enhanced parameters/);
+    assert.match(text, /DoD Addendum to the FedRAMP Moderate System Security Plan/);
     assert.match(text, /System Security Plan Addendum/);
     assert.doesNotMatch(text, /_odp/);
     assert.doesNotMatch(text, /authoritative value required/);
     assert.doesNotMatch(text, /control-level value is not mapped/);
+    assert.match(text, /Unresolved at this insert/);
+    assert.match(text, /not mapped to this individual parameter/);
+    assert.match(text, /Permitted FedRAMP value \(control-level\)/);
+    assert.doesNotMatch(text, /CSP\/CSO may use FedRAMP value/);
+    assert.match(text, /Applies to number:/);
     assert.match(text, /not used as the requirement value/);
     assert.match(text, /does not resolve the source conflict/);
   });
