@@ -65,8 +65,12 @@ describe("SSP DOCX framework generation", () => {
     const xml = readZipTextEntries(buffer).get("word/document.xml") ?? "";
     assert.match(xml, /AC-1/);
     assert.match(xml, /AC-2 \(1\)/);
-    assert.match(xml, /Unresolved ODP:/);
+    assert.match(xml, /Unresolved/);
     assert.doesNotMatch(xml, /\{\{\s*insert:\s*param/);
+    assert.match(xml, /Control Summary Information/);
+    assert.match(xml, /What is the solution and how is it implemented/);
+    assert.match(xml, /2\.0/);
+    assert.match(xml, /does not equate that framework with a FedRAMP Moderate authorization package/);
     console.info("nist moderate ssp.docx generation", {
       byteLength: buffer.byteLength,
       elapsedMs,
@@ -117,6 +121,9 @@ describe("SSP DOCX framework generation", () => {
     assert.match(xml, /DoD assignment required/);
     assert.match(xml, /Source interpretation requires review/);
     assert.match(xml, /Conditional: Cross Domain Solution \(CDS\)/);
+    assert.match(xml, /IL4 SSP Addendum/);
+    assert.match(xml, /Control Summary Information/);
+    assert.match(xml, /2\.0/);
     assert.match(
       xml,
       /not evidence of certification, assessment, authorization, an Authority to Operate, or a DoD Provisional Authorization/,

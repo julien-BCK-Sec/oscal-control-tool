@@ -35,7 +35,7 @@ It is not an official DoD template. See
 Control Freak has two sibling exports:
 
 - **Export human-readable SSP (Word)** — a Control Freak-owned working
-  security document (`cf-ssp-docx` layout 1.0).
+  security document (`cf-ssp-docx` layout 2.0).
 - **Export OSCAL SSP (JSON)** — a machine-readable OSCAL 1.2.2 SSP, available
   only for NIST SP 800-53 projects.
 
@@ -60,18 +60,16 @@ matches operational Evidence from that time.
 ## Organization-defined parameters
 
 Catalog organization-defined parameters may be resolved individually in
-this document. The **authoritative source statement** keeps unresolved
-placeholders. A **resolved requirement** substitutes only values the
-parameter-resolution engine allows: project-authored assignments,
-framework-authoritative mapped values, and explicitly accepted permitted
-baselines.
+this document. When parameter resolution applies, the Word file presents the
+**resolved requirement** prominently. The separate **authoritative source
+statement** appears only when it is materially different from the resolved
+text. Unresolved inserts remain visible as placeholders.
 
 If only some inserts can be resolved, the resolved requirement mixes
-substituted values with `[Unresolved ODP: …]` placeholders. The following
-**Unresolved organization-defined parameters** list is taken from those
-remaining inserts, not from every catalog parameter on the control.
-Control Freak does not mark a whole control resolved because some ODPs
-have values.
+substituted values with unresolved placeholders. Control Freak does not mark
+a whole control resolved because some ODPs have values. When several
+parameters share the same readable label inside one control, the summary
+table numbers them by occurrence order so they stay distinguishable.
 
 These remain separate from the resolved insert:
 
@@ -107,11 +105,15 @@ Binaries are not embedded.
 
 ## Supported document sections
 
-The V1 Word document includes a cover, document status, table of contents,
-system identification and overview, system roles, authorization boundary and
-environment, information types and security categorization, interconnections,
-framework item implementations, and generation metadata. Diagrams are not
-included.
+The Word document (`cf-ssp-docx` layout 2.0) includes a cover, document
+status and generation information, purpose and scope, table of contents,
+system identification and description, authorization boundary and
+environment, security categorization and information types, system roles,
+interconnections, framework item implementations (Control Summary
+Information and solution/response), and a generation record. Diagrams and
+other official FedRAMP package-only tables are not included; purpose/scope
+names those deferrals explicitly.
 
 Word refreshes the table of contents when the document is opened. Cached
-contents do not invent page numbers.
+contents do not invent page numbers. Occasional pagination splits in long
+control entries can remain.

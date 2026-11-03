@@ -14,7 +14,7 @@ import type { StoredProject } from "@/persistence/types";
 
 export const CF_SSP_DOCUMENT_TYPE = "Control Freak System Security Plan" as const;
 export const CF_SSP_LAYOUT_ID = "cf-ssp-docx" as const;
-export const CF_SSP_LAYOUT_VERSION = "1.0" as const;
+export const CF_SSP_LAYOUT_VERSION = "2.0" as const;
 
 export type SspCompleteness =
   | { kind: "documented"; text: string }

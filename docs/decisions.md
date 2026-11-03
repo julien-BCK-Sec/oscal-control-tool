@@ -1358,3 +1358,76 @@ Reason:
 Date:
 2026-09-28
 
+
+## ADR-035
+
+Status:
+**Accepted.** Architecture review 2026-11-03. Decisions D1–D10 from
+Milestone 09E Phase 1 are accepted, including the D8 clarification that
+framework labeling must use the actual selected framework name.
+
+Decision:
+The Control Freak general System Security Plan Word export remains a
+Control Freak-owned programmatic layout. Layout identity advances from
+`cf-ssp-docx` 1.0 to **`cf-ssp-docx` 2.0**. The document type remains
+“Control Freak System Security Plan.”
+
+The pinned FedRAMP Rev. 5 Word SSP front-matter template and Appendix A
+Moderate control template under `vendor/fedramp/ssp-rev5/` are immutable
+**structural and presentation references only**. Control Freak does **not**
+fill those DOCX files as export shells. FedRAMP currently marks them as
+legacy during the Consolidated Rules 2026 transition; they are not treated
+as current FedRAMP submission authority. Official FedRAMP-template
+population remains a separate roadmap authorization-package track.
+
+Presentation for 2.0 reuses formal patterns proven in the IL4 Addendum
+renderer (`cf-il4-addendum-docx` 1.0)—cover identity, navy/steel/Calibri
+visual language, Control Summary Information tables, and a
+“What is the solution and how is it implemented?” response region—without
+coupling the general SSP renderer to IL4 delta population logic. The 09D
+Addendum behavior is unchanged. For DoD IL4 projects, the general SSP
+continues to print the full selected framework population; the Addendum
+remains a separate companion export.
+
+Canonical SSP synthesis (`src/ssp`), parameter-resolution semantics
+(ADR-032), framework membership and control populations, and the
+authenticated `GET .../exports/ssp.docx` contract (`project.read`) remain
+unchanged. No `project_json` schema change is required for the first
+implementation pass.
+
+Unsupported FedRAMP package concepts—including leveraged FedRAMP-authorized
+services tables, marketplace-shaped external-service tables, architecture
+diagrams, ports/protocols/services inventories, cryptographic-module
+tables, separation-of-duties matrices, approvals/signatures, appendices
+B–Q, per-control Responsible Role, and Control Origination checkboxes—are
+named once in a purpose/scope statement. They are not printed as empty
+official-looking tables and are not inferred.
+
+Framework labeling uses the **actual selected framework** title and
+identity. NIST SP 800-53 Rev. 5 Moderate projects are labeled as NIST
+Moderate documentation. They are **not** equated with FedRAMP Moderate and
+must not imply FedRAMP authorization. DoD IL4 projects retain accurate IL4
+framework labeling and the separate 09D Addendum relationship. CMMC and
+other supported frameworks keep honest framework-aware labels and must not
+be mislabeled as FedRAMP-authorized.
+
+Missing values, unresolved organization-defined parameters, source
+conflicts, and unavailable system metadata remain visibly unresolved.
+Implementation documentation status remains `ControlImplementation.status`.
+Linked Evidence remains a documentation reference, not an assessment.
+
+Authoritative research:
+`docs/research/09E-fedramp-rev5-ssp-docx-architecture-review.md`.
+Pins and hashes: `vendor/fedramp/ssp-rev5/SOURCES.md`.
+
+Reason:
+- V1 synthesis is already correct; the remaining gap is formal presentation.
+- Filling the official FedRAMP Word shell would invent package identity the
+  product does not have and would conflict with ADR-031.
+- Reusing 09D patterns keeps document quality consistent without duplicating
+  IL4 delta semantics into the general SSP.
+- Honest framework naming prevents NIST Moderate from being mistaken for a
+  FedRAMP Moderate authorization package.
+
+Date:
+2026-11-03

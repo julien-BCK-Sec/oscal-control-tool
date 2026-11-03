@@ -212,11 +212,11 @@ Milestone 07A capabilities:
   OSCAL export remains disabled
 - Diagrams were not modeled in 07A and remain deferred
 
-Milestone 07B capabilities:
+Milestone 07B capabilities (presentation modernized by Milestone 09E):
 
 - Control Freak System Security Plan document/view model (`src/ssp/`) independent
   of DOCX and OSCAL
-- Programmatic layout `cf-ssp-docx` version 1.0
+- Programmatic layout `cf-ssp-docx` version 2.0 (ADR-035; Milestone 09E)
 - On-demand in-memory Word export via `GET /api/projects/[projectId]/exports/ssp.docx`
   (Node runtime, `project.read`, tenant isolation)
 - Available for all currently supported frameworks; OSCAL SSP export remains
@@ -228,9 +228,14 @@ Milestone 07B capabilities:
 - 07C synthesizes a resolved requirement from the SSP document model using
   the domain resolution engine (ADR-032). The unresolved-parameter list is
   the remaining inserts from that same walk, not a second inference from
-  the source statement.
+  the source statement. The 09E renderer presents the resolved requirement
+  prominently and prints the authoritative source only when materially
+  different.
 - No new SQL migration
-- Diagrams remain deferred
+- Diagrams and official FedRAMP package fields remain deferred (named in
+  SSP purpose/scope; not empty official tables)
+- Known presentation limitations: occasional control-summary pagination
+  splits; Word refreshes TOC/page numbers on open
 
 Milestone 07C (implemented, manually accepted, included in v0.8.0 being
 prepared): per-ODP catalog identity, immutable framework parameter
@@ -343,9 +348,11 @@ Examples:
 
 - Control Freak System Security Plan (Word). Canonical domain data is mapped
   into an SSP document/view model (`src/ssp/`), then rendered with the
-  `cf-ssp-docx` 1.0 layout (`src/export/ssp-docx/`). Generation is server-side
-  and in memory. The Word file is not OSCAL, not an official FedRAMP/DoD/CMMC
-  package, and not stored.
+  `cf-ssp-docx` 2.0 layout (`src/export/ssp-docx/`, ADR-035 / Milestone 09E).
+  Generation is server-side and in memory. The Word file is not OSCAL, not an
+  official FedRAMP/DoD/CMMC package, and not stored. Framework labeling uses
+  the actual selected framework name. The DoD IL4 Addendum remains a separate
+  companion export (`cf-il4-addendum-docx` 1.0).
 
 - PDF (future)
 

@@ -64,7 +64,7 @@ The application currently provides:
   resolution (`project_json` schema v3; ADR-032). IL4 per-ODP mappings
   remain empty and fail closed. OSCAL `set-parameters` are not emitted.
 - Control Freak System Security Plan Word export for all currently supported
-  frameworks (`cf-ssp-docx` 1.0). The file is generated on demand from saved
+  frameworks (`cf-ssp-docx` 2.0; ADR-035). The file is generated on demand from saved
   server state. Missing information appears as placeholders. It is not OSCAL,
   not an official FedRAMP/DoD/CMMC package, and not stored.
 - DoD IL4 SSP Addendum Word export (`cf-il4-addendum-docx` 1.0) for
@@ -146,7 +146,7 @@ fields and no longer copies overview into `authorization-boundary` or
 organization name into `system-owner`.
 
 07B generates a human-readable SSP through canonical project data →
-document/view model → Control Freak layout `cf-ssp-docx` 1.0 → in-memory
+document/view model → Control Freak layout `cf-ssp-docx` 2.0 → in-memory
 Word/DOCX (`docx@9.7.1` exact pin). The file is authenticated,
 server-side, and not persisted. It covers NIST Low/Moderate/High, CMMC
 Level 2, and DoD IL4 documentation frameworks. Missing system
@@ -154,8 +154,9 @@ information uses placeholders; unresolved ODPs stay unresolved unless a
 07C parameter record or mapped framework value can be substituted.
 Implementation documentation status is not compliance status. Linked
 Evidence is reference material, not automatically assessed. Local demo
-smoke (2026-09-17) downloaded and opened a Word SSP; V1 layout is
-functional, not the final desired presentation.
+smoke (2026-09-17) downloaded and opened a Word SSP. Layout later advanced
+to `cf-ssp-docx` 2.0 under Milestone 09E (ADR-035) and was manually
+accepted (2026-11-03).
 
 This is not an official FedRAMP SSP/package, DoD authorization package,
 CMMC assessment artifact, or a certification/ATO/PA claim.
@@ -226,8 +227,9 @@ for NIST Moderate, CMMC, and IL4: Word MIME type, safe `.docx` filename,
 non-empty valid DOCX, Control Freak SSP identity, disclaimer language,
 system-characteristics sections, security-requirements/control
 implementations, unresolved ODP treatment, and generation metadata.
-V1 layout `cf-ssp-docx` 1.0 remains functional, not the final desired
-presentation. NIST OSCAL SSP export remains available; CMMC and IL4 OSCAL
+Layout `cf-ssp-docx` 2.0 (Milestone 09E; ADR-035; manually accepted
+2026-11-03) modernizes presentation while preserving synthesis and export
+auth. NIST OSCAL SSP export remains available; CMMC and IL4 OSCAL
 SSP export remain unavailable. CMMC Word SSP uses requirement framing and
 does not invent MET/NOT MET/SPRS/certification claims. IL4 population
 remains 345 with first-class GRRs. Representative IL4 semantics hold:
@@ -671,12 +673,25 @@ tables, and a requirement / summary / solution rhythm with Additional
 controls and Enhanced parameters family grouping. Control Freak is
 identified as the generator. The workspace shows **IL4 Addendum (Word)**
 only for `dod-cloud-il4-rev5`. Generic SSP export and NIST OSCAL export are
-unchanged. IL4 OSCAL export remains unavailable. No schema migration or new
+unchanged by 09D. IL4 OSCAL export remains unavailable. No schema migration or new
 dependency was introduced. Known non-blocking limitations: Word refreshes
 TOC page numbers on open; occasional pagination splits can remain in long
 entries; authoritative source-text anomalies (for example IA-5(1) DoD
 guidance spacing and known GRR extract typos) are preserved rather than
 silently edited. 09D is accepted on `main` but not tagged, released, or
+deployed.
+
+Milestone **09E** is **implemented and manually accepted** (2026-11-03).
+ADR-035. General SSP layout is **`cf-ssp-docx` 2.0**: formal cover,
+purpose/scope with explicit deferrals, Control Summary Information +
+solution-response control entries, and 09D-inspired visual language,
+without filling the official FedRAMP Word shell and without changing
+synthesis, parameter resolution, populations, export auth, or 09D.
+Framework labeling uses the actual selected framework name. Sample tooling:
+`scripts/generate-ssp-docx-samples.ts`. Known non-blocking limitations:
+occasional control-summary pagination splits; Word refreshes TOC/page
+numbers on open; deferred official FedRAMP package fields remain named in
+scope only. 09E is accepted on `main` but not tagged, released, or
 deployed.
 
 ## Next approved milestone
@@ -685,13 +700,15 @@ Do not begin Milestone 08B. Do not begin Milestone 09C. Do not start another
 milestone without explicit authorization. Milestones **07C** and **08A**
 are accepted and included in **v0.8.0**, which is being prepared for tag
 and production deploy. **v0.7.0** remains the live production revision
-until that release is verified. Milestone **09D** is accepted and is not
-part of the live production revision until a later authorized release
-includes it. Accepted architecture is ADR-032, ADR-033, and ADR-034.
+until that release is verified. Milestones **09D** and **09E** are accepted
+and are not part of the live production revision until a later authorized
+release includes them. Accepted architecture includes ADR-032, ADR-033,
+ADR-034, and ADR-035.
 
-The Control Freak SSP V1 is a human-readable product artifact informed by
-NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into
-Word, not a FedRAMP package, and not a DoD PA/ATO package.
+The Control Freak SSP is a human-readable product artifact informed by
+NIST SP 800-18 Rev. 2 concepts and FedRAMP Rev. 5 presentation conventions.
+It is not an OSCAL document rendered into Word, not a FedRAMP package, and
+not a DoD PA/ATO package.
 
 Word/PDF authorization-package export for official FedRAMP/DoD templates
 and future IL5/IL6 work remain unscheduled on `docs/roadmap.md`.

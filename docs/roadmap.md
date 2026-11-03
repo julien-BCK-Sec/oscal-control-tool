@@ -171,17 +171,16 @@ ADR-030.
 
 **Milestone 07B – Human-Readable SSP DOCX V1** (implemented, manually accepted, released as v0.7.0, production verified)
 
-Control Freak System Security Plan Word export (`cf-ssp-docx` 1.0) generated
-on demand from saved project data. Document/view model in `src/ssp/` is
-independent of DOCX. Missing information uses render-only placeholders.
-Empty collections mean not documented. Organization-defined parameters
-remain unresolved; overlay assignments stay separate from source
-statements. Available for all currently supported frameworks. OSCAL SSP
-export remains a sibling NIST-only path. No new persistence or schema.
-Diagrams remain deferred. Local demo smoke (2026-09-17) downloaded and
-opened a Word SSP from the UI; V1 layout is functional, not final
-presentation. See
-`docs/milestones/07B-human-readable-ssp-docx-v1.md` and ADR-031.
+Control Freak System Security Plan Word export generated on demand from
+saved project data. Document/view model in `src/ssp/` is independent of
+DOCX. Missing information uses render-only placeholders. Empty collections
+mean not documented. Organization-defined parameters remain unresolved;
+overlay assignments stay separate from source statements. Available for all
+currently supported frameworks. OSCAL SSP export remains a sibling NIST-only
+path. No new persistence or schema. Diagrams remain deferred. Local demo
+smoke (2026-09-17) downloaded and opened a Word SSP from the UI. Layout
+identity later advanced to `cf-ssp-docx` 2.0 in Milestone 09E (ADR-035).
+See `docs/milestones/07B-human-readable-ssp-docx-v1.md` and ADR-031.
 
 **Milestone 07C – Parameter and Control Fidelity** (implemented, manually accepted, included in v0.8.0 being prepared)
 
@@ -222,6 +221,15 @@ templates, and generated prose are not the product domain.
   characteristics plus control implementation content. Explicit missing-data
   placeholders. No false compliance/authorization claims. Diagrams remain
   deferred. Official FedRAMP/DoD package templates remain later work.
+  Presentation modernized to `cf-ssp-docx` 2.0 in Milestone 09E (ADR-035;
+  manually accepted 2026-11-03; not tagged/released/deployed).
+
+- **09E — General SSP DOCX Modernization** (implemented, manually accepted
+  2026-11-03; not tagged/released/deployed) — Control Freak-owned
+  `cf-ssp-docx` 2.0 presentation informed by FedRAMP Rev. 5 Word conventions
+  without filling official templates. Preserves synthesis, parameter
+  resolution, populations, export auth, and the 09D IL4 Addendum. See
+  `docs/milestones/09E-fedramp-rev5-ssp-docx-modernization.md` and ADR-035.
 
 - **07C — Parameter and Control Fidelity** (implemented, manually accepted, included in v0.8.0 being prepared) — per-ODP framework resolution,
   project-authored ODP values, per-ODP provenance, and safer requirement
@@ -426,6 +434,8 @@ that an entire control is satisfied.
   `cf-il4-addendum-docx` 1.0. It is not a filled copy of the historical
   file. 09C is not required for that export. 09D is implemented and
   manually accepted (2026-11-03). It is not tagged, released, or deployed.
+  Milestone 09E modernizes the companion general SSP to `cf-ssp-docx` 2.0
+  (manually accepted 2026-11-03; ADR-035) without changing 09D behavior.
 
 - **Template-driven authorization packages** — maintain versioned output
   templates separately from project data so government/program template
