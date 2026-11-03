@@ -235,6 +235,9 @@ describe("getHelpSearchIndex", () => {
       page!.headings.some((heading) => heading.id === "dod-assignment-required"),
     );
     assert.ok(
+      page!.headings.some((heading) => heading.id === "il4-addendum-word"),
+    );
+    assert.ok(
       page!.headings.some(
         (heading) => heading.id === "source-interpretation-requires-review",
       ),

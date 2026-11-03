@@ -266,11 +266,23 @@ over the existing 345-item framework.
 The 32 detailed items are 10 GRRs + 22 NIST controls/enhancements.
 SC-18 is a membership note. The remaining FedRAMP Moderate controls stay
 in the generic SSP. The first export adds no canonical fields and does not
-change parameter resolution or SSP synthesis. The accepted renderer is
-programmatic generation with the existing `docx` dependency and layout
-`cf-il4-addendum-docx` 1.0. That renderer is not implemented. 09C is not
-required. 09D is the next implementation milestone and is not started. See
+change parameter resolution or SSP synthesis. See
 `docs/research/09B-dod-il4-ssp-addendum-information-model-and-document-specification.md`.
+
+Milestone 09D (implemented, pending acceptance): programmatic DOCX
+generation with the existing `docx` dependency and layout
+`cf-il4-addendum-docx` 1.0. The view model in `src/il4-addendum/` filters
+the canonical IL4 framework. General Readiness Requirements and FedRAMP
+membership come from the framework read model. Table D-1 adjustment kind
+comes from the pinned Appendix D extract and must agree with each control's
+policy cross-check. Statements, parameters, system characteristics, and
+Evidence metadata are the existing SSP synthesis. The renderer does not
+decide membership or resolution. Export is
+`GET /api/projects/[projectId]/exports/il4-addendum.docx`, with the same
+authentication and tenant rules as the generic SSP, and only for
+`dod-cloud-il4-rev5`. IL4 OSCAL export stays disabled. The file is not
+stored and is not a production release. Word refreshes table-of-contents
+page numbers on open. 09C is not required.
 
 Actor identity for activity rows comes from the authenticated session for user
 actions and from the System actor for automated operations.

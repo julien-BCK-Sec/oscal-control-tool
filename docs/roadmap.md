@@ -424,8 +424,8 @@ that an entire control is satisfied.
   + 1 SC-18 membership note + 312 FedRAMP Moderate items not reprinted
   = 345. It is generated from the pinned Rev. 5 sources with layout
   `cf-il4-addendum-docx` 1.0. It is not a filled copy of the historical
-  file. 09C is not required for that export. 09D is the next
-  implementation milestone and is not started.
+  file. 09C is not required for that export. 09D is implemented and
+  pending acceptance. It is not released or deployed.
 
 - **Template-driven authorization packages** — maintain versioned output
   templates separately from project data so government/program template

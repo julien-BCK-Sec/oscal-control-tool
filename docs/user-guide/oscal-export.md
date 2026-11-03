@@ -39,7 +39,8 @@ details and Overview tabs explain this directly:
 
 ## DoD Cloud IL4 projects do not have this button
 
-DoD Cloud Impact Level 4 projects also do not offer OSCAL export. Control
+DoD Cloud Impact Level 4 projects also do not offer OSCAL export. They can
+export the generic Word SSP and the IL4 Addendum Word file. Control
 Freak does not currently have an approved, pinned authoritative OSCAL
 profile capable of representing the implemented IL4 framework. That is
 not a claim that OSCAL cannot represent overlays.

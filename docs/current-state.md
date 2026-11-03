@@ -67,6 +67,12 @@ The application currently provides:
   frameworks (`cf-ssp-docx` 1.0). The file is generated on demand from saved
   server state. Missing information appears as placeholders. It is not OSCAL,
   not an official FedRAMP/DoD/CMMC package, and not stored.
+- DoD IL4 SSP Addendum Word export (`cf-il4-addendum-docx` 1.0) for
+  `dod-cloud-il4-rev5` projects only. It is a delta document: 10 General
+  Readiness Requirements, 22 NIST delta items, one SC-18 membership note, and
+  312 FedRAMP Moderate items not reprinted. It reuses SSP synthesis and does
+  not enable IL4 OSCAL export. It is not an official DoD template, not stored,
+  and not a production release. Word refreshes the table of contents on open.
 - OSCAL SSP export and schema validation for NIST SP 800-53 projects
   (unavailable for CMMC and DoD Cloud IL4; no official CMMC / SP 800-171
   Rev. 2, FedRAMP, or DoD IL4 OSCAL profile). The adapter consumes authored
@@ -650,19 +656,30 @@ FedRAMP Moderate, plus 10 FedRAMP Moderate controls with a Table D-1
 parameter adjustment). SC-18 is the membership note. The first export
 needs no new canonical fields. Parameter resolution, SSP synthesis, the
 IL4 per-ODP mapping set, and `ControlImplementation.status` are unchanged.
-09C is not required. No schema, UI, or renderer change was made. See
+09C is not required. See
 `docs/research/09B-dod-il4-ssp-addendum-information-model-and-document-specification.md`.
+
+Milestone **09D** is **implemented and pending acceptance**. It generates
+the addendum as layout `cf-il4-addendum-docx` 1.0 from the canonical IL4
+framework, the pinned Table D-1 adjustment kinds, and the existing SSP
+synthesis path. The Word file uses an SSP-addendum presentation: a system
+title page, numbered sections, shaded label tables, and a repeated
+requirement, summary, and implementation-response rhythm. Control Freak is
+identified as the generator and does not lead the page. The workspace shows
+**IL4 Addendum (Word)** only for `dod-cloud-il4-rev5`. Generic SSP export
+and NIST OSCAL export are unchanged. IL4 OSCAL export remains unavailable.
+No schema migration, new dependency, or production deploy is included. 09D
+is not accepted, tagged, or released.
 
 ## Next approved milestone
 
-Do not begin Milestone 08B. Do not begin Milestone 09C; it is not required
-for the first IL4 addendum export. The next implementation milestone is
-**09D** (DoD IL4 SSP Addendum view model and renderer, layout
-`cf-il4-addendum-docx` 1.0, on the accepted canonical model). 09D is not
-started. Milestones **07C** and **08A** are accepted and included in
-**v0.8.0**, which is being prepared for tag and production deploy.
-**v0.7.0** remains the live production revision until that release is
-verified. Accepted architecture is ADR-032, ADR-033, and ADR-034.
+Do not begin Milestone 08B. Do not begin Milestone 09C. Do not start another
+milestone while 09D is pending acceptance. Milestones **07C** and **08A**
+are accepted and included in **v0.8.0**, which is being prepared for tag
+and production deploy. **v0.7.0** remains the live production revision
+until that release is verified. The IL4 Addendum export is not part of the
+live production revision. Accepted architecture is ADR-032, ADR-033, and
+ADR-034.
 
 The Control Freak SSP V1 is a human-readable product artifact informed by
 NIST SP 800-18 Rev. 2 concepts. It is not an OSCAL document rendered into

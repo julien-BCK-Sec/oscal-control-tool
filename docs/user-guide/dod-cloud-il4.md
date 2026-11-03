@@ -217,10 +217,39 @@ framework items, including General Readiness Requirements.
 
 See [Track Evidence coverage](/help/evidence-coverage).
 
+## IL4 Addendum (Word)
+
+IL4 projects can download **IL4 Addendum (Word)** from the workspace
+toolbar. The file is a Control Freak document, layout `cf-il4-addendum-docx`
+1.0. It is a delta companion to the generic System Security Plan:
+
+- 10 DoD General Readiness Requirements, printed in detail
+- 12 NIST controls or enhancements that are not in FedRAMP Moderate, printed
+  in detail
+- 10 FedRAMP Moderate controls with a current Table D-1 parameter adjustment,
+  printed in detail
+- one membership note for SC-18, which is already in FedRAMP Moderate and is
+  inclusion-only in Table D-1
+- 312 other FedRAMP Moderate items left in the broader SSP and not reprinted
+
+Those 312 items remain part of the 345-item IL4 authoring framework. The
+addendum does not treat them as out of scope.
+
+The file is generated on the server from the last saved project. It uses the
+same system characteristics, implementation narratives, documentation status,
+Evidence metadata, and parameter resolution as the generic SSP. Missing
+fields stay as placeholders. Unresolved parameters, source conflicts, and
+authoritative-value-required items stay unresolved.
+
+It is not an official DoD, DISA, or FedRAMP template, and generating it does
+not establish an authorization. Word refreshes the table of contents when
+the file is opened. See [Human-readable SSP](/help/human-readable-ssp).
+
 ## OSCAL export
 
 IL4 projects do not offer **Export OSCAL SSP (JSON)**. The button does not
-appear. They do offer **Export human-readable SSP (Word)**. See
+appear. They do offer **Export human-readable SSP (Word)** and, for this
+framework only, **IL4 Addendum (Word)**. See
 [Human-readable SSP](/help/human-readable-ssp).
 
 Control Freak does not currently have an approved, pinned authoritative

@@ -128,6 +128,9 @@ delta (ADR-029, including the 06B amendment). That is **not** an official
 FedRAMP or DoD OSCAL profile. Do not point IL4 export at the NIST Moderate
 profile or fabricate a FedRAMP/DoD profile. IL4 OSCAL SSP export remains
 disabled (`frameworkHasOscalSspExport("dod-cloud-il4-rev5") === false`).
+The Control Freak IL4 Addendum Word export (`cf-il4-addendum-docx` 1.0) is
+a human-readable delta document. It is not an OSCAL profile and it does not
+enable IL4 OSCAL export.
 Direct export fails closed and does not fall back to the NIST Moderate
 profile.
 

@@ -22,6 +22,14 @@ This export is available for every currently supported project framework:
 NIST SP 800-53 Rev. 5 Low, Moderate, and High; CMMC Level 2; and DoD Cloud
 Impact Level 4.
 
+DoD Cloud Impact Level 4 projects also offer **IL4 Addendum (Word)**. That
+file is a separate Control Freak delta document (`cf-il4-addendum-docx`
+1.0). It prints the 10 General Readiness Requirements, the 22 NIST IL4
+delta items, and an SC-18 membership note. It does not reprint the other
+312 FedRAMP Moderate items, and it does not replace this generic SSP.
+It is not an official DoD template. See
+[DoD Cloud Impact Level 4](/help/dod-cloud-il4#il4-addendum-word).
+
 ## Control Freak SSP vs OSCAL SSP
 
 Control Freak has two sibling exports:

@@ -13,8 +13,10 @@ import { ControlBrowser } from "@/components/ControlBrowser";
 import { EvidenceBrowser } from "@/components/evidence/EvidenceBrowser";
 import { ProjectMetadataSection } from "@/components/ProjectMetadataSection";
 import { ProjectOverview } from "@/components/ProjectOverview";
+import { ExportIl4AddendumButton } from "@/components/ExportIl4AddendumButton";
 import { ExportOscalButton } from "@/components/ExportOscalButton";
 import { ExportSspDocxButton } from "@/components/ExportSspDocxButton";
+import { supportsIl4AddendumExport } from "@/il4-addendum/support";
 import { AuthenticatedHeaderActions } from "@/components/auth/AuthenticatedHeaderActions";
 import { ProductHeader } from "@/components/design-system/layout/AppShell";
 import {
@@ -872,6 +874,9 @@ export function ProjectWorkspace({
         trailingActions={
           <>
             <ExportSspDocxButton projectId={projectId} compact />
+            {supportsIl4AddendumExport(framework.id) ? (
+              <ExportIl4AddendumButton projectId={projectId} compact />
+            ) : null}
             <ExportOscalButton
               framework={framework}
               metadata={metadata}
