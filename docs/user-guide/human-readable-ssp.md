@@ -114,6 +114,11 @@ Information and solution/response), and a generation record. Diagrams and
 other official FedRAMP package-only tables are not included; purpose/scope
 names those deferrals explicitly.
 
+The exported Word file is a professional, editable starting point. Layout
+and pagination vary with how much content the project contains. Minor
+formatting adjustments before you distribute or submit the document are
+normal and do not by themselves mean the export is defective.
+
 Word refreshes the table of contents when the document is opened. Cached
 contents do not invent page numbers. Occasional pagination splits in long
-control entries can remain.
+control-summary or implementation entries can remain.

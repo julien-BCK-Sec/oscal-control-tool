@@ -222,13 +222,15 @@ templates, and generated prose are not the product domain.
   placeholders. No false compliance/authorization claims. Diagrams remain
   deferred. Official FedRAMP/DoD package templates remain later work.
   Presentation modernized to `cf-ssp-docx` 2.0 in Milestone 09E (ADR-035;
-  manually accepted 2026-11-03; not tagged/released/deployed).
+  finally accepted 2026-11-10; not tagged/released/deployed).
 
-- **09E — General SSP DOCX Modernization** (implemented, manually accepted
-  2026-11-03; not tagged/released/deployed) — Control Freak-owned
+- **09E — General SSP DOCX Modernization** (implemented, finally accepted
+  2026-11-10; not tagged/released/deployed) — Control Freak-owned
   `cf-ssp-docx` 2.0 presentation informed by FedRAMP Rev. 5 Word conventions
   without filling official templates. Preserves synthesis, parameter
-  resolution, populations, export auth, and the 09D IL4 Addendum. See
+  resolution, populations, export auth, and the 09D IL4 Addendum. Generated
+  Word SSPs are professional editable starting points; minor human
+  formatting before distribution is expected. See
   `docs/milestones/09E-fedramp-rev5-ssp-docx-modernization.md` and ADR-035.
 
 - **07C — Parameter and Control Fidelity** (implemented, manually accepted, included in v0.8.0 being prepared) — per-ODP framework resolution,
@@ -435,7 +437,7 @@ that an entire control is satisfied.
   file. 09C is not required for that export. 09D is implemented and
   manually accepted (2026-11-03). It is not tagged, released, or deployed.
   Milestone 09E modernizes the companion general SSP to `cf-ssp-docx` 2.0
-  (manually accepted 2026-11-03; ADR-035) without changing 09D behavior.
+  (finally accepted 2026-11-10; ADR-035) without changing 09D behavior.
 
 - **Template-driven authorization packages** — maintain versioned output
   templates separately from project data so government/program template

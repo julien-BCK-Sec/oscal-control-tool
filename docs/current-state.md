@@ -1,6 +1,6 @@
 # Current Project State
 
-Date: 2026-11-03
+Date: 2026-11-10
 
 ## Product Position
 
@@ -155,8 +155,8 @@ information uses placeholders; unresolved ODPs stay unresolved unless a
 Implementation documentation status is not compliance status. Linked
 Evidence is reference material, not automatically assessed. Local demo
 smoke (2026-09-17) downloaded and opened a Word SSP. Layout later advanced
-to `cf-ssp-docx` 2.0 under Milestone 09E (ADR-035) and was manually
-accepted (2026-11-03).
+to `cf-ssp-docx` 2.0 under Milestone 09E (ADR-035) and was finally
+accepted (2026-11-10).
 
 This is not an official FedRAMP SSP/package, DoD authorization package,
 CMMC assessment artifact, or a certification/ATO/PA claim.
@@ -227,8 +227,8 @@ for NIST Moderate, CMMC, and IL4: Word MIME type, safe `.docx` filename,
 non-empty valid DOCX, Control Freak SSP identity, disclaimer language,
 system-characteristics sections, security-requirements/control
 implementations, unresolved ODP treatment, and generation metadata.
-Layout `cf-ssp-docx` 2.0 (Milestone 09E; ADR-035; manually accepted
-2026-11-03) modernizes presentation while preserving synthesis and export
+Layout `cf-ssp-docx` 2.0 (Milestone 09E; ADR-035; finally accepted
+2026-11-10) modernizes presentation while preserving synthesis and export
 auth. NIST OSCAL SSP export remains available; CMMC and IL4 OSCAL
 SSP export remain unavailable. CMMC Word SSP uses requirement framing and
 does not invent MET/NOT MET/SPRS/certification claims. IL4 population
@@ -681,13 +681,18 @@ guidance spacing and known GRR extract typos) are preserved rather than
 silently edited. 09D is accepted on `main` but not tagged, released, or
 deployed.
 
-Milestone **09E** is **implemented and manually accepted** (2026-11-03).
-ADR-035. General SSP layout is **`cf-ssp-docx` 2.0**: formal cover,
-purpose/scope with explicit deferrals, Control Summary Information +
-solution-response control entries, and 09D-inspired visual language,
-without filling the official FedRAMP Word shell and without changing
-synthesis, parameter resolution, populations, export auth, or 09D.
-Framework labeling uses the actual selected framework name. Sample tooling:
+Milestone **09E** is **implemented and manually accepted** (final
+acceptance 2026-11-10). ADR-035. General SSP layout is **`cf-ssp-docx`
+2.0**: formal cover, purpose/scope with explicit deferrals, Control Summary
+Information + solution-response control entries, and 09D-inspired visual
+language, without filling the official FedRAMP Word shell and without
+changing synthesis, parameter resolution, populations, export auth, or 09D.
+Framework labeling uses the actual selected framework name. Both reviewed
+samples (NIST Moderate Strategic Goose Operations Platform and DoD IL4 Snow
+Goose Cloud Impact Level 4) were accepted. Acceptance principle: generated
+Word SSPs are professional, editable starting points; layout and pagination
+vary with project content, and minor human formatting before distribution
+is expected, not automatically a renderer defect. Sample tooling:
 `scripts/generate-ssp-docx-samples.ts`. Known non-blocking limitations:
 occasional control-summary pagination splits; Word refreshes TOC/page
 numbers on open; deferred official FedRAMP package fields remain named in

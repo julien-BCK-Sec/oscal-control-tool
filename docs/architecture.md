@@ -234,6 +234,10 @@ Milestone 07B capabilities (presentation modernized by Milestone 09E):
 - No new SQL migration
 - Diagrams and official FedRAMP package fields remain deferred (named in
   SSP purpose/scope; not empty official tables)
+- Acceptance principle (Milestone 09E): generated Word SSPs are
+  professional, editable starting points. Layout and pagination vary with
+  project content; minor human formatting before distribution is expected
+  and is not automatically a renderer defect.
 - Known presentation limitations: occasional control-summary pagination
   splits; Word refreshes TOC/page numbers on open
 

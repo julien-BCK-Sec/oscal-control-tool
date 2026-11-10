@@ -1,11 +1,17 @@
 # Milestone 09E — General SSP DOCX Modernization
 
-**Status:** Implemented and **manually accepted** (2026-11-03)  
-**Acceptance date:** 2026-11-03  
-**Type:** Implementation  
-**Depends on:** Milestones 07A–07C, 09D; ADR-030, ADR-031, ADR-032, ADR-035  
-**Implementation authorized:** Yes  
-**Production deployment authorized:** No  
+**Status:** Implemented and **manually accepted** (final acceptance 2026-11-10)
+
+**Acceptance date:** 2026-11-10 (final); initial presentation acceptance 2026-11-03
+
+**Type:** Implementation
+
+**Depends on:** Milestones 07A–07C, 09D; ADR-030, ADR-031, ADR-032, ADR-035
+
+**Implementation authorized:** Yes
+
+**Production deployment authorized:** No
+
 **Acceptance STOP:** Completed — accepted; do not tag, release, or deploy in this closeout
 
 ### Closeout record
@@ -28,10 +34,26 @@
    (`GET /api/projects/[projectId]/exports/ssp.docx`, `project.read`), and
    the 09D IL4 Addendum (`cf-il4-addendum-docx` 1.0) are unchanged. No
    schema migration. No official FedRAMP Word template fill.
-4. **Manual acceptance completed** (2026-11-03) after review of regenerated
-   NIST Moderate and DoD IL4 representative DOCX samples.
+4. **Final manual acceptance completed** (2026-11-10) for the
+   `cf-ssp-docx` 2.0 general SSP renderer after review of both
+   representative sample documents:
+   - NIST Moderate: Strategic Goose Operations Platform System Security Plan
+   - DoD IL4: Snow Goose Cloud Impact Level 4 System Security Plan
+   Sample regeneration remains available via
+   `scripts/generate-ssp-docx-samples.ts`. Generated sample binaries are not
+   committed.
 5. **Milestone accepted.** Not tagged, released, or deployed. Production
    remains **v0.7.0** until a later authorized release includes this work.
+
+### Acceptance principle
+
+Generated Control Freak Word SSPs are **professional, editable starting
+points**. Layout and pagination vary with project content (control
+population size, narrative length, tables, and Evidence density). Minor
+human formatting adjustments before distribution or submission are an
+**expected characteristic** of Word export, not automatically a renderer
+defect. Reviewers should distinguish content or labeling defects from
+ordinary Word pagination and field-refresh behavior.
 
 ### Known non-blocking limitations
 
@@ -187,15 +209,15 @@ unchanged companion:  cf-il4-addendum-docx 1.0
 | 1. Authoritative FedRAMP Rev. 5 SSP reference reviewed and recorded | **Met** |
 | 2. Proposed structure architecturally approved | **Met** (ADR-035) |
 | 3. Canonical SSP synthesis and parameter-resolution unchanged unless approved | **Met** |
-| 4. Generated DOCX professional, readable, structurally appropriate | **Met** (manual acceptance 2026-11-03) |
+| 4. Generated DOCX professional, readable, structurally appropriate | **Met** (final manual acceptance 2026-11-10) |
 | 5. Framework-aware labeling (actual framework name; NIST ≠ FedRAMP Moderate) | **Met** |
 | 6. IL4 Addendum remains a separate export | **Met** |
 | 7. Undocumented values and unresolved assignments not fabricated or hidden | **Met** |
 | 8. Control populations correct and complete for the selected framework | **Met** |
 | 9. Export continues to enforce authentication and project-access controls | **Met** |
 | 10. Automated tests, lint, build, and diff checks pass | **Met** at closeout |
-| 11. Representative generated DOCX files available for manual visual review | **Met** |
-| 12. Manual acceptance recorded before milestone closeout | **Met** (2026-11-03) |
+| 11. Representative generated DOCX files available for manual visual review | **Met** (NIST Moderate + DoD IL4 samples reviewed) |
+| 12. Manual acceptance recorded before milestone closeout | **Met** (final 2026-11-10) |
 
 ## Execution sequence
 
@@ -209,9 +231,11 @@ unchanged companion:  cf-il4-addendum-docx 1.0
 
 ### Phase 3 — Closeout
 
-**Status: complete (2026-11-03).** Manual acceptance recorded. Project
-documentation updated. Implementation committed locally. Do not push, tag,
-release, or deploy without separate authorization.
+**Status: complete (final acceptance 2026-11-10).** Manual acceptance of
+`cf-ssp-docx` 2.0 and both reviewed samples recorded, including the
+editable-starting-point acceptance principle. Project documentation
+updated. Do not push, tag, release, or deploy without separate
+authorization.
 
 ## Accepted architectural decisions (ADR-035)
 
@@ -230,7 +254,8 @@ release, or deploy without separate authorization.
 
 ## Current decision gate
 
-Milestone **09E is accepted.** Closeout is complete on the local branch.
+Milestone **09E is accepted** (final manual acceptance 2026-11-10). Phase 3
+closeout is complete.
 
 Do **not** push, tag, release, or deploy without separate authorization.
 Production remains **v0.7.0** until a later authorized release includes this
